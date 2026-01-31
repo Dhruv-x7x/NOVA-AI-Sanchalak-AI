@@ -106,10 +106,22 @@ npm run dev
 
 ## 🧪 Optional Features
 
-### Neo4j Knowledge Graph
+### Neo4j Knowledge Graph (Cascade Intelligence)
 ```bash
+# Windows (double-click):
+seed_neo4j.bat
+
+# Or run manually:
 python scripts/seed_neo4j_cascade.py
-python scripts/seed_graph.py
+```
+
+### ML Drift Monitor
+```bash
+# Windows (double-click):
+drift_run.bat
+
+# Or run manually:
+python scripts/run_drift_monitor.py
 ```
 
 ### Local AI Model (Ollama)
