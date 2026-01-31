@@ -32,6 +32,9 @@ python run.py --skip-db       # Skip database setup (use existing data)
 > [!TIP]
 > **No PostgreSQL installed?** Use `--docker` - it will automatically start PostgreSQL in a container.
 
+> [!WARNING]
+> **First-time installation may take 10-15 minutes** depending on your network speed and storage. The full dependency installation is **~10GB** (Python ML libraries + Node modules). Ensure you have sufficient disk space and a stable internet connection.
+
 ## ⚙️ Setup
 
 ### 1. Environment Configuration
