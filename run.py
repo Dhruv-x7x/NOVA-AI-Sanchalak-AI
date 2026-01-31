@@ -469,13 +469,10 @@ def start_backend():
         "--reload"
     ]
     
-    # Start in background
+    # Start in background (logs stream to console)
     process = subprocess.Popen(
         cmd, 
-        cwd=BACKEND_DIR,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True
+        cwd=BACKEND_DIR
     )
     running_processes.append(("Backend", process))
     return process
@@ -487,14 +484,11 @@ def start_frontend():
     
     cmd = ["npm", "run", "dev"]
     
-    # Start in background
+    # Start in background (logs stream to console)
     process = subprocess.Popen(
         cmd,
         cwd=FRONTEND_DIR,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-        shell=is_windows()  # npm needs shell on Windows
+        shell=True  # npm needs shell on Windows/Linux usually works better too
     )
     running_processes.append(("Frontend", process))
     return process
