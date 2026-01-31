@@ -18,7 +18,7 @@ TrialPulse Nexus 10X is an AI-powered Clinical Trial Intelligence Platform desig
 | **LLM** | Groq (primary) + Ollama (fallback) | Agent reasoning, generation |
 
 ## 🛠️ Reproducibility
-The `chitti` folder contains everything necessary to mirror the current development environment:
+The `TrialPulseNexus` folder contains everything necessary to mirror the current development environment:
 - **Full Database State**: A complete PostgreSQL dump (`database/nexus_complete_backup.sql`) capturing every row, column, and feature.
 - **Complete Source Code**: Backend (FastAPI), Frontend (React/Vite), and core logic.
 - **Utility Scripts**: All 150+ specialized scripts for data sync, model training, and verification.

@@ -34,7 +34,7 @@ ENV_FILE = PROJECT_ROOT / ".env"
 
 # Docker settings
 DOCKER_CONTAINER_NAME = "trialpulse-postgres"
-DOCKER_IMAGE = "postgres:14"
+DOCKER_IMAGE = "postgres:16"
 POSTGRES_PORT = 5432
 POSTGRES_USER = "postgres"
 POSTGRES_PASSWORD = "chitti"
@@ -268,8 +268,38 @@ def docker_restore_dump():
     
     print_step("📥", "Restoring database dump (this may take 1-2 minutes)...")
     
-    # Copy dump file into container
-    run_cmd(["docker", "cp", str(DATABASE_DUMP), f"{DOCKER_CONTAINER_NAME}:/tmp/dump.sql"])
+    # Read and sanitize the dump to remove incompatible settings
+    print_step("🔧", "Sanitizing dump for compatibility...")
+    with open(DATABASE_DUMP, 'r', encoding='utf-8', errors='ignore') as f:
+        dump_content = f.read()
+    
+    # Remove settings that may not exist in target PostgreSQL version
+    incompatible_settings = [
+        'transaction_timeout',
+        'idle_session_timeout',
+        'statement_timeout_in_transaction_blocks',
+    ]
+    
+    lines = dump_content.split('\n')
+    filtered_lines = []
+    for line in lines:
+        skip = False
+        for setting in incompatible_settings:
+            if setting in line.lower():
+                skip = True
+                break
+        if not skip:
+            filtered_lines.append(line)
+    
+    sanitized_content = '\n'.join(filtered_lines)
+    
+    # Write sanitized dump to temp file
+    sanitized_dump = PROJECT_ROOT / "database" / "sanitized_dump.sql"
+    with open(sanitized_dump, 'w', encoding='utf-8') as f:
+        f.write(sanitized_content)
+    
+    # Copy sanitized dump file into container
+    run_cmd(["docker", "cp", str(sanitized_dump), f"{DOCKER_CONTAINER_NAME}:/tmp/dump.sql"])
     
     # Restore it
     start = time.time()
@@ -282,10 +312,35 @@ def docker_restore_dump():
         run_cmd(cmd)
         duration = time.time() - start
         print_step("✓", f"Database restored in {duration:.1f}s")
+        # Clean up sanitized dump
+        if sanitized_dump.exists():
+            sanitized_dump.unlink()
+        
+        # Create indexes for faster queries
+        print_step("🔧", "Creating database indexes for performance...")
+        index_cmd = [
+            "docker", "exec", DOCKER_CONTAINER_NAME,
+            "psql", "-U", POSTGRES_USER, "-d", POSTGRES_DB, "-c",
+            """
+            CREATE INDEX IF NOT EXISTS idx_patients_study ON patients(study_id);
+            CREATE INDEX IF NOT EXISTS idx_patients_site ON patients(site_id);
+            CREATE INDEX IF NOT EXISTS idx_patients_dqi ON patients(dqi_score);
+            CREATE INDEX IF NOT EXISTS idx_patients_key ON patients(patient_key);
+            CREATE INDEX IF NOT EXISTS idx_patients_risk ON patients(risk_score);
+            CREATE INDEX IF NOT EXISTS idx_issues_status ON project_issues(status);
+            CREATE INDEX IF NOT EXISTS idx_issues_site ON project_issues(site_id);
+            CREATE INDEX IF NOT EXISTS idx_issues_patient ON project_issues(patient_key);
+            CREATE INDEX IF NOT EXISTS idx_sites_dqi ON clinical_sites(dqi_score);
+            """
+        ]
+        run_cmd(index_cmd, check=False)  # Don't fail if indexes already exist
+        print_step("✓", "Database indexes created")
+        
         return True
     except subprocess.CalledProcessError as e:
         print_error(f"Failed to restore database: {e}")
         return False
+
 
 
 def docker_cleanup():

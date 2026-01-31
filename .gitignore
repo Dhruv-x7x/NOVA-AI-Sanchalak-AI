@@ -2,6 +2,9 @@
 # TrialPulse Nexus - Git Ignore
 # ===========================================
 
+# ----- Documentation (LaTeX) -----
+docs/
+
 # ----- Environment & Secrets -----
 .env
 *.env.local

@@ -1,6 +1,6 @@
 # TrialPulse Nexus - Reproduction Instructions
 
-This folder (`chitti`) contains the complete TrialPulse Nexus 10X solution.
+This folder (`TrialPulseNexus`) contains the complete TrialPulse Nexus 10X solution.
 
 ## 📋 Prerequisites
 - **Python 3.10+**
@@ -99,5 +99,5 @@ ollama create trialpulse-nexus -f Modelfile
 ```
 
 ---
-**TrialPulse Nexus - Chitti Package**
+**TrialPulse Nexus**
 
