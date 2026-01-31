@@ -1,6 +1,10 @@
-# TrialPulse Nexus - Reproduction Instructions
+# TrialPulse Nexus
 
-This folder (`TrialPulseNexus`) contains the complete TrialPulse Nexus 10X solution.
+<img width="1683" height="800" alt="executive1" src="https://github.com/user-attachments/assets/c6e61270-bfe7-489a-8bb5-e4ce99137b12" />
+
+This is submission by Team PARZIVAL (Riyaz, Dhruv, Preetam) for the NOVA AI Hackathon 2026.
+
+---
 
 ## 📋 Prerequisites
 - **Python 3.10+**
