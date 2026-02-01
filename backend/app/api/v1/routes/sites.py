@@ -499,7 +499,9 @@ async def create_action_plan(
             selected_issues = issues_df[issues_df["normalized_type"].isin(selected_issue_ids)]
         
         if selected_issues.empty:
-            raise HTTPException(status_code=400, detail="No matching issues found for selected IDs")
+            available_types = issues_df["normalized_type"].unique().tolist() if not issues_df.empty else []
+            logger.warning(f"Action Play 400 Error: Request IDs {selected_issue_ids} not found in available types {available_types}")
+            raise HTTPException(status_code=400, detail=f"No matching issues found for selected IDs. Available: {available_types}")
         
         # Generate action plan
         actions = []
