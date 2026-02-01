@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import Layout from '@/components/Layout';
+import StartupLoader from '@/components/StartupLoader';
 import LoginPage from '@/features/LoginPage';
 import ExecutiveOverview from '@/features/ExecutiveOverview';
 import StudyLead from '@/features/StudyLead';
@@ -68,162 +69,164 @@ export default function App() {
   const { isAuthenticated } = useAuthStore();
 
   return (
-    <TooltipProvider>
-      <Routes>
-        <Route
-          path="/login"
-          element={
-            isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />
-          }
-        />
+    <StartupLoader>
+      <TooltipProvider>
+        <Routes>
+          <Route
+            path="/login"
+            element={
+              isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />
+            }
+          />
 
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <RoleBasedRedirect />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <RoleBasedRedirect />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/executive"
-          element={
-            <ProtectedRoute>
-              <ExecutiveOverview />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/executive"
+            element={
+              <ProtectedRoute>
+                <ExecutiveOverview />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/study-lead"
-          element={
-            <ProtectedRoute>
-              <StudyLead />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/study-lead"
+            element={
+              <ProtectedRoute>
+                <StudyLead />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/dm-hub"
-          element={
-            <ProtectedRoute>
-              <DMHub />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/dm-hub"
+            element={
+              <ProtectedRoute>
+                <DMHub />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/cra-view"
-          element={
-            <ProtectedRoute>
-              <CRAView />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/cra-view"
+            element={
+              <ProtectedRoute>
+                <CRAView />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/coder-view"
-          element={
-            <ProtectedRoute>
-              <CoderView />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/coder-view"
+            element={
+              <ProtectedRoute>
+                <CoderView />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/safety-view"
-          element={
-            <ProtectedRoute>
-              <SafetyView />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/safety-view"
+            element={
+              <ProtectedRoute>
+                <SafetyView />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/site-portal"
-          element={
-            <ProtectedRoute>
-              <SitePortal />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/site-portal"
+            element={
+              <ProtectedRoute>
+                <SitePortal />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/reports"
-          element={
-            <ProtectedRoute>
-              <Reports />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/reports"
+            element={
+              <ProtectedRoute>
+                <Reports />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/ml-governance"
-          element={
-            <ProtectedRoute>
-              <MLGovernance />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/ml-governance"
+            element={
+              <ProtectedRoute>
+                <MLGovernance />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/cascade-explorer"
-          element={
-            <ProtectedRoute>
-              <CascadeExplorer />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/cascade-explorer"
+            element={
+              <ProtectedRoute>
+                <CascadeExplorer />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/hypothesis-explorer"
-          element={
-            <ProtectedRoute>
-              <HypothesisExplorer />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/hypothesis-explorer"
+            element={
+              <ProtectedRoute>
+                <HypothesisExplorer />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/collaboration-hub"
-          element={
-            <ProtectedRoute>
-              <CollaborationHub />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/collaboration-hub"
+            element={
+              <ProtectedRoute>
+                <CollaborationHub />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/ai-assistant"
-          element={
-            <ProtectedRoute>
-              <AIAssistant />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/ai-assistant"
+            element={
+              <ProtectedRoute>
+                <AIAssistant />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/settings"
-          element={
-            <ProtectedRoute>
-              <SettingsPage />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <SettingsPage />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/visualization"
-          element={
-            <ProtectedRoute>
-              <VisualizationDashboard />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/visualization"
+            element={
+              <ProtectedRoute>
+                <VisualizationDashboard />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* Catch all - redirect to home */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </TooltipProvider>
+          {/* Catch all - redirect to home */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </TooltipProvider>
+    </StartupLoader>
   );
 }
