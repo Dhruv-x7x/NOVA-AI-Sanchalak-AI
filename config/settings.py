@@ -11,8 +11,9 @@ from typing import Dict, List
 # PATH CONFIGURATION
 # ============================================
 
-# Project root (adjust if needed)
-PROJECT_ROOT = Path(r"D:\trialpulse_nexus")
+# Project root (dynamically detected from this file's location)
+# config/settings.py → parent is config/, parent of that is project root
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 # Data paths
 DATA_RAW = PROJECT_ROOT / "data" / "raw"

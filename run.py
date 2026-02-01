@@ -35,9 +35,21 @@ ENV_FILE = PROJECT_ROOT / ".env"
 # Docker settings
 DOCKER_CONTAINER_NAME = "trialpulse-postgres"
 DOCKER_IMAGE = "postgres:16"
-POSTGRES_PORT = 5432
+
+# Load settings from .env if available
+def _load_env_value(key, default):
+    """Load a value from .env file if it exists."""
+    if ENV_FILE.exists():
+        with open(ENV_FILE, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith(f'{key}='):
+                    return line.split('=', 1)[1].strip().strip('"').strip("'")
+    return default
+
+POSTGRES_PORT = int(_load_env_value('DB_PORT', '5432'))
 POSTGRES_USER = "postgres"
-POSTGRES_PASSWORD = "chitti"
+POSTGRES_PASSWORD = _load_env_value('DB_PASSWORD', 'chitti')
 POSTGRES_DB = "trialpulse_test"
 
 # Server ports
@@ -363,10 +375,12 @@ def local_restore_dump(psql_path):
     env = os.environ.copy()
     env["PGPASSWORD"] = POSTGRES_PASSWORD
     
+    port_str = str(POSTGRES_PORT)
+    
     # Drop existing database
     print_step("🗑️", f"Dropping existing {POSTGRES_DB}...")
     subprocess.run(
-        [psql_path, "-h", "127.0.0.1", "-U", POSTGRES_USER, "-d", "postgres", 
+        [psql_path, "-h", "127.0.0.1", "-p", port_str, "-U", POSTGRES_USER, "-d", "postgres", 
          "-c", f"DROP DATABASE IF EXISTS {POSTGRES_DB};"],
         env=env, capture_output=True
     )
@@ -374,7 +388,7 @@ def local_restore_dump(psql_path):
     # Create database
     print_step("📦", f"Creating {POSTGRES_DB}...")
     subprocess.run(
-        [psql_path, "-h", "127.0.0.1", "-U", POSTGRES_USER, "-d", "postgres",
+        [psql_path, "-h", "127.0.0.1", "-p", port_str, "-U", POSTGRES_USER, "-d", "postgres",
          "-c", f"CREATE DATABASE {POSTGRES_DB};"],
         env=env, check=True
     )
@@ -383,7 +397,7 @@ def local_restore_dump(psql_path):
     print_step("📥", "Restoring database dump (this may take 1-2 minutes)...")
     start = time.time()
     subprocess.run(
-        [psql_path, "-h", "127.0.0.1", "-U", POSTGRES_USER, "-d", POSTGRES_DB,
+        [psql_path, "-h", "127.0.0.1", "-p", port_str, "-U", POSTGRES_USER, "-d", POSTGRES_DB,
          "-f", str(DATABASE_DUMP), "-q"],
         env=env, check=True
     )

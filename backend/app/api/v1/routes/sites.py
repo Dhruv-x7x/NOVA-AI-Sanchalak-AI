@@ -391,7 +391,7 @@ async def get_site_dqi_issues(
         for _, row in issues_df.iterrows():
             # Better normalization
             raw_type = str(row.get("issue_type", "unknown")).lower()
-            if "query" in raw_type: issue_type = "open_queries"
+            if "query" in raw_type: issue_type = "open_query"
             elif "signature" in raw_type: issue_type = "signature_gap"
             elif "visit" in raw_type: issue_type = "missing_visit"
             elif "lab" in raw_type: issue_type = "missing_labs"
@@ -412,7 +412,7 @@ async def get_site_dqi_issues(
             
             # Estimate effort based on issue type
             effort_map = {
-                "missing_ae": 15, "missing_labs": 20, "open_queries": 10,
+                "missing_ae": 15, "missing_labs": 20, "open_query": 10,
                 "query_response": 10, "protocol_dev": 30, "coding_pending": 8,
                 "missing_visit": 25, "signature_gap": 10, "sdv_incomplete": 20,
                 "sae_pending": 45, "lab_issue": 15
@@ -423,14 +423,14 @@ async def get_site_dqi_issues(
         component_map = {
             "missing_ae": "Safety Score", "sae_pending": "Safety Score",
             "missing_labs": "Lab Score", "lab_issue": "Lab Score",
-            "open_queries": "Query Score", "query_response": "Query Score",
+            "open_query": "Query Score", "query_response": "Query Score",
             "protocol_dev": "Completeness", "missing_visit": "Completeness",
             "coding_pending": "Coding Score", "signature_gap": "Completeness",
             "sdv_incomplete": "SDV Score"
         }
         
         priority_map = {
-            "sae_pending": "High", "missing_ae": "High", "open_queries": "High",
+            "sae_pending": "High", "missing_ae": "High", "open_query": "High",
             "missing_labs": "Medium", "protocol_dev": "Medium", "signature_gap": "Medium",
             "coding_pending": "Low", "missing_visit": "Medium", "sdv_incomplete": "Medium"
         }
@@ -512,7 +512,7 @@ async def create_action_plan(
         role_map = {
             "missing_ae": "Data Manager", "sae_pending": "Safety Associate",
             "missing_labs": "Data Manager", "lab_issue": "Lab Coordinator",
-            "open_queries": "CRA", "query_response": "Site Coordinator",
+            "open_query": "CRA", "query_response": "Site Coordinator",
             "protocol_dev": "Study Manager", "missing_visit": "Site Coordinator",
             "coding_pending": "Medical Coder", "signature_gap": "Site Coordinator",
             "sdv_incomplete": "CRA"
@@ -530,7 +530,7 @@ async def create_action_plan(
             # Calculate effort based on issue type
             effort_per_issue = {
                 "missing_ae": 15, "sae_pending": 45, "missing_labs": 20,
-                "lab_issue": 15, "open_queries": 10, "query_response": 10,
+                "lab_issue": 15, "open_query": 10, "query_response": 10,
                 "protocol_dev": 30, "missing_visit": 25, "coding_pending": 8,
                 "signature_gap": 10, "sdv_incomplete": 20
             }
@@ -543,7 +543,7 @@ async def create_action_plan(
             total_dqi_impact += dqi_gain
             
             # Priority based on issue type
-            priority = "High" if issue_type in ["sae_pending", "missing_ae", "open_queries"] else "Medium"
+            priority = "High" if issue_type in ["sae_pending", "missing_ae", "open_query"] else "Medium"
             
             actions.append({
                 "id": f"ACT-{site_id}-{issue_type[:8].upper()}",

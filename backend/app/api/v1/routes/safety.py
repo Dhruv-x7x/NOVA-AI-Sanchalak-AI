@@ -17,6 +17,25 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirna
 
 from app.core.security import get_current_user, require_role
 from app.services.database import get_data_service
+import math
+import numpy as np
+
+def _sanitize_for_json(data):
+    """Recursively replace NaN/Infinity float values with None for JSON serialization."""
+    if isinstance(data, dict):
+        return {k: _sanitize_for_json(v) for k, v in data.items()}
+    elif isinstance(data, list):
+        return [_sanitize_for_json(item) for item in data]
+    elif isinstance(data, float):
+        if math.isnan(data) or math.isinf(data):
+            return None
+        return data
+    elif isinstance(data, (np.floating, np.integer)):
+        val = float(data)
+        if math.isnan(val) or math.isinf(val):
+            return None
+        return val
+    return data
 
 router = APIRouter()
 
@@ -121,7 +140,7 @@ async def get_sae_cases(
         if df.empty:
             return {"cases": [], "total": 0}
             
-        return {"cases": df.to_dict('records'), "total": len(df)}
+        return {"cases": _sanitize_for_json(df.to_dict('records')), "total": len(df)}
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

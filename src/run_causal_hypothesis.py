@@ -3,8 +3,8 @@ TRIALPULSE NEXUS 10X - Run Causal Hypothesis Engine
 Phase 4.4 Runner Script v1.2
 
 Usage:
-    cd D:\\trialpulse_nexus
-    python src\\run_causal_hypothesis.py
+    cd <project_root>
+    python src/run_causal_hypothesis.py
 """
 
 import sys

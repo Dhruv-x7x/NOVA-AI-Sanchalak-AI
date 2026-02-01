@@ -16,6 +16,11 @@ import pandas as pd
 import logging
 from pathlib import Path
 import inspect
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+
+# Thread pool for CPU-bound report generation
+_report_executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="report_gen")
 
 logger = logging.getLogger(__name__)
 
@@ -143,7 +148,9 @@ async def generate_report_api(
                 if 'site_id' in sig.parameters: params['site_id'] = first_site
                 if 'sites' in sig.parameters: params['sites'] = [first_site]
         
-        results = generator.generate(**params)
+        # Run the (potentially slow) sync generator in a thread pool to avoid blocking
+        loop = asyncio.get_event_loop()
+        results = await loop.run_in_executor(_report_executor, lambda: generator.generate(**params))
         if not results:
             raise HTTPException(status_code=500, detail="No output from generator")
             
@@ -247,7 +254,9 @@ async def download_report(
         sig = inspect.signature(generator.generate)
         params = {k: v for k, v in params.items() if k in sig.parameters}
         
-        results = generator.generate(**params)
+        # Run the (potentially slow) sync generator in a thread pool to avoid blocking
+        loop = asyncio.get_event_loop()
+        results = await loop.run_in_executor(_report_executor, lambda: generator.generate(**params))
         if not results:
             raise HTTPException(status_code=500, detail="Failed to generate download")
             
