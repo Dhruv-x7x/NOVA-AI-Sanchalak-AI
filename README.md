@@ -21,16 +21,17 @@ This is submission by Team PARZIVAL (Riyaz, Dhruv, Preetam) for the NOVA AI Hack
 
 ---
 
-## 🔑 Free API Key (Shared)
+## 🔑 Free API Keys (Shared)
 
-We're providing a free Groq API key for evaluation purposes:
+We're providing free API keys for evaluation purposes:
 
 ```
+GOOGLE_API_KEY=AIzaSyBy29MLmGOhfMuSAsj-q-rUvFheOItT-W0
 GROQ_API_KEY=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
 ```
 
 > [!TIP]
-> This is a shared key for hackathon judges and evaluators. For production use, please get your own key at [console.groq.com](https://console.groq.com).
+> These are shared keys for hackathon judges and evaluators. Gemini is the primary AI provider; Groq is the fallback.
 
 ---
 
@@ -42,7 +43,8 @@ cp .env.example .env
 ```
 Edit `.env` and set:
 - `DB_PASSWORD` - Your PostgreSQL password
-- `GROQ_API_KEY` - Use the shared key above or get one at [console.groq.com](https://console.groq.com)
+- `GOOGLE_API_KEY` - Use the shared key above or get one at [aistudio.google.com](https://aistudio.google.com/apikey)
+- `GROQ_API_KEY` - (fallback) Use the shared key above or get one at [console.groq.com](https://console.groq.com)
 
 ### 2. Download Database (Required)
 Download the database dump and place it in the `database/` folder:
@@ -133,7 +135,7 @@ npm run dev
 
 All ML model weights (including fine-tuned models), research notebooks, and result plots are available at:
 
-🔗 **[trialplus_nexus Repository](https://github.com/PARZIVALPRIME/sanchalak_ai)**
+🔗 **[Sanchalak AI Models Repository](https://github.com/PARZIVALPRIME/sanchalak_ai)**
 
 ## 📚 Documentation
 
@@ -147,25 +149,7 @@ Full technical documentation is included in this repository:
 
 ### Neo4j Knowledge Graph (Cascade Intelligence)
 ```bash
-# Windows (double-click):
-seed_neo4j.bat
-
-# Or run manually:
 python scripts/seed_neo4j_cascade.py
-```
-
-### ML Drift Monitor
-```bash
-# Windows (double-click):
-drift_run.bat
-
-# Or run manually:
-python scripts/run_drift_monitor.py
-```
-
-### Local AI Model (Ollama)
-```bash
-ollama create trialplus-nexus -f Modelfile
 ```
 
 ---
