@@ -26,7 +26,6 @@ This is submission by Team PARZIVAL (Riyaz, Dhruv, Preetam) for the NOVA AI Hack
 We're providing free API keys for evaluation purposes:
 
 ```
-GOOGLE_API_KEY=AIzaSyBy29MLmGOhfMuSAsj-q-rUvFheOItT-W0
 GROQ_API_KEY=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
 ```
 
