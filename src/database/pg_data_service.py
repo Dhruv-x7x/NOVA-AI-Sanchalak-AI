@@ -288,7 +288,7 @@ class PostgreSQLDataService:
             # Base query
             where = "WHERE 1=1"
             params = {}
-            if study_id and str(study_id).lower() != 'all' and 'all studies' not in str(study_id).lower() and "{" not in str(study_id):
+            if study_id and str(study_id).lower() not in ['all', 'all studies', 'multiple', 'undefined'] and "{" not in str(study_id):
                 where += f" AND study_id = :study_id"
                 params["study_id"] = str(study_id)
                 
@@ -322,7 +322,7 @@ class PostgreSQLDataService:
                 
                 # Sites and studies count
                 total_sites = conn.execute(text(f"SELECT COUNT(DISTINCT site_id) FROM {p_table} {where}"), params).scalar() or 0
-                total_studies = conn.execute(text(f"SELECT COUNT(DISTINCT study_id) FROM {p_table}"), params).scalar() or 0
+                total_studies = conn.execute(text(f"SELECT COUNT(*) FROM studies")).scalar() or 0
                 
                 # Issues: Use project_issues table for accurate open count
                 # NOTE: UPR's total_open_issues column is inflated and unreliable
@@ -437,12 +437,12 @@ class PostgreSQLDataService:
                         SELECT 
                             SUM(COALESCE(total_queries, 0)) as query_count,
                             SUM(COALESCE(total_sae_pending, 0)) as safety_count,
-                            SUM(COALESCE(total_uncoded_terms, 0)) as coding_count,
-                            SUM(COALESCE(edrr_edrr_issue_count, 0)) as edrr_count,
+                            SUM(COALESCE(coding_backlog_total, 0)) as coding_count,
+                            SUM(COALESCE(has_edrr_issues, 0)) as edrr_count,
                             SUM(COALESCE(pds_total, 0)) as deviation_count,
-                            SUM(COALESCE(visit_missing_visit_count, 0)) as missing_visits,
-                            SUM(COALESCE(pages_missing_page_count, 0)) as missing_pages,
-                            SUM(COALESCE(lab_lab_issue_count, 0)) as lab_findings
+                            SUM(COALESCE(has_missing_visits, 0)) as missing_visits,
+                            SUM(COALESCE(has_missing_pages, 0)) as missing_pages,
+                            SUM(COALESCE(has_lab_issues, 0)) as lab_findings
                         FROM {p_table} {where}
                     """
                     t_res = conn.execute(text(type_q), params).fetchone()
@@ -473,7 +473,7 @@ class PostgreSQLDataService:
                     # Fallback to local project_issues
                     fb_where = "WHERE 1=1"
                     if study_id and str(study_id).lower() != 'all':
-                        fb_where += " AND patient_key IN (SELECT patient_key FROM patients WHERE study_id = :study_id)"
+                        fb_where += " AND study_id = :study_id"
                         
                     s_df = pd.read_sql(text(f"SELECT status, COUNT(*) as count FROM project_issues {fb_where} GROUP BY status"), conn, params=params)
                     p_df = pd.read_sql(text(f"SELECT priority, COUNT(*) as count FROM project_issues {fb_where} AND LOWER(status) = 'open' GROUP BY priority"), conn, params=params)

@@ -114,7 +114,20 @@ class TemplateEngine:
         env.filters['format_datetime'] = lambda d: d.strftime('%Y-%m-%d %H:%M:%S') if isinstance(d, datetime) else d
         env.filters['format_currency'] = lambda n: f"${n:,.2f}" if isinstance(n, (int, float)) else n
         env.filters['format_number'] = lambda n: f"{int(n):,}" if isinstance(n, (int, float)) else n
-        env.filters['format_percent'] = lambda x: f"{x*100:.1f}%" if isinstance(x, (int, float)) else x
+        
+        # Smarter format_percent that handles both fractions (0.85) and percentages (85.0)
+        def smart_percent(x):
+            try:
+                if x is None: return "0.0%"
+                val = float(x)
+                # If value is > 1.0 (e.g. 73.4), treat as already a percentage
+                if val > 1.0: return f"{val:.1f}%"
+                # If value is 0.0 to 1.0, multiply by 100
+                return f"{val*100.0:.1f}%"
+            except (ValueError, TypeError):
+                return str(x)
+
+        env.filters['format_percent'] = smart_percent
         env.filters['format_decimal'] = lambda x, p=2: f"{x:.{p}f}" if isinstance(x, (int, float)) else x
         env.filters['priority_badge'] = self._priority_badge
         env.filters['risk_color'] = self._risk_to_color
@@ -131,6 +144,11 @@ class TemplateEngine:
     def _macro_horizontal_bar(self, value: float, max_val: float = 100, color: str = "#3b82f6", width: int = 120, output_format: Any = "html") -> str:
         """Renders a horizontal bar chart (SVG for HTML, ASCII for Text)."""
         fmt = str(output_format.value if hasattr(output_format, 'value') else output_format).lower()
+        
+        # Scale value if it's a fraction
+        if value <= 1.0 and max_val == 100:
+            value = value * 100.0
+            
         pct = min(100, max(0, (value / max_val) * 100)) if max_val > 0 else 0
         
         if fmt in ('txt', 'text'):
@@ -150,7 +168,8 @@ class TemplateEngine:
             
         r, c = size*0.4, 2*3.14159*size*0.4
         offset = c - (pct/100)*c
-        return Markup(f'<svg width="{size}" height="{size}" viewBox="0 0 {size} {size}" style="vertical-align:middle"><circle cx="{size/2}" cy="{size/2}" r="{r}" fill="transparent" stroke="#e2e8f0" stroke-width="{size*0.15}" /><circle cx="{size/2}" cy="{size/2}" r="{r}" fill="transparent" stroke="{color}" stroke-width="{size*0.15}" stroke-dasharray="{c}" stroke-dashoffset="{offset}" stroke-linecap="round" transform="rotate(-90 {size/2} {size/2})" /><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-size="{size*0.25}" font-weight="bold" fill="#1e293b">{int(pct)}%</text></svg>')
+        return Markup(f'<svg width="{size}" height="{size}" viewBox="0 0 {size} {size}" style="vertical-align:middle"><circle cx="{size/2}" cy="{size/2}" r="{r}" fill="transparent" stroke="#e2e8f0" stroke-width="{size*0.15}" /><circle cx="{size/2}" cy="{size/2}" r="{r}" fill="transparent" stroke="{color}" stroke-width="{size*0.15}" stroke-dasharray="{c}" stroke-dashoffset="{offset}" stroke-linecap="round" transform="rotate(-90 {size/2} {size/2})" /><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-size="{size*0.25}" font-weight="bold" fill="#000000">{int(pct)}%</text></svg>')
+
 
     def _macro_sparkline(self, data: List[float], color: str = "#3b82f6", width: int = 80, height: int = 25, output_format: Any = "html") -> str:
         """Renders a sparkline (SVG for HTML, Trend text for Text)."""
@@ -273,45 +292,93 @@ class TemplateEngine:
 
     def _get_common_css(self) -> str:
         return """
-        :root { --primary: #1e293b; --secondary: #334155; --accent: #3b82f6; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; --bg: #f8fafc; }
-        body { font-family: 'Inter', -apple-system, sans-serif !important; margin: 0 !important; padding: 0 !important; background: var(--bg) !important; color: #1e293b !important; line-height: 1.6 !important; }
-        @media print { body { background: white !important; } .container { box-shadow: none !important; border: none !important; width: 100% !important; max-width: none !important; margin: 0 !important; } @page { size: A4; margin: 15mm; } }
-        .classification-banner { background: #0f172a !important; color: white !important; text-align: center !important; padding: 4px !important; font-size: 10px !important; font-weight: bold !important; text-transform: uppercase !important; }
-        .container { max-width: 1100px !important; margin: 20px auto !important; background: white !important; border-radius: 12px !important; box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important; overflow: hidden !important; border: 1px solid #e2e8f0 !important; text-align: left !important; color: #1e293b !important; }
-        .header { background: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important; color: white !important; padding: 40px !important; }
-        .header h1 { margin: 0 !important; font-size: 32px !important; font-weight: 800 !important; color: white !important; display: flex !important; align-items: center !important; gap: 14px !important; }
-        .header h1::before { content: '' !important; display: inline-block !important; width: 40px !important; height: 40px !important; min-width: 40px !important; background-image: url(data:image/png;base64,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) !important; background-size: contain !important; background-repeat: no-repeat !important; }
-        .header .meta { margin-top: 15px !important; display: flex !important; gap: 20px !important; font-size: 14px !important; opacity: 0.9 !important; color: white !important; }
-        .header .meta span { color: white !important; }
-        .content { padding: 40px !important; background: white !important; color: #1e293b !important; }
-        .section { margin-bottom: 40px !important; }
-        .section-header { border-bottom: 2px solid #f1f5f9 !important; padding-bottom: 12px !important; margin-bottom: 25px !important; }
-        .section h2 { margin: 0 !important; font-size: 20px !important; font-weight: 700 !important; color: #0f172a !important; text-transform: uppercase !important; }
-        .kpi-grid { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important; gap: 20px !important; margin-bottom: 30px !important; }
-        .card { background: white !important; border: 1px solid #e2e8f0 !important; padding: 25px !important; border-radius: 12px !important; color: #1e293b !important; }
-        .card-value { font-size: 36px !important; font-weight: 800 !important; color: #0f172a !important; margin-bottom: 5px !important; }
-        .card-label { font-size: 12px !important; color: #64748b !important; font-weight: 600 !important; text-transform: uppercase !important; }
-        .card-sub { font-size: 11px !important; color: #94a3b8 !important; }
-        table { width: 100% !important; border-collapse: collapse !important; margin: 10px 0 !important; }
-        th { background: #f8fafc !important; padding: 12px 15px !important; text-align: left !important; font-size: 12px !important; color: #475569 !important; text-transform: uppercase !important; border-bottom: 2px solid #e2e8f0 !important; }
-        td { padding: 12px 15px !important; border-bottom: 1px solid #f1f5f9 !important; font-size: 14px !important; color: #1e293b !important; }
-        .ai-narrative { background: #f0f9ff !important; border: 1px solid #bae6fd !important; padding: 25px !important; border-radius: 12px !important; margin-bottom: 30px !important; position: relative !important; color: #0369a1 !important; }
-        .ai-narrative h3 { margin-top: 0 !important; color: #0369a1 !important; font-size: 16px !important; }
-        .ai-narrative p { color: #0369a1 !important; }
-        .findings-box { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 30px !important; }
-        .findings-panel { background: #fdf2f2 !important; border: 1px solid #fecaca !important; padding: 20px !important; border-radius: 8px !important; color: #991b1b !important; }
-        .findings-panel h3 { color: #991b1b !important; margin-top: 0 !important; font-size: 16px !important; }
-        .findings-panel ul { color: #991b1b !important; }
-        .findings-panel li { color: #991b1b !important; }
-        .success-panel { background: #f0fdf4 !important; border: 1px solid #bbf7d0 !important; padding: 20px !important; border-radius: 8px !important; color: #166534 !important; }
-        .success-panel h3 { color: #166534 !important; margin-top: 0 !important; font-size: 16px !important; }
-        .success-panel ul { color: #166534 !important; }
-        .success-panel li { color: #166534 !important; }
-        .bar-container { width: 100% !important; margin: 5px 0 !important; }
-        .bar-track { height: 8px !important; background: #e2e8f0 !important; border-radius: 4px !important; overflow: hidden !important; }
-        .bar-fill { height: 100% !important; border-radius: 4px !important; }
-        .bar-label { font-size: 10px !important; color: #64748b !important; margin-top: 4px !important; text-align: right !important; }
-        .footer { background: #f8fafc !important; padding: 30px 40px !important; border-top: 1px solid #e2e8f0 !important; color: #94a3b8 !important; font-size: 11px !important; display: flex !important; justify-content: space-between !important; }
+        :root { --primary: #000000; --secondary: #111111; --accent: #2563eb; --success: #059669; --warning: #d97706; --danger: #dc2626; --bg: #ffffff; --text: #000000; --text-muted: #111111; }
+        
+        /* THEME RESET - FORCE LIGHT THEME FOR REPORTS */
+        body, html { 
+            font-family: 'Inter', -apple-system, sans-serif !important; 
+            margin: 0 !important; 
+            padding: 0 !important; 
+            background-color: #ffffff !important; 
+            color: #000000 !important; 
+            line-height: 1.6 !important;
+            -webkit-print-color-adjust: exact !important;
+        }
+        
+        /* Scoped container to prevent dark-mode leakage */
+        .container { 
+            max-width: 1000px !important; 
+            margin: 25px auto !important; 
+            background: #ffffff !important; 
+            border-radius: 12px !important; 
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1) !important; 
+            overflow: hidden !important; 
+            border: 1px solid #e2e8f0 !important; 
+            text-align: left !important; 
+            color: #000000 !important; 
+        }
+        
+        /* Force black text for all readable elements */
+        .container p, 
+        .container span, 
+        .container div:not(.header):not(.classification-banner), 
+        .container td, 
+        .container th:not(.header th), 
+        .container h1:not(.header h1), 
+        .container h2, 
+        .container h3 { 
+            color: #000000 !important; 
+        }
+
+        .classification-banner { 
+            background: #000000 !important; 
+            color: white !important; 
+            text-align: center !important; 
+            padding: 6px !important; 
+            font-size: 11px !important; 
+            font-weight: 800 !important; 
+            text-transform: uppercase !important; 
+            letter-spacing: 1px !important; 
+        }
+
+        .header { background: linear-gradient(135deg, #000000 0%, #1e293b 100%) !important; color: white !important; padding: 45px 40px !important; position: relative !important; }
+        .header h1 { margin: 0 !important; font-size: 34px !important; font-weight: 800 !important; color: white !important; display: flex !important; align-items: center !important; gap: 16px !important; letter-spacing: -0.5px !important; }
+        .header .meta { margin-top: 18px !important; display: flex !important; gap: 25px !important; font-size: 14px !important; opacity: 0.9 !important; color: white !important; font-weight: 500 !important; }
+        .header .meta span { color: white !important; border-right: 1px solid rgba(255,255,255,0.2) !important; padding-right: 25px !important; }
+        .header .meta span:last-child { border-right: none !important; }
+        
+        .content { padding: 40px !important; background: #ffffff !important; color: #000000 !important; }
+        
+        .kpi-grid { 
+            display: grid !important; 
+            grid-template-columns: repeat(4, 1fr) !important; 
+            gap: 20px !important; 
+            margin-bottom: 35px !important; 
+            width: 100% !important;
+        }
+        @media (max-width: 768px) { .kpi-grid { grid-template-columns: repeat(2, 1fr) !important; } }
+        
+        .card { 
+            background: #f8fafc !important; 
+            border: 1px solid #e2e8f0 !important; 
+            padding: 22px !important; 
+            border-radius: 12px !important; 
+            color: #000000 !important; 
+            text-align: center !important;
+        }
+        .card-value { font-size: 38px !important; font-weight: 900 !important; color: #000000 !important; margin-bottom: 4px !important; letter-spacing: -1px !important; }
+        .card-label { font-size: 11px !important; color: #475569 !important; font-weight: 800 !important; text-transform: uppercase !important; letter-spacing: 0.5px !important; }
+        
+        table { width: 100% !important; border-collapse: collapse !important; margin: 15px 0 !important; border: 1px solid #e2e8f0 !important; table-layout: auto !important; }
+        th { background: #f1f5f9 !important; padding: 12px 15px !important; text-align: left !important; font-size: 11px !important; color: #000000 !important; text-transform: uppercase !important; border-bottom: 2px solid #cbd5e1 !important; font-weight: 800 !important; }
+        td { padding: 12px 15px !important; border-bottom: 1px solid #e2e8f0 !important; font-size: 14px !important; color: #000000 !important; font-weight: 500 !important; }
+        
+        .ai-narrative { background: #f0f9ff !important; border: 1px solid #bae6fd !important; padding: 30px !important; border-radius: 12px !important; margin-bottom: 35px !important; color: #0c4a6e !important; }
+        .ai-narrative h3 { color: #0369a1 !important; margin-top: 0 !important; font-weight: 800 !important; font-size: 18px !important; }
+        
+        #ai-risk-analysis h2, #ai-recommendations h2 { color: #000000 !important; }
+        
+        .footer { background: #f8fafc !important; padding: 35px 40px !important; border-top: 1px solid #e2e8f0 !important; color: #475569 !important; font-size: 11px !important; display: flex !important; justify-content: space-between !important; font-weight: 600 !important; }
         """
 
     def _get_inline_template(self, template_id: str) -> str:
@@ -319,12 +386,15 @@ class TemplateEngine:
         _LOGO_B64 = "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"
 
         # Standard Shell Wrapper with logo in header
-        shell_start = """<html><head><meta charset="UTF-8"><style>{{ common_css }}</style></head><body><div class="classification-banner">CONFIDENTIAL - FOR INTERNAL USE ONLY</div><div class="container">"""
-        shell_end = """<div class="footer"><div style="display:flex;align-items:center;gap:8px;"><img src="data:image/png;base64,""" + _LOGO_B64 + """" style="width:20px;height:20px;" />Sanchalak AI | Generated by {{ _metadata.generated_by }}</div><div>Version {{ _metadata.version }} | Page 1 of 1</div></div></div></body></html>"""
+        shell_start = """<html><head><meta charset="UTF-8"><style>{{ common_css }}</style></head><body><div id="sanchalak-report-root"><div class="classification-banner">CONFIDENTIAL - FOR INTERNAL USE ONLY</div><div class="container">"""
+
+        shell_end = """<div class="footer"><div style="display:flex;align-items:center;gap:8px;"><img src="data:image/png;base64,""" + _LOGO_B64 + """" style="width:20px;height:20px;" />Sanchalak AI | Generated by {{ _metadata.generated_by }}</div><div>Version {{ _metadata.version }} | Page 1 of 1</div></div></div></div></body></html>"""
+
         
         templates = {
             "cra_monitoring": shell_start + """
-                <div class="header"><h1>CRA Monitoring Report</h1><div class="meta"><span><strong>SITE:</strong> {{ site_id }}</span><span><strong>CRA:</strong> {{ cra_name }}</span><span><strong>DATE:</strong> {{ visit_date | format_date }}</span></div></div>
+                <div class="header"><h1>CRA Monitoring Report</h1><div class="meta"><span><strong>SITE:</strong> {{ site_id }}</span> <span><strong>CRA:</strong> {{ cra_name }}</span> <span><strong>DATE:</strong> {{ visit_date | format_date }}</span></div></div>
+
                 <div class="content">
                     <!-- AI_EXEC_SUMMARY -->
                     <div class="kpi-grid">
@@ -353,12 +423,13 @@ class TemplateEngine:
                     {% endif %}
                 </div>""" + shell_end,
             "site_performance": shell_start + """
-                <div class="header" style="background:linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%)"><h1>Site Performance Summary</h1><div class="meta"><span><strong>STUDY:</strong> {{ study_id or 'All' }}</span><span><strong>SITE:</strong> {{ site_id or 'Global' }}</span></div></div>
+                <div class="header" style="background:linear-gradient(135deg, #000000 0%, #1e3a8a 100%)"><h1>Site Performance Summary</h1><div class="meta"><span><strong>STUDY:</strong> {{ study_id or 'All' }}</span> <span><strong>SITE:</strong> {{ site_id or 'Global' }}</span></div></div>
+
                 <div class="content"><!-- AI_EXEC_SUMMARY -->
                     <div class="kpi-grid">
                         <div class="card"><div class="card-label">Avg DQI Score</div><div class="card-value">{{ metrics.dqi_score | format_decimal(1) }}</div></div>
                         <div class="card"><div class="card-label">Avg Clean Rate</div><div class="card-value">{{ metrics.clean_rate | format_percent }}</div></div>
-                        <div class="card"><div class="card-label">SDV Completion</div><div class="card-value">{{ metrics.sdv_rate | format_percent }}</div><div>{{ donut_chart(metrics.sdv_rate, 100) if metrics.sdv_rate > 1 else donut_chart(metrics.sdv_rate * 100, 100) }}</div></div>
+                        <div class="card"><div class="card-label">SDV Completion</div><div class="card-value">{{ metrics.sdv_rate | format_percent }}</div></div>
                         <div class="card"><div class="card-label">Open Issues</div><div class="card-value">{{ metrics.total_issues | format_number }}</div></div>
                     </div>
                     <div class="section"><div class="section-header"><h2>Performance Trends</h2></div><!-- AI_FINDINGS --><table><thead><tr><th>Metric</th><th>Current</th><th>Previous</th><th>Trend</th><th>Analysis</th></tr></thead><tbody>
@@ -369,7 +440,8 @@ class TemplateEngine:
                     </tbody></table><!-- AI_RECOMMENDATIONS --></div>
                 </div>""" + shell_end,
             "executive_brief": shell_start + """
-                <div class="header" style="background:#0f172a"><h1>Executive Brief</h1><div class="meta"><span><strong>STUDY:</strong> {{ study_id }}</span><span><strong>DATE:</strong> {{ report_date | format_date }}</span></div></div>
+                <div class="header" style="background:#0f172a"><h1>Executive Brief</h1><div class="meta"><span><strong>STUDY:</strong> {{ study_id }}</span> <span><strong>DATE:</strong> {{ report_date | format_date }}</span></div></div>
+
                 <div class="content"><!-- AI_EXEC_SUMMARY -->
                     <div class="kpi-grid">
                         <div class="card" style="border-top:4px solid var(--accent)"><div class="card-label">Study DQI</div><div class="card-value">{{ key_metrics.dqi | format_decimal(1) }}</div></div>

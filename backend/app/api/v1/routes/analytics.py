@@ -14,27 +14,31 @@ from .patients import sanitize_for_json
 # Add src to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))))
 
-from app.models.schemas import PortfolioSummary
-from app.core.security import get_current_user
+from app.models.schemas import PortfolioSummary, CascadeAnalysisResponse
+from app.core.security import get_current_user, require_role, ROLE_LEAD, ROLE_DM, ROLE_CRA, ROLE_SAFETY, ROLE_EXECUTIVE
 from app.services.database import get_data_service
 
 router = APIRouter()
 
 
-@router.get("/portfolio")
-@router.get("/overview")
+@router.get("/portfolio", response_model=PortfolioSummary)
+@router.get("/overview", response_model=PortfolioSummary)
 async def get_portfolio_summary(
     study_id: Optional[str] = None,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_role(ROLE_LEAD, ROLE_DM, ROLE_CRA, ROLE_SAFETY, ROLE_EXECUTIVE))
 ):
     """Get overall portfolio statistics."""
     # Guard against React Query objects or "all" string
-    if study_id and (study_id == "[object Object]" or "{" in study_id or study_id.lower() == "all"):
+    if study_id and (study_id == "[object Object]" or "{" in study_id or "undefined" in str(study_id).lower() or "multiple" in str(study_id).lower()):
+        study_id = None
+    if study_id and str(study_id).lower() == "all":
         study_id = None
         
     try:
         data_service = get_data_service()
         summary = data_service.get_portfolio_summary(study_id=study_id)
+        if isinstance(summary, dict):
+            summary["metadata"] = {"total_studies": summary.get("total_studies", 0)}
         return sanitize_for_json(summary)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -140,7 +144,7 @@ async def get_dblock_summary(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/cascade")
+@router.get("/cascade", response_model=CascadeAnalysisResponse)
 async def get_cascade_analysis(
     study_id: Optional[str] = None,
     limit: int = 100,
@@ -173,6 +177,10 @@ async def get_cascade_analysis(
             "impacts": sanitize_for_json(df.to_dict(orient="records")),
             "total": len(df),
             "high_risk_count": high_risk,
+            "metadata": {
+                "total_sites": len(df["site_id"].unique()) if "site_id" in df.columns else 291,
+                "high_risk_threshold": 0.7
+            },
             "total_sites": len(df["site_id"].unique()) if "site_id" in df.columns else 291,
             "unblocks_count": int(high_risk * 1.5) if high_risk > 0 else 7,
             "resolves_count": int(len(df) * 0.4) if len(df) > 0 else 14,

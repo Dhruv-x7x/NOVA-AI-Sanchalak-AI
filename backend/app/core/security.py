@@ -72,26 +72,24 @@ ANONYMOUS_USER = {
 def get_current_user(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)) -> Dict[str, Any]:
     """Get current user from JWT token - ALWAYS allows access in test mode"""
     
-    # HYPER-PERMISSIVE TEST MODE: Always allow access
-    if settings.TEST_MODE:
-        # If credentials provided, try to decode them
-        if credentials and credentials.credentials:
+    # 1. TEST MODE BYPASS: If TEST_MODE=True in .env, we never block anyone
+    if os.getenv("TEST_MODE", "false").lower() == "true":
+        # If they provided a token, try to decode it for better UX (correct name/role)
+        if credentials:
             try:
-                payload = decode_token(credentials.credentials)
+                payload = jwt.decode(credentials.credentials, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
                 return {
-                    "user_id": payload.get("sub", "test-user"),
-                    "username": payload.get("username", "testuser"),
+                    "user_id": payload.get("sub", "anonymous"),
+                    "username": payload.get("username", "anonymous"),
                     "role": payload.get("role", "lead"),
-                    "email": payload.get("email", "test@test.com"),
-                    "full_name": payload.get("full_name", "Test User"),
+                    "email": payload.get("email", "anonymous@test.com"),
+                    "full_name": payload.get("full_name", "Anonymous Test User"),
                 }
             except:
-                pass  # Fall through to anonymous user
-        
-        # Return anonymous user for any unauthenticated request in test mode
+                pass # Fall through to anonymous user
         return ANONYMOUS_USER
-    
-    # PRODUCTION MODE: Require valid authentication
+
+    # 2. PRODUCTION MODE: Require valid authentication
     if credentials is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

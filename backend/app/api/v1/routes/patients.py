@@ -24,7 +24,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from app.models.schemas import PatientListResponse, PatientDetail, PatientSearchRequest
-from app.core.security import get_current_user
+from app.core.security import get_current_user, require_role, ROLE_LEAD, ROLE_DM, ROLE_CRA, ROLE_SAFETY, ROLE_EXECUTIVE
 from app.services.database import get_data_service
 
 router = APIRouter()
@@ -70,7 +70,7 @@ async def list_patients(
     study_id: Optional[str] = None,
     status: Optional[str] = None,
     risk_level: Optional[str] = None,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_role(ROLE_LEAD, ROLE_DM, ROLE_CRA, ROLE_SAFETY, ROLE_EXECUTIVE))
 ):
     """Get paginated list of patients with optional filters."""
     # Guard against React Query objects or "all" string
@@ -109,6 +109,8 @@ async def list_patients(
         # Convert to dict and sanitize for JSON
         patients: List[Dict[str, Any]] = sanitize_for_json(df_page.to_dict(orient="records"))
         
+        patients = sanitize_for_json(df_page.to_dict(orient="records"))
+        
         # Add 'id' field as alias for 'patient_key' for frontend/test compatibility
         for patient in patients:
             if "patient_key" in patient and "id" not in patient:
@@ -120,7 +122,16 @@ async def list_patients(
             data=patients,  # For test compatibility
             total=total,
             page=page,
-            page_size=page_size
+            page_size=page_size,
+            metadata={
+                "total_count": total,
+                "filters": {
+                    "site_id": site_id,
+                    "study_id": study_id,
+                    "status": status,
+                    "risk_level": risk_level
+                }
+            }
         )
     except Exception as e:
         api_logger.error(f"Error: {str(e)}", exc_info=True)

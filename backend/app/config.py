@@ -20,12 +20,12 @@ class Settings(BaseSettings):
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = True
     
-    # Test Mode - allows optional authentication for automated testing
-    TEST_MODE: bool = True  # Set to True for testing, False for production
-    ALLOW_ANONYMOUS_ACCESS: bool = True  # Allow requests without auth in test mode
+    # Production Mode - enforces strict authentication
+    TEST_MODE: bool = False  # Set to True for testing, False for production
+    ALLOW_ANONYMOUS_ACCESS: bool = False  # Allow requests without auth in test mode
     
     # Security
-    SECRET_KEY: str = "fallback-secret-key-for-dev-only"
+    SECRET_KEY: str = "prod-sanchalak-ai-secure-key-2024-v1"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7

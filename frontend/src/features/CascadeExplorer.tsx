@@ -41,6 +41,7 @@ import {
 import {
   TooltipProvider,
 } from "@/components/ui/tooltip";
+import { cn } from '@/lib/utils';
 
 // ============================================================
 // ISSUE TYPE CONFIGURATION - Matching system configuration
@@ -72,7 +73,7 @@ const ISSUE_CONFIG: Record<string, IssueTypeConfig> = {
   db_lock: { name: "DB Lock Ready", color: "#27ae60", icon: <Lock className="w-4 h-4" />, weight: 0, responsible: "Study Lead" },
 };
 
-// Issue dependencies - what fixing each issue unlocks
+// Default Issue dependencies - what fixing each issue unlocks
 const ISSUE_DEPENDENCIES: Record<string, string[]> = {
   missing_visits: ["missing_pages", "open_queries", "sdv_incomplete", "signature_gaps"],
   missing_pages: ["open_queries", "sdv_incomplete", "signature_gaps"],
@@ -136,86 +137,74 @@ const getImpactColor = (score: number) => {
 // ============================================================
 
 export default function CascadeExplorer() {
+  console.log('CascadeExplorer rendering...');
   const [selectedStudy, setSelectedStudy] = useState<string>('all');
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('graph');
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
 
-  // Fetch studies for dropdown
+  // 1. DATA FETCHING (Keep at top)
   const { data: studiesData } = useQuery({
     queryKey: ['studies'],
     queryFn: () => studiesApi.list(),
   });
 
-  // Fetch cascade analysis data
   const { data: cascadeData, isLoading: cascadeLoading, refetch } = useQuery({
     queryKey: ['cascade-analysis', selectedStudy],
     queryFn: () => graphApi.getCascadeAnalysis({ limit: 500, study_id: selectedStudy !== 'all' ? selectedStudy : undefined }),
   });
 
-  // Fetch cascade issue type counts from the new endpoint
-  const { data: cascadeIssueData } = useQuery({
+  const { data: cascadeIssueData, isLoading: issuesLoading } = useQuery({
     queryKey: ['cascade-issue-types', selectedStudy],
     queryFn: () => graphApi.getCascadeIssueTypes({ study_id: selectedStudy !== 'all' ? selectedStudy : undefined }),
   });
 
-  // Fetch cascade topology (dependencies) from the backend
-  const { data: topologyData } = useQuery({
+  const { data: topologyData, isLoading: topologyLoading } = useQuery({
     queryKey: ['cascade-topology', selectedStudy],
     queryFn: () => graphApi.getCascadeTopology({ study_id: selectedStudy !== 'all' ? selectedStudy : undefined }),
   });
 
-  const studies = studiesData?.studies || [];
+  console.log('API states:', { cascadeLoading, issuesLoading, topologyLoading });
 
-  if (cascadeLoading) {
-    return <SanchalakLoader size="lg" label="Loading cascade graph..." fullPage />;
-  }
-
-  const issueDependencies = topologyData?.topology || ISSUE_DEPENDENCIES;
+  // 2. DERIVED DATA (Must be before any conditional returns)
+  const issueDependencies = useMemo(() => topologyData?.topology || ISSUE_DEPENDENCIES || {}, [topologyData]);
   const isLiveGraph = topologyData?.source === 'neo4j';
 
-  // Use real issue counts from API or defaults
   const issueCounts = useMemo(() => {
-    if (cascadeIssueData?.issue_counts) {
-      return cascadeIssueData.issue_counts;
-    }
-
-    // Fallback: return zeros — real data comes from the API
     const counts: Record<string, number> = {};
     Object.keys(ISSUE_CONFIG).forEach(key => {
-      counts[key] = 0;
+      counts[key] = cascadeIssueData?.issue_counts?.[key] || 0;
     });
     return counts;
   }, [cascadeIssueData]);
 
-  // Calculate unlock scores — measures what % of downstream issues are blocked
   const unlockScores = useMemo(() => {
     const scores: Record<string, number> = {};
     const vals = Object.values(issueCounts) as number[];
     const totalPatients: number = vals.reduce((sum, c) => sum + (c || 0), 0) || 1;
 
     Object.keys(ISSUE_CONFIG).forEach(key => {
-      // Count downstream patients blocked by this issue type
       const directTargets = (issueDependencies[key] || []) as string[];
       let downstreamPatients = 0;
       const visited = new Set<string>();
       const queue = [...directTargets];
-      while (queue.length > 0) {
+      
+      let iterations = 0;
+      while (queue.length > 0 && iterations < 500) {
+        iterations++;
         const current = queue.shift()!;
-        if (visited.has(current)) continue;
+        if (!current || visited.has(current)) continue;
         visited.add(current);
         downstreamPatients += (issueCounts[current] as number) || 0;
         const nextTargets = (issueDependencies[current] || []) as string[];
         queue.push(...nextTargets);
       }
 
-      // Score = weighted combination of own patients + downstream impact
       const ownPatients: number = (issueCounts[key] as number) || 0;
       const weight: number = ISSUE_CONFIG[key]?.weight || 50;
       const downstreamRatio: number = downstreamPatients / totalPatients;
       const ownRatio: number = ownPatients / totalPatients;
 
-      // Final score: 0-100 range, weighted by config weight, own patients, and downstream impact
       scores[key] = Math.min(100, Math.round(
         (weight * 0.3) + (ownRatio * 100 * 0.3) + (downstreamRatio * 100 * 0.4)
       ));
@@ -224,20 +213,15 @@ export default function CascadeExplorer() {
     return scores;
   }, [issueCounts, issueDependencies]);
 
-  // Generate nodes with positions
   const nodes: CascadeNode[] = useMemo(() => {
     const result: CascadeNode[] = [];
-
     Object.entries(LAYERS).forEach(([layerStr, issueTypes]) => {
       const layer = parseInt(layerStr);
-      const y = 80 + layer * 90; // Vertical spacing
-
+      const y = 80 + layer * 90;
       issueTypes.forEach((issueType, index) => {
         const config = ISSUE_CONFIG[issueType];
         if (!config) return;
-
-        const x = (index + 1) / (issueTypes.length + 1) * 100; // Horizontal spread as percentage
-
+        const x = (index + 1) / (issueTypes.length + 1) * 100;
         result.push({
           id: issueType,
           name: config.name,
@@ -252,16 +236,15 @@ export default function CascadeExplorer() {
         });
       });
     });
-
     return result;
   }, [issueCounts, unlockScores]);
 
-  // Generate edges
   const edges: CascadeEdge[] = useMemo(() => {
     const result: CascadeEdge[] = [];
-
+    if (!issueDependencies || typeof issueDependencies !== 'object') return [];
     Object.entries(issueDependencies).forEach(([source, targets]) => {
-      (targets as string[]).forEach(target => {
+      if (!Array.isArray(targets)) return;
+      targets.forEach(target => {
         result.push({
           source,
           target,
@@ -269,49 +252,39 @@ export default function CascadeExplorer() {
         });
       });
     });
-
     return result;
-  }, [issueCounts]);
+  }, [issueCounts, issueDependencies]);
 
-  // Get highlight path when a node is selected
   const highlightPath = useMemo(() => {
     if (!selectedNode) return new Set<string>();
-
     const path = new Set<string>([selectedNode]);
-    const queue = [...(ISSUE_DEPENDENCIES[selectedNode] || [])];
-
-    while (queue.length > 0) {
+    const queue = [...(issueDependencies[selectedNode] || [])];
+    let iterations = 0;
+    while (queue.length > 0 && iterations < 100) {
+      iterations++;
       const current = queue.shift()!;
-      if (!path.has(current)) {
-        path.add(current);
-        const downstream = (issueDependencies[current] || []) as string[];
-        queue.push(...downstream);
-      }
+      if (!current || path.has(current)) continue;
+      path.add(current);
+      const downstream = (issueDependencies[current] || []) as string[];
+      queue.push(...downstream);
     }
-
     return path;
-  }, [selectedNode]);
+  }, [selectedNode, issueDependencies]);
 
-  // Get cascade impact for selected node
   const selectedNodeImpact = useMemo(() => {
     if (!selectedNode) return null;
-
     const directUnlocks = (issueDependencies[selectedNode] || []) as string[];
     const cascadeChain = Array.from(highlightPath).filter(n => n !== selectedNode);
     const patientCount = issueCounts[selectedNode] || 0;
-
-    // Calculate metrics
     let patientsUnblocked = patientCount;
     cascadeChain.forEach(node => {
       patientsUnblocked += Math.floor((issueCounts[node] || 0) * 0.3);
     });
-
     const weight = ISSUE_CONFIG[selectedNode]?.weight || 50;
     const dqiImprovement = (patientCount / 1000) * (weight / 100) * 5;
     const effortHours = patientCount * 0.1;
     const daysSaved = cascadeChain.length * 2 + patientCount / 500;
     const roiScore = (patientsUnblocked * 10 + dqiImprovement * 100) / Math.max(effortHours, 1);
-
     return {
       directUnlocks,
       cascadeChain,
@@ -322,15 +295,13 @@ export default function CascadeExplorer() {
       roiScore,
       priority: roiScore >= 50 ? 'Critical' : roiScore >= 30 ? 'High' : roiScore >= 15 ? 'Medium' : 'Low',
     };
-  }, [selectedNode, highlightPath, issueCounts]);
+  }, [selectedNode, highlightPath, issueCounts, issueDependencies]);
 
-  // Get position for a node
   const getNodePosition = useCallback((nodeId: string) => {
     const node = nodes.find(n => n.id === nodeId);
     return node ? { x: node.x, y: node.y } : { x: 50, y: 50 };
   }, [nodes]);
 
-  // Action mutation
   const approveFixMutation = useMutation({
     mutationFn: (issueType: string) => intelligenceApi.autoFix({ issue_id: -1, entity_id: issueType }),
     onSuccess: () => {
@@ -344,21 +315,41 @@ export default function CascadeExplorer() {
     if (selectedNode) approveFixMutation.mutate(selectedNode);
   };
 
-  // Sort nodes by unlock score for sidebar
   const sortedNodes = useMemo(() => {
     return [...nodes]
       .filter(n => n.patientCount > 0)
       .sort((a, b) => b.unlockScore - a.unlockScore);
   }, [nodes]);
 
-  // Total issues — use the pre-computed total from the API (total_open_issues from UPR)
+  const studies = studiesData?.studies || [];
   const totalIssues: number = cascadeIssueData?.total_issues ?? (Object.values(issueCounts) as number[]).reduce((sum: number, count: number) => sum + count, 0);
   const criticalIssues: number = (issueCounts.sae_dm_pending || 0) + (issueCounts.sae_safety_pending || 0);
 
+  // 3. CONDITIONAL RENDER (Safe after hooks)
+  if (cascadeLoading || topologyLoading || issuesLoading) {
+    return <SanchalakLoader size="lg" label="Loading cascade graph..." fullPage />;
+  }
+
+  if (!nodes || nodes.length === 0) {
+    return (
+      <div className="h-screen w-full flex items-center justify-center bg-nexus-bg text-white p-10">
+        <div className="max-w-md text-center glass-card p-10 border border-nexus-border">
+          <GitBranch className="w-16 h-16 text-indigo-400 mx-auto mb-6 opacity-50" />
+          <h2 className="text-2xl font-bold mb-2">Initializing Graph Engine</h2>
+          <p className="text-nexus-text-secondary mb-6">The cascade intelligence layer is synchronizing with the clinical data record.</p>
+          <Button onClick={() => refetch()} className="w-full bg-indigo-600 hover:bg-indigo-500">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh Intelligence
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // 4. MAIN RENDER
   return (
-    <TooltipProvider>
-      <div className="space-y-6">
-        {/* Header */}
+    <div className="space-y-6 min-h-screen bg-nexus-bg text-white p-4">
+      {/* Header */}
         <div className="glass-card rounded-xl p-6 border border-nexus-border" style={{
           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
         }}>
@@ -561,11 +552,10 @@ export default function CascadeExplorer() {
                           const targetPos = getNodePosition(edge.target);
                           const isHighlighted = highlightPath.has(edge.source) && highlightPath.has(edge.target);
 
-                          // Convert percentage to viewBox coordinates
-                          const x1 = sourcePos.x;
-                          const y1 = sourcePos.y / 6;
-                          const x2 = targetPos.x;
-                          const y2 = targetPos.y / 6;
+                          const x1 = sourcePos?.x || 0;
+                          const y1 = (sourcePos?.y || 0) / 6;
+                          const x2 = targetPos?.x || 0;
+                          const y2 = (targetPos?.y || 0) / 6;
 
                           return (
                             <line
@@ -583,14 +573,13 @@ export default function CascadeExplorer() {
 
                         {/* Nodes */}
                         {nodes.map((node) => {
-                          const x = node.x;
-                          const y = node.y / 6;
+                          const x = node.x || 0;
+                          const y = (node.y || 0) / 6;
                           const isSelected = selectedNode === node.id;
                           const isHighlighted = highlightPath.has(node.id);
                           const isHovered = hoveredNode === node.id;
                           const isDbLock = node.id === 'db_lock';
 
-                          // Node size based on patient count
                           const baseSize = isDbLock ? 4 : Math.max(2, Math.min(3.5, 2 + node.patientCount / 300));
                           const size = isSelected ? baseSize * 1.3 : isHovered ? baseSize * 1.15 : baseSize;
 
@@ -602,7 +591,6 @@ export default function CascadeExplorer() {
                               onMouseEnter={() => setHoveredNode(node.id)}
                               onMouseLeave={() => setHoveredNode(null)}
                             >
-                              {/* Glow effect for selected/highlighted */}
                               {(isSelected || isHighlighted) && (
                                 <circle
                                   cx={x}
@@ -613,9 +601,7 @@ export default function CascadeExplorer() {
                                 />
                               )}
 
-                              {/* Main node */}
                               {isDbLock ? (
-                                // Diamond shape for DB Lock
                                 <polygon
                                   points={`${x},${y - size} ${x + size},${y} ${x},${y + size} ${x - size},${y}`}
                                   fill={node.color}
@@ -635,7 +621,6 @@ export default function CascadeExplorer() {
                                 />
                               )}
 
-                              {/* Label below node */}
                               <text
                                 x={x}
                                 y={y + size + 2}
@@ -650,13 +635,12 @@ export default function CascadeExplorer() {
                         })}
                       </svg>
 
-                      {/* Hover tooltip */}
                       {hoveredNode && !selectedNode && (
                         <div
                           className="absolute bg-nexus-card/95 backdrop-blur-lg border border-nexus-border rounded-lg p-3 shadow-2xl z-50 pointer-events-none"
                           style={{
-                            left: `${getNodePosition(hoveredNode).x}%`,
-                            top: `${getNodePosition(hoveredNode).y / 6}%`,
+                            left: `${getNodePosition(hoveredNode || '').x}%`,
+                            top: `${getNodePosition(hoveredNode || '').y / 6}%`,
                             transform: 'translate(-50%, -120%)',
                             minWidth: '180px',
                           }}
@@ -702,7 +686,6 @@ export default function CascadeExplorer() {
                         </div>
                       )}
 
-                      {/* Legend */}
                       <div className="absolute bottom-4 left-4 bg-nexus-card/90 backdrop-blur-md rounded-lg border border-nexus-border p-3">
                         <p className="text-[10px] font-bold text-nexus-text-secondary uppercase tracking-wider mb-2">Legend</p>
                         <div className="flex items-center gap-4 text-xs">
@@ -725,7 +708,6 @@ export default function CascadeExplorer() {
                         </div>
                       </div>
 
-                      {/* DB Lock Target indicator */}
                       <div className="absolute bottom-4 right-4 bg-green-500/20 backdrop-blur-md rounded-lg border border-green-500/30 px-4 py-2">
                         <div className="flex items-center gap-2">
                           <Lock className="w-4 h-4 text-green-400" />
@@ -737,7 +719,6 @@ export default function CascadeExplorer() {
                 </Card>
               </div>
 
-              {/* Issue Summary Sidebar */}
               <div className="space-y-4">
                 <Card className="glass-card border-nexus-border">
                   <CardHeader className="pb-3">
@@ -781,7 +762,6 @@ export default function CascadeExplorer() {
                   </CardContent>
                 </Card>
 
-                {/* Selected Node Impact */}
                 {selectedNode && selectedNodeImpact && (
                   <Card className="glass-card border-nexus-border border-purple-500/30 bg-gradient-to-br from-purple-900/20 to-nexus-card">
                     <CardHeader className="pb-2">
@@ -797,33 +777,36 @@ export default function CascadeExplorer() {
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div className="bg-nexus-bg/50 rounded-lg p-2">
                           <p className="text-nexus-text-muted text-xs">Patients Unblocked</p>
-                          <p className="text-white font-bold">{selectedNodeImpact.patientsUnblocked.toLocaleString()}</p>
+                          <p className="text-white font-bold">{(selectedNodeImpact?.patientsUnblocked || 0).toLocaleString()}</p>
                         </div>
                         <div className="bg-nexus-bg/50 rounded-lg p-2">
                           <p className="text-nexus-text-muted text-xs">DQI Improvement</p>
-                          <p className="text-green-400 font-bold">+{selectedNodeImpact.dqiImprovement.toFixed(1)}</p>
+                          <p className="text-green-400 font-bold">+{(selectedNodeImpact?.dqiImprovement || 0).toFixed(1)}</p>
                         </div>
                         <div className="bg-nexus-bg/50 rounded-lg p-2">
                           <p className="text-nexus-text-muted text-xs">Days Saved</p>
-                          <p className="text-blue-400 font-bold">{selectedNodeImpact.daysSaved.toFixed(0)}</p>
+                          <p className="text-blue-400 font-bold">{(selectedNodeImpact?.daysSaved || 0).toFixed(0)}</p>
                         </div>
                         <div className="bg-nexus-bg/50 rounded-lg p-2">
                           <p className="text-nexus-text-muted text-xs">Effort (hrs)</p>
-                          <p className="text-orange-400 font-bold">{selectedNodeImpact.effortHours.toFixed(0)}</p>
+                          <p className="text-orange-400 font-bold">{(selectedNodeImpact?.effortHours || 0).toFixed(0)}</p>
                         </div>
                       </div>
 
                       <div className="bg-nexus-bg/50 rounded-lg p-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs text-nexus-text-secondary">ROI Score</span>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs text-nexus-text-secondary">ROI Score</span>
+                        {selectedNodeImpact && (
                           <Badge variant={
                             selectedNodeImpact.priority === 'Critical' ? 'error' :
                               selectedNodeImpact.priority === 'High' ? 'warning' : 'secondary'
                           }>
                             {selectedNodeImpact.priority}
                           </Badge>
-                        </div>
-                        <div className="text-2xl font-bold text-white">{selectedNodeImpact.roiScore.toFixed(1)}</div>
+                        )}
+                      </div>
+                      <div className="text-2xl font-bold text-white">{(selectedNodeImpact?.roiScore || 0).toFixed(1)}</div>
+
                       </div>
 
                       {selectedNodeImpact.directUnlocks.length > 0 && (
@@ -874,7 +857,6 @@ export default function CascadeExplorer() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {/* Header Row */}
                   <div className="grid grid-cols-12 gap-4 px-4 py-2 text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest border-b border-nexus-border/30">
                     <div className="col-span-1 text-center">#</div>
                     <div className="col-span-5 pr-4">Issue Description & Cascade Path</div>
@@ -886,7 +868,8 @@ export default function CascadeExplorer() {
 
                   {sortedNodes.slice(0, 12).map((node, idx) => {
                     const config = ISSUE_CONFIG[node.id];
-                    const directUnlocks = ISSUE_DEPENDENCIES[node.id] || [];
+                    if (!config) return null;
+                    const directUnlocks = issueDependencies[node.id] || [];
                     const roiScore = (node.patientCount * 10 + node.unlockScore * 5) / Math.max(node.patientCount * 0.1, 1);
 
                     return (
@@ -908,7 +891,7 @@ export default function CascadeExplorer() {
                           <div className="overflow-hidden">
                             <h4 className="text-white font-medium truncate">{node.name}</h4>
                             <p className="text-xs text-nexus-text-secondary truncate">
-                              Unlocks: {directUnlocks.map(u => ISSUE_CONFIG[u]?.name).join(', ') || 'None'}
+                              Unlocks: {directUnlocks.map((u: string) => ISSUE_CONFIG[u]?.name).join(', ') || 'None'}
                             </p>
                           </div>
                         </div>
@@ -956,7 +939,6 @@ export default function CascadeExplorer() {
                 </CardHeader>
                 <CardContent>
                   <div className="relative">
-                    {/* Critical path visualization */}
                     {Object.entries(LAYERS).map(([layerStr, types]) => {
                       const layer = parseInt(layerStr);
                       const maxPatients = Math.max(...types.map(t => issueCounts[t] || 0), 1);
@@ -1024,9 +1006,13 @@ export default function CascadeExplorer() {
                   <div className="space-y-4">
                     {sortedNodes.slice(0, 8).map((node, idx) => {
                       const config = ISSUE_CONFIG[node.id];
-                      const downstreamCount = (ISSUE_DEPENDENCIES[node.id] || []).length;
+                      if (!config) return null;
+                      const downstreamCount = (issueDependencies[node.id] || []).length;
                       const blockageScore = node.patientCount * downstreamCount;
-                      const maxBlockage = sortedNodes[0].patientCount * (ISSUE_DEPENDENCIES[sortedNodes[0].id] || []).length;
+                      const firstNode = sortedNodes[0];
+                      const maxBlockage = firstNode 
+                        ? firstNode.patientCount * (issueDependencies[firstNode.id] || []).length 
+                        : 1;
                       const blockagePercent = maxBlockage > 0 ? (blockageScore / maxBlockage) * 100 : 0;
 
                       return (
@@ -1081,8 +1067,7 @@ export default function CascadeExplorer() {
               </Card>
             </div>
           </TabsContent>
-        </Tabs>
-      </div>
-    </TooltipProvider>
+      </Tabs>
+    </div>
   );
 }

@@ -12,6 +12,7 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    host: '0.0.0.0',
     proxy: {
       '/api': {
         target: 'http://127.0.0.1:8000',
@@ -31,7 +32,7 @@ export default defineConfig({
           // Core React runtime — cached forever
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
           // UI framework
-          'vendor-ui': ['@radix-ui/react-tooltip', '@radix-ui/react-select', '@radix-ui/react-tabs', '@radix-ui/react-separator', '@radix-ui/react-scroll-area', '@radix-ui/react-checkbox', '@radix-ui/react-label', '@radix-ui/react-slider', '@radix-ui/react-avatar'],
+          'vendor-ui': ['@radix-ui/react-tooltip', '@radix-ui/react-select', '@radix-ui/react-tabs', '@radix-ui/react-separator', '@radix-ui/react-scroll-area', '@radix-ui/react-checkbox', '@radix-ui/react-label', '@radix-ui/react-avatar'],
           // Data layer
           'vendor-data': ['axios', '@tanstack/react-query', 'zustand'],
           // Charts (large dependency)

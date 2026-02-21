@@ -132,6 +132,14 @@ TEST_PASSWORDS = {
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register(request: UserCreateRequest):
     """Register a new user."""
+    # Check for existing email (TC002)
+    for existing_user in USERS_DB.values():
+        if existing_user["email"] == request.email:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Email already registered"
+            )
+
     # In test mode, we allow re-registering to update/reset users
     if not settings.TEST_MODE and request.username in USERS_DB:
         raise HTTPException(
@@ -163,49 +171,6 @@ async def login(request: LoginRequest):
     
     if not username:
         raise HTTPException(status_code=400, detail="Username or email required")
-
-    # IN TEST_MODE: Accept ANY login attempt - create user on the fly if needed
-    if settings.TEST_MODE:
-        # Try to find existing user first
-        user = USERS_DB.get(username)
-        
-        # Try matching by email if username lookup failed
-        if not user:
-            for u in USERS_DB.values():
-                if u["email"] == username:
-                    user = u
-                    break
-        
-        # If user doesn't exist, create them automatically with ANY password
-        if not user:
-            user_id = f"test-{abs(hash(username)) % 100000}"
-            user = {
-                "user_id": user_id,
-                "username": username,
-                "password_hash": get_password_hash(password),
-                "email": username if "@" in username else f"{username}@test.com",
-                "full_name": f"Test {username.capitalize() if username else 'User'}",
-                "role": "cra" if "cra" in username.lower() else "lead",
-                "permissions": ["view_all", "reports", "edit_all", "approve"]
-            }
-            USERS_DB[username] = user
-        
-        # Create tokens - always succeed in TEST_MODE
-        token_data = {
-            "sub": user["user_id"],
-            "username": user["username"],
-            "role": user["role"],
-            "email": user["email"],
-            "full_name": user["full_name"],
-        }
-        
-        return TokenResponse(
-            access_token=create_access_token(token_data),
-            refresh_token=create_refresh_token(token_data),
-            token_type="bearer",
-            expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-            user=UserResponse(**{k: v for k, v in user.items() if k != "password_hash"})
-        )
 
     # PRODUCTION MODE: Standard authentication flow
     user = USERS_DB.get(username)

@@ -251,10 +251,10 @@ async def run_drift_check(
         # 2. Fetch current UPR numeric features
         with engine.connect() as conn:
             feature_cols = [
-                'dqi_score', 'risk_score', 'open_issues_count', 'total_open_issues',
-                'query_open_count', 'sdv_completion_rate', 'completeness_score',
-                'compliance_score', 'query_resolution_velocity', 'sae_burden_score',
-                'data_quality_index_raw', 'cascade_potential_score', 'overall_burden_score'
+                'data_quality_index_8comp', 'risk_score', 'total_open_issues',
+                'total_queries', 'sdv_completion_rate', 'data_completeness_score',
+                'safety_compliance_score', 'sae_resolution_rate', 'safety_priority_score',
+                'cascade_potential_score', 'overall_health_score'
             ]
             cols_str = ", ".join(feature_cols)
             upr_df = pd.read_sql(
@@ -270,11 +270,11 @@ async def run_drift_check(
 
         # 3. Per-model feature mapping
         model_features = {
-            "risk_classifier":       ['risk_score', 'dqi_score', 'open_issues_count', 'sae_burden_score', 'compliance_score'],
-            "issue_detector":        ['total_open_issues', 'query_open_count', 'open_issues_count', 'cascade_potential_score'],
-            "anomaly_detector":      ['dqi_score', 'data_quality_index_raw', 'risk_score', 'overall_burden_score'],
-            "resolution_predictor":  ['query_resolution_velocity', 'query_open_count', 'total_open_issues', 'open_issues_count'],
-            "site_ranker":           ['dqi_score', 'sdv_completion_rate', 'completeness_score', 'compliance_score', 'query_open_count'],
+            "risk_classifier":       ['risk_score', 'data_quality_index_8comp', 'total_open_issues', 'safety_priority_score', 'safety_compliance_score'],
+            "issue_detector":        ['total_open_issues', 'total_queries', 'cascade_potential_score'],
+            "anomaly_detector":      ['data_quality_index_8comp', 'risk_score', 'overall_health_score'],
+            "resolution_predictor":  ['sae_resolution_rate', 'total_queries', 'total_open_issues'],
+            "site_ranker":           ['data_quality_index_8comp', 'sdv_completion_rate', 'data_completeness_score', 'safety_compliance_score', 'total_queries'],
         }
 
         reports = []

@@ -120,6 +120,7 @@ class PatientListResponse(BaseModel):
     total: int
     page: int = 1
     page_size: int = 50
+    metadata: Dict[str, Any] = {}
 
 
 class PatientSearchRequest(BaseModel):
@@ -158,6 +159,7 @@ class SiteListResponse(BaseModel):
     items: List[Dict[str, Any]] = [] # For test compatibility
     data: List[Dict[str, Any]] = [] # For test compatibility
     total: int
+    metadata: Dict[str, Any] = {}
 
 
 # =============================================================================
@@ -193,12 +195,17 @@ class PortfolioSummary(BaseModel):
     mean_dqi: float
     dblock_ready_count: int
     dblock_ready_rate: float
+    sdtm_ready_count: int = 0
+    sdtm_ready_rate: float = 0.0
     tier1_clean_count: int = 0
     tier1_clean_rate: float = 0.0
     tier2_clean_count: int
     tier2_clean_rate: float
     critical_issues: int
     high_issues: int
+    open_count: int = 0
+    critical_count: int = 0
+    metadata: Dict[str, Any] = {}
 
 
 class DQIDistribution(BaseModel):
@@ -335,6 +342,7 @@ class CascadeAnalysisResponse(BaseModel):
     impacts: List[Dict[str, Any]]
     total: int
     high_risk_count: int
+    metadata: Dict[str, Any] = {}
 
 
 # =============================================================================

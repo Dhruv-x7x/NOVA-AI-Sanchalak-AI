@@ -349,6 +349,7 @@ class ProjectIssue(Base):
     issue_id: Mapped[str] = mapped_column(String(50), primary_key=True, default=lambda: str(uuid.uuid4()))
     patient_key: Mapped[Optional[str]] = mapped_column(String(50), ForeignKey("patients.patient_key"), nullable=True, index=True)
     site_id: Mapped[Optional[str]] = mapped_column(String(50), ForeignKey("clinical_sites.site_id"), nullable=True, index=True)
+    study_id: Mapped[Optional[str]] = mapped_column(String(50), ForeignKey("studies.study_id"), nullable=True, index=True)
     
     # Issue classification
     category: Mapped[str] = mapped_column(String(50), nullable=False, index=True)

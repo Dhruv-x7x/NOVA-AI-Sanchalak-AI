@@ -14,7 +14,7 @@ from concurrent.futures import ThreadPoolExecutor
 import pandas as pd
 
 from app.models.schemas import SiteListResponse
-from app.core.security import get_current_user
+from app.core.security import get_current_user, require_role, ROLE_LEAD, ROLE_DM, ROLE_CRA, ROLE_SAFETY, ROLE_EXECUTIVE
 from app.services.database import get_data_service
 
 logger = logging.getLogger(__name__)
@@ -67,7 +67,7 @@ async def list_sites(
     region: Optional[str] = None,
     status: Optional[str] = None,
     study_id: Optional[str] = None,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_role(ROLE_LEAD))
 ):
     """Get all clinical sites with optional filters."""
     try:
@@ -122,7 +122,11 @@ async def list_sites(
             sites=sites_list,
             items=sites_list, # For test compatibility
             data=sites_list,  # For test compatibility (TC002)
-            total=len(df)
+            total=len(df),
+            metadata={
+                "total_count": len(df),
+                "filter_applied": bool(country or region or status or study_id)
+            }
         )
     except Exception as e:
         logger.error(f"Error in list_sites: {e}")

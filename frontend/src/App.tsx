@@ -1,10 +1,37 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, Component, ReactNode } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import Layout from '@/components/Layout';
 import LoginPage from '@/features/LoginPage';
 import SanchalakLoader from '@/components/SanchalakLoader';
+
+class ErrorBoundary extends Component<{children: ReactNode}, {hasError: boolean}> {
+  constructor(props: {children: ReactNode}) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() { return { hasError: true }; }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="h-screen w-screen flex items-center justify-center bg-[#0a0a0c] text-white p-10">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-4">Module Loading Error</h2>
+            <p className="text-nexus-text-secondary mb-6">Failed to load the requested intelligence module. This may be due to a network issue or a system update.</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="px-6 py-2 bg-indigo-600 rounded-lg hover:bg-indigo-500 font-bold"
+            >
+              Reload Sanchalak AI
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // Lazy-loaded feature pages — each becomes a separate JS chunk
 const ExecutiveOverview = lazy(() => import('@/features/ExecutiveOverview'));
@@ -28,9 +55,7 @@ function PageLoader() {
 }
 
 // Prefetch common route chunks immediately after authentication
-// This eliminates the lazy-load delay when navigating to a page for the first time
 function prefetchRoutes() {
-  // Fire all imports in parallel — browser handles them without blocking the main thread
   const routes = [
     () => import('@/features/ExecutiveOverview'),
     () => import('@/features/StudyLead'),
@@ -44,17 +69,15 @@ function prefetchRoutes() {
     () => import('@/features/CascadeExplorer'),
     () => import('@/features/AIAssistant'),
   ];
-  // Small delay to let the current route render first, then prefetch the rest
   setTimeout(() => {
     routes.forEach((importFn) => importFn().catch(() => {}));
   }, 100);
 }
 
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading } = useAuthStore();
+function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode; allowedRoles?: string[] }) {
+  const { isAuthenticated, isLoading, user } = useAuthStore();
 
-  // Prefetch all common route chunks once authenticated
   useEffect(() => {
     if (isAuthenticated) {
       prefetchRoutes();
@@ -71,6 +94,10 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (allowedRoles && user && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/" replace />;
   }
 
   return <Layout>{children}</Layout>;
@@ -104,9 +131,10 @@ export default function App() {
 
   return (
     <TooltipProvider>
-      <Routes>
-        <Route
-          path="/login"
+      <ErrorBoundary>
+        <Routes>
+          <Route
+            path="/login"
           element={
             isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />
           }
@@ -124,7 +152,7 @@ export default function App() {
         <Route
           path="/executive"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['executive', 'lead']}>
               <Suspense fallback={<PageLoader />}>
                 <ExecutiveOverview />
               </Suspense>
@@ -135,7 +163,7 @@ export default function App() {
         <Route
           path="/study-lead"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['lead']}>
               <Suspense fallback={<PageLoader />}>
                 <StudyLead />
               </Suspense>
@@ -146,7 +174,7 @@ export default function App() {
         <Route
           path="/dm-hub"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['dm', 'lead']}>
               <Suspense fallback={<PageLoader />}>
                 <DMHub />
               </Suspense>
@@ -157,7 +185,7 @@ export default function App() {
         <Route
           path="/cra-view"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['cra', 'lead']}>
               <Suspense fallback={<PageLoader />}>
                 <CRAView />
               </Suspense>
@@ -168,7 +196,7 @@ export default function App() {
         <Route
           path="/coder-view"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['coder', 'dm', 'lead']}>
               <Suspense fallback={<PageLoader />}>
                 <CoderView />
               </Suspense>
@@ -179,7 +207,7 @@ export default function App() {
         <Route
           path="/safety-view"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['safety', 'lead']}>
               <Suspense fallback={<PageLoader />}>
                 <SafetyView />
               </Suspense>
@@ -190,7 +218,7 @@ export default function App() {
         <Route
           path="/site-portal"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['cra', 'lead', 'executive']}>
               <Suspense fallback={<PageLoader />}>
                 <SitePortal />
               </Suspense>
@@ -201,7 +229,7 @@ export default function App() {
         <Route
           path="/reports"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['lead', 'executive', 'dm', 'coder', 'safety']}>
               <Suspense fallback={<PageLoader />}>
                 <Reports />
               </Suspense>
@@ -212,7 +240,7 @@ export default function App() {
         <Route
           path="/ml-governance"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['lead', 'executive']}>
               <Suspense fallback={<PageLoader />}>
                 <MLGovernance />
               </Suspense>
@@ -223,9 +251,20 @@ export default function App() {
         <Route
           path="/cascade-explorer"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['lead', 'executive', 'dm']}>
               <Suspense fallback={<PageLoader />}>
                 <CascadeExplorer />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/digital-twin"
+          element={
+            <ProtectedRoute allowedRoles={['lead', 'executive']}>
+              <Suspense fallback={<PageLoader />}>
+                <DigitalTwin />
               </Suspense>
             </ProtectedRoute>
           }
@@ -275,20 +314,10 @@ export default function App() {
           }
         />
 
-        <Route
-          path="/digital-twin"
-          element={
-            <ProtectedRoute>
-              <Suspense fallback={<PageLoader />}>
-                <DigitalTwin />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
-
         {/* Catch all - redirect to home */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </ErrorBoundary>
     </TooltipProvider>
   );
 }

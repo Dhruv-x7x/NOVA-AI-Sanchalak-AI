@@ -1,0 +1,59 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e6]:
+  - generic [ref=e7]:
+    - img "Sanchalak AI" [ref=e8]
+    - paragraph [ref=e9]: Orchestrating the Future of Clinical Trials
+  - generic [ref=e10]:
+    - generic [ref=e11]:
+      - heading "Identity Access" [level=3] [ref=e12]
+      - paragraph [ref=e13]: Secure biometric-grade authentication required
+    - generic [ref=e14]:
+      - generic [ref=e15]:
+        - generic [ref=e16]:
+          - text: Workstation ID
+          - generic [ref=e17]:
+            - img [ref=e18]
+            - textbox "Workstation ID" [active] [ref=e21]:
+              - /placeholder: Username
+        - generic [ref=e22]:
+          - generic [ref=e23]:
+            - generic [ref=e24]: Access Key
+            - button "Forgot key?" [ref=e25] [cursor=pointer]
+          - generic [ref=e26]:
+            - img [ref=e27]
+            - textbox "Access Key" [ref=e30]:
+              - /placeholder: ••••••••
+            - button [ref=e31] [cursor=pointer]:
+              - img [ref=e32]
+        - button "Establish Connection" [ref=e35] [cursor=pointer]
+      - generic [ref=e36]:
+        - generic [ref=e41]: Protocol Shortcuts
+        - generic [ref=e42]:
+          - button "Test" [ref=e43] [cursor=pointer]:
+            - img [ref=e44]
+            - generic [ref=e46]: Test
+          - button "Lead" [ref=e47] [cursor=pointer]:
+            - img [ref=e48]
+            - generic [ref=e51]: Lead
+          - button "Data" [ref=e52] [cursor=pointer]:
+            - img [ref=e53]
+            - generic [ref=e57]: Data
+          - button "Exec" [ref=e58] [cursor=pointer]:
+            - img [ref=e59]
+            - generic [ref=e64]: Exec
+          - button "CRA" [ref=e65] [cursor=pointer]:
+            - img [ref=e66]
+            - generic [ref=e70]: CRA
+          - button "Coder" [ref=e71] [cursor=pointer]:
+            - img [ref=e72]
+            - generic [ref=e77]: Coder
+          - button "Safety" [ref=e78] [cursor=pointer]:
+            - img [ref=e79]
+            - generic [ref=e81]: Safety
+  - generic [ref=e82]:
+    - generic [ref=e83]: NODE-ALPHA-7 ACTIVE
+    - generic [ref=e85]: ESTABLISHING ENCRYPTED TUNNEL...
+    - generic [ref=e86]: v10.0.0-PROD
+```
