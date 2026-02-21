@@ -1,6 +1,6 @@
 # src/ml/issue_detector.py
 """
-TRIALPULSE NEXUS 10X - Phase 3.3: Issue Detector (FIXED v1.3)
+SANCHALAK AI - Phase 3.3: Issue Detector (FIXED v1.3)
 Multi-label classification for 14 issue types with priority assignment
 
 Version: 1.3 - Fixed all data issues based on actual column analysis
@@ -742,7 +742,7 @@ class IssueDetector:
 def run_issue_detection():
     """Main execution function."""
     print("\n" + "="*70)
-    print("TRIALPULSE NEXUS 10X - PHASE 3.3: ISSUE DETECTOR v1.3")
+    print("SANCHALAK AI - PHASE 3.3: ISSUE DETECTOR v1.3")
     print("="*70)
     
     start_time = datetime.now()

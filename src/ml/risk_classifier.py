@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - Risk Classifier v1.2 (FIXED)
+SANCHALAK AI - Risk Classifier v1.2 (FIXED)
 Phase 3.2: XGBoost + LightGBM Ensemble with SHAP Explainability
 
 FIXES v1.2:
@@ -40,24 +40,24 @@ from sklearn.preprocessing import label_binarize
 try:
     import xgboost as xgb
     XGBOOST_AVAILABLE = True
-except ImportError:
+except ImportError as e:
     XGBOOST_AVAILABLE = False
-    warnings.warn("XGBoost not installed.")
+    warnings.warn(f"XGBoost import failed: {e}")
 
 try:
     import lightgbm as lgb
     LIGHTGBM_AVAILABLE = True
-except ImportError:
+except ImportError as e:
     LIGHTGBM_AVAILABLE = False
-    warnings.warn("LightGBM not installed.")
+    warnings.warn(f"LightGBM import failed: {e}")
 
 # SHAP for explainability
 try:
     import shap
     SHAP_AVAILABLE = True
-except ImportError:
+except ImportError as e:
     SHAP_AVAILABLE = False
-    warnings.warn("SHAP not installed.")
+    warnings.warn(f"SHAP import failed: {e}")
 
 # PostgreSQL data access
 try:
@@ -791,7 +791,7 @@ class RiskClassifierRunner:
     def run(self, run_cv: bool = True) -> Dict:
         """Run full training pipeline"""
         logger.info("\n" + "=" * 70)
-        logger.info("TRIALPULSE NEXUS 10X - RISK CLASSIFIER v1.2")
+        logger.info("SANCHALAK AI - RISK CLASSIFIER v1.2")
         logger.info("=" * 70)
         
         start_time = datetime.now()

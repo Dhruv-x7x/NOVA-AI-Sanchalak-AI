@@ -1,36 +1,70 @@
+import { lazy, Suspense, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import Layout from '@/components/Layout';
-import StartupLoader from '@/components/StartupLoader';
 import LoginPage from '@/features/LoginPage';
-import ExecutiveOverview from '@/features/ExecutiveOverview';
-import StudyLead from '@/features/StudyLead';
-import DMHub from '@/features/DMHub';
-import CRAView from '@/features/CRAView';
-import CoderView from '@/features/CoderView';
-import SafetyView from '@/features/SafetyView';
-import SitePortal from '@/features/SitePortal';
-import Reports from '@/features/Reports';
-import MLGovernance from '@/features/MLGovernance';
-import CascadeExplorer from '@/features/CascadeExplorer';
-import HypothesisExplorer from '@/features/HypothesisExplorer';
-import CollaborationHub from '@/features/CollaborationHub';
-import AIAssistant from '@/features/AIAssistant';
-import SettingsPage from '@/features/SettingsPage';
-import VisualizationDashboard from '@/features/VisualizationDashboard';
+import SanchalakLoader from '@/components/SanchalakLoader';
+
+// Lazy-loaded feature pages — each becomes a separate JS chunk
+const ExecutiveOverview = lazy(() => import('@/features/ExecutiveOverview'));
+const StudyLead = lazy(() => import('@/features/StudyLead'));
+const DMHub = lazy(() => import('@/features/DMHub'));
+const CRAView = lazy(() => import('@/features/CRAView'));
+const CoderView = lazy(() => import('@/features/CoderView'));
+const SafetyView = lazy(() => import('@/features/SafetyView'));
+const SitePortal = lazy(() => import('@/features/SitePortal'));
+const Reports = lazy(() => import('@/features/Reports'));
+const MLGovernance = lazy(() => import('@/features/MLGovernance'));
+const CascadeExplorer = lazy(() => import('@/features/CascadeExplorer'));
+const HypothesisExplorer = lazy(() => import('@/features/HypothesisExplorer'));
+const CollaborationHub = lazy(() => import('@/features/CollaborationHub'));
+const AIAssistant = lazy(() => import('@/features/AIAssistant'));
+const SettingsPage = lazy(() => import('@/features/SettingsPage'));
+const DigitalTwin = lazy(() => import('@/features/DigitalTwin'));
+
+function PageLoader() {
+  return <SanchalakLoader size="lg" label="Loading module..." fullPage />;
+}
+
+// Prefetch common route chunks immediately after authentication
+// This eliminates the lazy-load delay when navigating to a page for the first time
+function prefetchRoutes() {
+  // Fire all imports in parallel — browser handles them without blocking the main thread
+  const routes = [
+    () => import('@/features/ExecutiveOverview'),
+    () => import('@/features/StudyLead'),
+    () => import('@/features/DMHub'),
+    () => import('@/features/CRAView'),
+    () => import('@/features/CoderView'),
+    () => import('@/features/SafetyView'),
+    () => import('@/features/SitePortal'),
+    () => import('@/features/Reports'),
+    () => import('@/features/MLGovernance'),
+    () => import('@/features/CascadeExplorer'),
+    () => import('@/features/AIAssistant'),
+  ];
+  // Small delay to let the current route render first, then prefetch the rest
+  setTimeout(() => {
+    routes.forEach((importFn) => importFn().catch(() => {}));
+  }, 100);
+}
 
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuthStore();
 
+  // Prefetch all common route chunks once authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      prefetchRoutes();
+    }
+  }, [isAuthenticated]);
+
   if (isLoading) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-[#0a0a0c]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
-          <p className="text-indigo-400 font-mono text-xs uppercase tracking-widest animate-pulse">Initializing NEXUS...</p>
-        </div>
+        <SanchalakLoader size="xl" label="Initializing Sanchalak AI..." />
       </div>
     );
   }
@@ -69,164 +103,192 @@ export default function App() {
   const { isAuthenticated } = useAuthStore();
 
   return (
-    <StartupLoader>
-      <TooltipProvider>
-        <Routes>
-          <Route
-            path="/login"
-            element={
-              isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />
-            }
-          />
+    <TooltipProvider>
+      <Routes>
+        <Route
+          path="/login"
+          element={
+            isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />
+          }
+        />
 
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <RoleBasedRedirect />
-              </ProtectedRoute>
-            }
-          />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <RoleBasedRedirect />
+            </ProtectedRoute>
+          }
+        />
 
-          <Route
-            path="/executive"
-            element={
-              <ProtectedRoute>
+        <Route
+          path="/executive"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
                 <ExecutiveOverview />
-              </ProtectedRoute>
-            }
-          />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
 
-          <Route
-            path="/study-lead"
-            element={
-              <ProtectedRoute>
+        <Route
+          path="/study-lead"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
                 <StudyLead />
-              </ProtectedRoute>
-            }
-          />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
 
-          <Route
-            path="/dm-hub"
-            element={
-              <ProtectedRoute>
+        <Route
+          path="/dm-hub"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
                 <DMHub />
-              </ProtectedRoute>
-            }
-          />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
 
-          <Route
-            path="/cra-view"
-            element={
-              <ProtectedRoute>
+        <Route
+          path="/cra-view"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
                 <CRAView />
-              </ProtectedRoute>
-            }
-          />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
 
-          <Route
-            path="/coder-view"
-            element={
-              <ProtectedRoute>
+        <Route
+          path="/coder-view"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
                 <CoderView />
-              </ProtectedRoute>
-            }
-          />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
 
-          <Route
-            path="/safety-view"
-            element={
-              <ProtectedRoute>
+        <Route
+          path="/safety-view"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
                 <SafetyView />
-              </ProtectedRoute>
-            }
-          />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
 
-          <Route
-            path="/site-portal"
-            element={
-              <ProtectedRoute>
+        <Route
+          path="/site-portal"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
                 <SitePortal />
-              </ProtectedRoute>
-            }
-          />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
 
-          <Route
-            path="/reports"
-            element={
-              <ProtectedRoute>
+        <Route
+          path="/reports"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
                 <Reports />
-              </ProtectedRoute>
-            }
-          />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
 
-          <Route
-            path="/ml-governance"
-            element={
-              <ProtectedRoute>
+        <Route
+          path="/ml-governance"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
                 <MLGovernance />
-              </ProtectedRoute>
-            }
-          />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
 
-          <Route
-            path="/cascade-explorer"
-            element={
-              <ProtectedRoute>
+        <Route
+          path="/cascade-explorer"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
                 <CascadeExplorer />
-              </ProtectedRoute>
-            }
-          />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
 
-          <Route
-            path="/hypothesis-explorer"
-            element={
-              <ProtectedRoute>
+        <Route
+          path="/hypothesis-explorer"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
                 <HypothesisExplorer />
-              </ProtectedRoute>
-            }
-          />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
 
-          <Route
-            path="/collaboration-hub"
-            element={
-              <ProtectedRoute>
+        <Route
+          path="/collaboration-hub"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
                 <CollaborationHub />
-              </ProtectedRoute>
-            }
-          />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
 
-          <Route
-            path="/ai-assistant"
-            element={
-              <ProtectedRoute>
+        <Route
+          path="/ai-assistant"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
                 <AIAssistant />
-              </ProtectedRoute>
-            }
-          />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
 
-          <Route
-            path="/settings"
-            element={
-              <ProtectedRoute>
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
                 <SettingsPage />
-              </ProtectedRoute>
-            }
-          />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
 
-          <Route
-            path="/visualization"
-            element={
-              <ProtectedRoute>
-                <VisualizationDashboard />
-              </ProtectedRoute>
-            }
-          />
+        <Route
+          path="/digital-twin"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
+                <DigitalTwin />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
 
-          {/* Catch all - redirect to home */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </TooltipProvider>
-    </StartupLoader>
+        {/* Catch all - redirect to home */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </TooltipProvider>
   );
 }

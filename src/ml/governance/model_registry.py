@@ -6,7 +6,7 @@
 
 
 """
-TRIALPULSE NEXUS - ML Model Registry v1.0
+SANCHALAK AI - ML Model Registry v1.0
 Version Control and Artifact Management for ML Models
 
 Features:

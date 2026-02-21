@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Real-Time Data Streaming Service
+SANCHALAK AI - Real-Time Data Streaming Service
 Integrates with Kafka for live event ingestion using standardized internal framework.
 """
 

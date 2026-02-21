@@ -20,6 +20,8 @@ import {
   Zap,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -36,7 +38,7 @@ export default function AIAssistant() {
     const saved = localStorage.getItem('nexus_ai_chat');
     return saved ? JSON.parse(saved) : [
       {
-        content: 'Hello! I\'m your TrialPlus AI Assistant. I use a swarm of 6 specialized agents to analyze your clinical trial data in real-time.\n\nHow can I help you today?',
+        content: 'Hello! I\'m your Sanchalak AI Assistant. I use a swarm of 6 specialized agents to analyze your clinical trial data in real-time.\n\nHow can I help you today?',
       },
     ];
   });
@@ -110,7 +112,7 @@ export default function AIAssistant() {
           <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
             <Bot className="w-5 h-5 text-indigo-400" />
           </div>
-          NEXUS AI Assistant
+          Sanchalak AI Assistant
         </h1>
         <Button variant="outline" size="sm" onClick={handleClear} className="border-nexus-border hover:bg-error-500/10 hover:text-error-400 h-9">
           <Eraser className="w-4 h-4 mr-2" /> New Conversation
@@ -153,7 +155,9 @@ export default function AIAssistant() {
                           : "bg-nexus-card-hover border border-nexus-border text-nexus-text rounded-bl-none hover:border-indigo-500/30"
                       )}
                     >
-                      <p className="whitespace-pre-wrap text-[14px] leading-relaxed font-normal">{message.content}</p>
+                      <div className="text-[14px] leading-relaxed font-normal prose prose-invert prose-sm max-w-none prose-headings:text-indigo-300 prose-headings:text-sm prose-headings:font-bold prose-headings:mt-3 prose-headings:mb-1 prose-p:my-1 prose-table:text-xs prose-th:bg-white/10 prose-th:px-3 prose-th:py-1.5 prose-th:text-indigo-300 prose-th:font-semibold prose-td:px-3 prose-td:py-1.5 prose-td:border-white/10 prose-li:my-0.5 prose-strong:text-white prose-ul:my-1">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
+                      </div>
 
                       {/* Technical Details Toggle */}
                       {message.role === 'assistant' && (message.agent_chain || message.steps) && (
@@ -211,7 +215,7 @@ export default function AIAssistant() {
             <div className="p-4 bg-nexus-card border-t border-nexus-border/50">
               <div className="flex gap-2 bg-nexus-bg/50 border border-nexus-border p-1.5 rounded-full focus-within:border-indigo-500/40 focus-within:ring-1 focus-within:ring-indigo-500/20 transition-all">
                 <Input
-                  placeholder="Ask NEXUS AI Assistant..."
+                  placeholder="Ask Sanchalak AI Assistant..."
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSend()}

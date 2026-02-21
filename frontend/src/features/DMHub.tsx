@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAppStore } from '@/stores/appStore';
 import { patientsApi, analyticsApi, issuesApi, studiesApi, sitesApi } from '@/services/api';
+import SanchalakLoader from '@/components/SanchalakLoader';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -64,12 +65,12 @@ export default function DMHub() {
   const [isQualityMatrixOpen, setIsQualityMatrixOpen] = useState(false);
 
   // Fetch data
-  const { data: portfolio } = useQuery({
+  const { data: portfolio, isLoading: portfolioLoading } = useQuery({
     queryKey: ['portfolio', selectedStudy],
     queryFn: () => analyticsApi.getPortfolio(selectedStudy),
   });
 
-  const { data: cleanStatus } = useQuery({
+  const { data: cleanStatus, isLoading: cleanLoading } = useQuery({
     queryKey: ['clean-status', selectedStudy],
     queryFn: () => patientsApi.getCleanStatus(selectedStudy),
   });
@@ -94,10 +95,12 @@ export default function DMHub() {
     queryFn: () => analyticsApi.getDBLockSummary(selectedStudy),
   });
 
-  const { data: issuesSummary } = useQuery({
+  const { data: issuesSummary, isLoading: issuesLoading } = useQuery({
     queryKey: ['issues-summary', selectedStudy],
     queryFn: () => issuesApi.getSummary(selectedStudy),
   });
+
+  const isPageLoading = portfolioLoading && cleanLoading && issuesLoading;
 
   const { data: patterns } = useQuery({
     queryKey: ['patterns', selectedStudy],
@@ -157,8 +160,9 @@ export default function DMHub() {
 
   const topBottleneck = bottleneckResponse?.bottlenecks?.[0];
 
+  // Reuse same cache as resolutionResponse — same API, same data
   const { data: learningData } = useQuery({
-    queryKey: ['live-learning-stats', selectedStudy],
+    queryKey: ['resolution-stats', selectedStudy],
     queryFn: () => analyticsApi.getResolutionStats(selectedStudy),
   });
 
@@ -166,7 +170,7 @@ export default function DMHub() {
     mutationFn: (data: { template_id: string; duration: number; success: boolean }) =>
       analyticsApi.recordResolution(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['live-learning-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['resolution-stats'] });
       alert('Outcome recorded. AI models updating with new data point.');
     }
   });
@@ -185,6 +189,10 @@ export default function DMHub() {
   });
 
   const [dqiWeights] = useState({ safety: 0.4, query: 0.2, visit: 0.2, lab: 0.1, integrity: 0.1 });
+
+  if (isPageLoading) {
+    return <SanchalakLoader size="lg" label="Loading data management hub..." fullPage />;
+  }
 
   return (
     <div className="space-y-6">

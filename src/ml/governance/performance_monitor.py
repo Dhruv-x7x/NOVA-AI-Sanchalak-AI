@@ -6,7 +6,7 @@
 
 
 """
-TRIALPULSE NEXUS - ML Performance Monitor v1.0
+SANCHALAK AI - ML Performance Monitor v1.0
 Real-time Performance Tracking for ML Models
 
 Features:

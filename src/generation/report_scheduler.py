@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - Report Scheduler
+SANCHALAK AI - Report Scheduler
 ========================================
 Cron-based scheduled report generation with multi-channel delivery.
 

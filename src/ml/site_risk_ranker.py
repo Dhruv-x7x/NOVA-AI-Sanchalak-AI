@@ -1,12 +1,12 @@
 """
-TRIALPULSE NEXUS 10X - Site Risk Ranker v1.0
+SANCHALAK AI - Site Risk Ranker v1.0
 ==============================================
 Learning-to-Rank model for site operational risk prioritization.
 
 This is a TRIAGE TOOL, not a verdict engine.
 Labels are NOISY PROXIES, not ground truth.
 
-Author: TrialPulse Team
+Author: Sanchalak AI Team
 Version: 1.0.0
 """
 
@@ -952,7 +952,7 @@ class SiteRiskRankerRunner:
         Run the complete training pipeline with iteration until defensible.
         """
         logger.info("\n" + "=" * 70)
-        logger.info("TRIALPULSE NEXUS 10X - SITE RISK RANKER v1.0")
+        logger.info("SANCHALAK AI - SITE RISK RANKER v1.0")
         logger.info("=" * 70)
         
         start_time = datetime.now()

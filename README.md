@@ -1,4 +1,4 @@
-# TrialPlus Nexus
+# Sanchalak AI
 
 <img width="1683" height="800" alt="executive1" src="https://github.com/user-attachments/assets/c6e61270-bfe7-489a-8bb5-e4ce99137b12" />
 
@@ -133,7 +133,7 @@ npm run dev
 
 All ML model weights (including fine-tuned models), research notebooks, and result plots are available at:
 
-🔗 **[trialplus_nexus Repository](https://github.com/PARZIVALPRIME/trialpulse_nexus)**
+🔗 **[trialplus_nexus Repository](https://github.com/PARZIVALPRIME/sanchalak_ai)**
 
 ## 📚 Documentation
 
@@ -169,4 +169,4 @@ ollama create trialplus-nexus -f Modelfile
 ```
 
 ---
-**TrialPlus Nexus**
+**Sanchalak AI**

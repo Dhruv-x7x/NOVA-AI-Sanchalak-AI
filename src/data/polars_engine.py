@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Polars High-Performance Data Engine
+SANCHALAK AI - Polars High-Performance Data Engine
 =======================================================
 Replace critical Pandas paths with Polars for 5-10x speedup:
 - UPR aggregation

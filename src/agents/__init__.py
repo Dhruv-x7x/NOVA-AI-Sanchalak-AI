@@ -1,6 +1,6 @@
 # src/agents/__init__.py
 """
-TRIALPULSE NEXUS 10X - Agents Module
+SANCHALAK AI - Agents Module
 
 Contains:
 - LLMWrapper: Unified LLM interface (Ollama/Groq)

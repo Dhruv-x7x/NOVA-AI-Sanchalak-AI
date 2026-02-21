@@ -17,25 +17,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirna
 
 from app.core.security import get_current_user, require_role
 from app.services.database import get_data_service
-import math
-import numpy as np
-
-def _sanitize_for_json(data):
-    """Recursively replace NaN/Infinity float values with None for JSON serialization."""
-    if isinstance(data, dict):
-        return {k: _sanitize_for_json(v) for k, v in data.items()}
-    elif isinstance(data, list):
-        return [_sanitize_for_json(item) for item in data]
-    elif isinstance(data, float):
-        if math.isnan(data) or math.isinf(data):
-            return None
-        return data
-    elif isinstance(data, (np.floating, np.integer)):
-        val = float(data)
-        if math.isnan(val) or math.isinf(val):
-            return None
-        return val
-    return data
+from .patients import sanitize_for_json
 
 router = APIRouter()
 
@@ -140,7 +122,7 @@ async def get_sae_cases(
         if df.empty:
             return {"cases": [], "total": 0}
             
-        return {"cases": _sanitize_for_json(df.to_dict('records')), "total": len(df)}
+        return {"cases": sanitize_for_json(df.to_dict('records')), "total": len(df)}
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -183,7 +165,7 @@ async def get_sla_status(
         if df.empty:
             return {"cases": [], "summary": {"overdue": 0, "critical": 0, "urgent": 0, "on_track": 0, "total_open": 0}}
             
-        cases = df.to_dict('records')
+        cases = sanitize_for_json(df.to_dict('records'))
         
         overdue = len([c for c in cases if c.get('sla_status') == 'overdue'])
         critical = len([c for c in cases if c.get('sla_status') == 'critical'])
@@ -240,7 +222,7 @@ async def get_safety_signals(
         if df.empty:
             return {"signals": [], "total": 0}
             
-        signals = df.to_dict('records')
+        signals = sanitize_for_json(df.to_dict('records'))
         for s in signals:
             if s.get('strength'):
                 s['strength'] = s['strength'].upper()
@@ -284,7 +266,7 @@ async def get_safety_timeline(
             return {"timeline": [], "total_period": 0}
             
         return {
-            "timeline": df.to_dict('records'),
+            "timeline": sanitize_for_json(df.to_dict('records')),
             "total_period": int(df['sae_count'].sum()) if 'sae_count' in df.columns else 0
         }
         
@@ -321,7 +303,7 @@ async def get_sae_narrative(
         if df.empty:
             raise HTTPException(status_code=404, detail=f"SAE case {sae_id} not found")
             
-        return df.iloc[0].to_dict()
+        return sanitize_for_json(df.iloc[0].to_dict())
         
     except HTTPException:
         raise

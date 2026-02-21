@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - User & Role Models
+SANCHALAK AI - User & Role Models
 ======================================
 Database models for authentication with 21 CFR Part 11 compliance.
 """

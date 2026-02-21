@@ -1,12 +1,12 @@
 """
-TRIALPULSE NEXUS 10X - Phase 9.1: Trial State Model v1.1
+SANCHALAK AI - Phase 9.1: Trial State Model v1.1
 
 Digital Twin foundation with entity representation, state snapshots,
 transition rules, and constraint definitions.
 
 FIXED: Optimized data loading with pandas merge instead of row-by-row lookup
 
-Author: TrialPulse Team
+Author: Sanchalak AI Team
 Date: 2026-01-02
 """
 
@@ -1286,7 +1286,7 @@ def check_trial_constraints() -> List[ConstraintViolation]:
 def test_trial_state_model():
     """Test the Trial State Model"""
     print("=" * 70)
-    print("TRIALPULSE NEXUS 10X - PHASE 9.1 TRIAL STATE MODEL TEST")
+    print("SANCHALAK AI - PHASE 9.1 TRIAL STATE MODEL TEST")
     print("=" * 70)
     
     tests_passed = 0

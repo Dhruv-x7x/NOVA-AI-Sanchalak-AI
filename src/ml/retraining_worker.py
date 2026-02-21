@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Model Retraining Worker
+SANCHALAK AI - Model Retraining Worker
 =========================================
 Background worker to monitor model drift and trigger automated retraining.
 """

@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - Simulation Module
+SANCHALAK AI - Simulation Module
 
 Phase 9: Digital Twin & Simulation
 - 9.1 Trial State Model

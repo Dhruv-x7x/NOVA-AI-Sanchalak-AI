@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { analyticsApi } from '@/services/api';
+import SanchalakLoader from '@/components/SanchalakLoader';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,16 +13,20 @@ import {
 } from 'lucide-react';
 
 export default function HypothesisExplorer() {
-  const { data: patterns } = useQuery({
+  const { data: patterns, isLoading: patternsLoading } = useQuery({
     queryKey: ['pattern-alerts'],
     queryFn: () => analyticsApi.getPatterns(),
   });
+
+  if (patternsLoading) {
+    return <SanchalakLoader size="lg" label="Loading hypothesis patterns..." fullPage />;
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Hypothesis Explorer</h1>
+        <h1 className="text-2xl font-bold text-white">Hypothesis Explorer</h1>
         <p className="text-gray-500">AI-generated insights and pattern detection</p>
       </div>
 
@@ -102,7 +107,7 @@ export default function HypothesisExplorer() {
                       }`} />
                     </div>
                     <div>
-                      <h4 className="font-medium text-gray-900">{alert.pattern_name}</h4>
+                      <h4 className="font-medium text-gray-100">{alert.pattern_name}</h4>
                       <p className="text-sm text-gray-500 mt-1">{alert.alert_message || 'Pattern detected'}</p>
                       <div className="flex gap-4 mt-2 text-sm text-gray-500">
                         <span>Matches: {alert.match_count}</span>

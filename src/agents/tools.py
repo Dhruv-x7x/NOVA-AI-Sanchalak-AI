@@ -1,5 +1,5 @@
 """
-Tool Registry for TRIALPULSE NEXUS 10X
+Tool Registry for SANCHALAK AI
 Phase 5.2: LangGraph Agent Framework - FIXED
 
 Defines the tools that agents can use to interact with data and systems.

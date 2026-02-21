@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - Polars High-Performance Data Processor
+SANCHALAK AI - Polars High-Performance Data Processor
 ==============================================================
 Fast data processing using Polars for large-scale clinical trial data.
 
@@ -11,7 +11,7 @@ Features:
 - UPR aggregation acceleration
 - Performance benchmarking
 
-Author: TrialPulse Team
+Author: Sanchalak AI Team
 Date: 2026-01-24
 """
 
@@ -847,7 +847,7 @@ def reset_polars_processor():
 def main():
     """Demo the Polars processor."""
     print("=" * 70)
-    print("TRIALPULSE NEXUS - POLARS HIGH-PERFORMANCE PROCESSING DEMO")
+    print("SANCHALAK AI - POLARS HIGH-PERFORMANCE PROCESSING DEMO")
     print("=" * 70)
     
     # Initialize processor

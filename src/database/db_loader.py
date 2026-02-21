@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Database Data Loader
+SANCHALAK AI - Database Data Loader
 =======================================
 Data loader that reads from PostgreSQL instead of parquet files.
 Can be used as a drop-in replacement for the file-based loader.

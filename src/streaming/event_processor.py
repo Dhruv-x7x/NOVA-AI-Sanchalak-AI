@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Event Processor
+SANCHALAK AI - Event Processor
 ===================================
 Transform streaming events into actionable UPR updates.
 """

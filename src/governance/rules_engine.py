@@ -6,7 +6,7 @@
 
 
 """
-TRIALPULSE NEXUS - Governance Rules Engine v1.0
+SANCHALAK AI - Governance Rules Engine v1.0
 Enforces safety boundaries for AI actions
 
 Features:
@@ -1481,7 +1481,7 @@ def get_governance_engine() -> GovernanceRulesEngine:
 def test_governance_rules():
     """Test the governance rules engine"""
     print("=" * 70)
-    print("TRIALPULSE NEXUS - GOVERNANCE RULES ENGINE TEST")
+    print("SANCHALAK AI - GOVERNANCE RULES ENGINE TEST")
     print("=" * 70)
     
     # Initialize

@@ -1,6 +1,6 @@
 # src/knowledge/vector_store.py
 """
-TRIALPULSE NEXUS 10X - ChromaDB Vector Store v1.0
+SANCHALAK AI - ChromaDB Vector Store v1.0
 Phase 4.2: Persistent vector database with collections and filtered search
 
 Features:
@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 class VectorStore:
     """
-    ChromaDB-based vector store for TRIALPULSE knowledge artifacts.
+    ChromaDB-based vector store for SANCHALAK AI knowledge artifacts.
     
     Collections:
     1. resolution_templates - Resolution patterns for issues
@@ -603,7 +603,7 @@ class VectorStore:
 def main():
     """Run the vector store indexing pipeline."""
     print("=" * 70)
-    print("TRIALPULSE NEXUS 10X - PHASE 4.2: CHROMADB VECTOR STORE")
+    print("SANCHALAK AI - PHASE 4.2: CHROMADB VECTOR STORE")
     print("=" * 70)
     
     # Initialize vector store

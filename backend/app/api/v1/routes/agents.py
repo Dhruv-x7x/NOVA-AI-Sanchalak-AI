@@ -405,7 +405,7 @@ Please schedule a batch signature session with the Principal Investigator at you
 Please confirm the scheduled session date by EOD tomorrow.
 
 Best regards,
-TrialPulse Nexus AI Assistant""",
+Sanchalak AI Assistant""",
                     "tone": "professional",
                     "urgency": "high",
                     "personalization_applied": True

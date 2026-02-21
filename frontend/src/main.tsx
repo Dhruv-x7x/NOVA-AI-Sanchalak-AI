@@ -8,7 +8,8 @@ import './index.css'
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
+      staleTime: 1000 * 60 * 5, // 5 minutes — data considered fresh
+      gcTime: 1000 * 60 * 15,   // 15 minutes — keep inactive cache longer for fast back-nav
       retry: 1,
       refetchOnWindowFocus: false,
     },

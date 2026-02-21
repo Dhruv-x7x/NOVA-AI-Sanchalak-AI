@@ -1,4 +1,4 @@
-"""Configuration module for TRIALPULSE NEXUS 10X."""
+"""Configuration module for SANCHALAK AI."""
 
 from .settings import (
     PROJECT_ROOT,

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { sitesApi, analyticsApi, issuesApi, reportsApi } from '@/services/api';
 import { useAppStore } from '@/stores/appStore';
+import SanchalakLoader from '@/components/SanchalakLoader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -435,12 +436,7 @@ export default function CRAView() {
   }, [cascadeQuery.data]);
 
   if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-        <RefreshCw className="w-8 h-8 text-primary animate-spin" />
-        <p className="text-nexus-text-muted animate-pulse font-mono uppercase tracking-widest text-xs">Establishing Secure Telemetry...</p>
-      </div>
-    );
+    return <SanchalakLoader size="lg" label="Establishing Secure Telemetry..." fullPage />;
   }
 
   if (isCriticalError) {

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { codingApi } from '@/services/api';
 import { useAppStore } from '@/stores/appStore';
+import SanchalakLoader from '@/components/SanchalakLoader';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -85,15 +86,21 @@ export default function CoderView() {
   const { selectedStudy } = useAppStore();
 
   // Fetch coding queue
-  const { data: codingQueue, isLoading } = useQuery({
+  const { data: codingQueue, isLoading: isQueueLoading, isError: isQueueError, error: queueError } = useQuery({
     queryKey: ['coding-queue', selectedStudy],
     queryFn: () => codingApi.getQueue({ limit: 500, study_id: selectedStudy }),
   });
 
   // Fetch coding stats
-  const { data: codingStats } = useQuery({
+  const { data: codingStats, isLoading: isStatsLoading, isError: isStatsError, error: statsError } = useQuery({
     queryKey: ['coding-stats', selectedStudy],
     queryFn: () => codingApi.getStats(selectedStudy),
+  });
+
+  // Fetch escalated items separately (queue LIMIT may exclude older escalated items)
+  const { data: escalatedQueue } = useQuery({
+    queryKey: ['coding-escalated', selectedStudy],
+    queryFn: () => codingApi.getQueue({ status: 'escalated', limit: 200, study_id: selectedStudy }),
   });
 
   // Fetch productivity data
@@ -125,6 +132,8 @@ export default function CoderView() {
     .filter((item: CodingItem) => !hiddenItemIds.includes(item.item_id));
   const pendingMeddra = codingQueue?.pending_meddra || codingStats?.meddra?.pending || 0;
   const pendingWhodrug = codingQueue?.pending_whodrug || codingStats?.whodrug?.pending || 0;
+  const codedMeddra = codingStats?.meddra?.coded || 0;
+  const codedWhodrug = codingStats?.whodrug?.coded || 0;
   const totalCoded = codingStats?.total_coded || 0;
   const todayCoded = codingStats?.today_coded || 0;
   const highConfReady = codingStats?.high_confidence_ready || 0;
@@ -144,7 +153,17 @@ export default function CoderView() {
   });
 
   const pendingItems = filteredItems.filter((i: CodingItem) => i.status === 'pending');
-  const escalatedItems = filteredItems.filter((i: CodingItem) => i.status === 'escalated');
+  const escalatedItems = (escalatedQueue?.items || []).filter((item: CodingItem) => {
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      return (
+        item.verbatim_term?.toLowerCase().includes(query) ||
+        item.patient_key?.toLowerCase().includes(query) ||
+        item.site_id?.toLowerCase().includes(query)
+      );
+    }
+    return true;
+  });
   const highConfItems = filteredItems.filter((i: CodingItem) => i.confidence_score >= 0.9);
 
   // Productivity chart data
@@ -173,6 +192,15 @@ export default function CoderView() {
 
   return (
     <div className="space-y-6">
+      {(isQueueError || isStatsError) && (
+        <div className="glass-card rounded-xl p-4 border border-error-500/30 bg-error-500/10">
+          <p className="text-sm text-white font-semibold">Coding data failed to load</p>
+          <p className="text-xs text-nexus-text-secondary mt-1">
+            {String((statsError as any)?.message || (queueError as any)?.message || 'Unknown error')}
+          </p>
+        </div>
+      )}
+
       {/* Header */}
       <div className="glass-card rounded-xl p-6 border border-nexus-border">
         <div className="flex items-center justify-between">
@@ -187,7 +215,8 @@ export default function CoderView() {
           </div>
           <div className="flex items-center gap-3">
             <Badge variant="warning" className="text-lg px-4 py-2">
-              {pendingMeddra + pendingWhodrug} Terms Pending
+              {pendingMeddra + pendingWhodrug} Pending
+              {totalCoded > 0 ? ` • ${totalCoded.toLocaleString()} Coded` : ''}
             </Badge>
           </div>
         </div>
@@ -201,6 +230,7 @@ export default function CoderView() {
               <div>
                 <p className="text-3xl font-bold text-white">{pendingMeddra}</p>
                 <p className="text-sm text-nexus-text-secondary mt-1">MedDRA Pending</p>
+                <p className="text-[11px] text-nexus-text-muted mt-1">Coded: {codedMeddra.toLocaleString()}</p>
               </div>
               <div className="w-12 h-12 rounded-xl bg-info-500/20 flex items-center justify-center">
                 <Stethoscope className="w-6 h-6 text-info-400" />
@@ -215,6 +245,7 @@ export default function CoderView() {
               <div>
                 <p className="text-3xl font-bold text-white">{pendingWhodrug}</p>
                 <p className="text-sm text-nexus-text-secondary mt-1">WHODrug Pending</p>
+                <p className="text-[11px] text-nexus-text-muted mt-1">Coded: {codedWhodrug.toLocaleString()}</p>
               </div>
               <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
                 <Pill className="w-6 h-6 text-purple-400" />
@@ -317,8 +348,8 @@ export default function CoderView() {
               </div>
             </CardHeader>
             <CardContent>
-              {isLoading ? (
-                <div className="text-center py-8 text-nexus-text-secondary">Loading...</div>
+              {(isQueueLoading || isStatsLoading) ? (
+                <SanchalakLoader size="md" label="Loading coding queue..." className="py-8" />
               ) : pendingItems.length > 0 ? (
                 <Table>
                   <TableHeader>
@@ -416,6 +447,9 @@ export default function CoderView() {
                 <div className="text-center py-8">
                   <Code className="w-12 h-12 mx-auto mb-4 text-nexus-text-secondary" />
                   <p className="text-nexus-text-secondary">No pending coding tasks</p>
+                  {totalCoded > 0 && (
+                    <p className="text-xs text-nexus-text-muted mt-1">{totalCoded.toLocaleString()} coded terms available in UPR</p>
+                  )}
                 </div>
               )}
             </CardContent>

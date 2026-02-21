@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - Phase 9.2: Scenario Simulator v1.0
+SANCHALAK AI - Phase 9.2: Scenario Simulator v1.0
 # NOTE: This module previously used SQLite but has been migrated to PostgreSQL-only.
 # If you need to use this module, update it to use:
 #   from src.database.pg_data_service import get_pg_data_service
@@ -13,7 +13,7 @@ What-if scenario simulation with Monte Carlo analysis for:
 - Process changes
 - Enrollment scenarios
 
-Author: TrialPulse Team
+Author: Sanchalak AI Team
 Date: 2026-01-02
 """
 
@@ -1423,7 +1423,7 @@ def simulate_process_change(process_name: str, expected_improvement: float = 0.1
 def test_scenario_simulator():
     """Test the Scenario Simulator."""
     print("=" * 70)
-    print("TRIALPULSE NEXUS 10X - SCENARIO SIMULATOR TEST")
+    print("SANCHALAK AI - SCENARIO SIMULATOR TEST")
     print("=" * 70)
     
     tests_passed = 0

@@ -87,9 +87,13 @@ async def get_clean_status_summary(
         tier_counts = df["clean_status_tier"].value_counts().to_dict()
         total = len(df)
         
-        # Mapping to match dashboard tiers
-        tier1_count = int(df["clean_status_tier"].isin(['tier_1', 'tier_2', 'db_lock_ready']).sum())
-        tier2_count = int(df["clean_status_tier"].isin(['tier_2', 'db_lock_ready']).sum())
+        # Mapping to match dashboard tiers (actual DB values from Phase 7)
+        # Tier 1 = Clinical Clean: patients passing all 7 clinical hard blocks
+        #   Includes: "DB Lock Ready" (passes both) + "Clinical Clean Only" (passes tier 1 only)
+        # Tier 2 = Operational Clean: patients passing all 7 operational soft blocks
+        #   Includes: "DB Lock Ready" (passes both) + "Operational Clean Only" (passes tier 2 only)
+        tier1_count = int(df["clean_status_tier"].isin(['DB Lock Ready', 'Clinical Clean Only']).sum())
+        tier2_count = int(df["clean_status_tier"].isin(['DB Lock Ready', 'Operational Clean Only']).sum())
         
         return sanitize_for_json({
             "summary": {
@@ -296,17 +300,26 @@ async def record_resolution_stats(
     """Record a resolution outcome for Live Learning."""
     try:
         data_service = get_data_service()
-        # In a real system, we'd save this to a dedicated table
-        # For the hackathon, we'll log it and return success
         print(f"Recording resolution: {data} by {current_user.get('username')}")
         
         # Optionally save to database if the method exists
         if hasattr(data_service, 'save_resolution_outcome'):
-            data_service.save_resolution_outcome({
-                **data,
-                'user_id': current_user.get('user_id'),
-                'user_role': current_user.get('role')
-            })
+            # The frontend doesn't send issue_id, so find an open issue to link
+            issue_id = data.get('issue_id')
+            if not issue_id:
+                issues_df = data_service.get_issues(status='open')
+                if issues_df is not None and not issues_df.empty:
+                    issue_id = issues_df.iloc[0]['issue_id']
+            
+            if issue_id:
+                data_service.save_resolution_outcome({
+                    **data,
+                    'issue_id': issue_id,
+                    'user_id': current_user.get('user_id'),
+                    'user_role': current_user.get('role')
+                })
+            else:
+                print("Skipping DB save — no open issue to link resolution to")
             
         return {"status": "success", "message": "Resolution recorded for AI training"}
     except Exception as e:
@@ -476,7 +489,11 @@ async def get_hierarchy_data(
                     AVG(upr.dqi_score) as avg_dqi,
                     SUM(upr.protocol_deviations) as total_deviations,
                     SUM(upr.total_open_issues) as total_issues
-                FROM clinical_sites cs
+                FROM (
+                    SELECT DISTINCT ON (site_id) site_id, name, region, dqi_score
+                    FROM clinical_sites
+                    ORDER BY site_id, dqi_score DESC NULLS LAST
+                ) cs
                 LEFT JOIN unified_patient_record upr ON cs.site_id = upr.site_id
                 GROUP BY cs.region
                 ORDER BY patient_count DESC
@@ -500,17 +517,21 @@ async def get_hierarchy_data(
                     cs.site_id as id,
                     COUNT(DISTINCT upr.patient_key) as patient_count,
                     AVG(upr.dqi_score) as avg_dqi,
-                    SUM(upr.protocol_deviations) as total_deviations,
-                    SUM(upr.total_open_issues) as total_issues,
-                    MAX(upr.risk_score) as max_risk,
+                    COALESCE(SUM(upr.protocol_deviations), 0) as total_deviations,
+                    COALESCE(SUM(upr.total_open_issues), 0) as total_issues,
+                    COALESCE(MAX(upr.risk_score), 0) as max_risk,
                     
-                    -- SDV Aggregates
-                    AVG(upr.sdv_completion_pct) as avg_sdv,
-                    AVG(upr.forms_locked_pct) as avg_locked,
-                    AVG(upr.forms_signed_pct) as avg_signed,
-                    SUM(upr.crfs_overdue_count) as total_overdue
+                    -- SDV Aggregates (using actual UPR column names)
+                    AVG(upr.sdv_completion_rate) as avg_sdv,
+                    AVG(upr.crf_lock_rate) as avg_locked,
+                    AVG(upr.signed_crf_rate) as avg_signed,
+                    COALESCE(SUM(upr.total_overdue_signatures), 0) as total_overdue
                     
-                FROM clinical_sites cs
+                FROM (
+                    SELECT DISTINCT ON (site_id) site_id, name, region, dqi_score
+                    FROM clinical_sites
+                    ORDER BY site_id, dqi_score DESC NULLS LAST
+                ) cs
                 LEFT JOIN unified_patient_record upr ON cs.site_id = upr.site_id
                 WHERE {region_filter}
                 GROUP BY cs.site_id, cs.name
@@ -531,15 +552,15 @@ async def get_hierarchy_data(
                     total_open_issues as issues,
                     is_critical_patient,
                     
-                    -- SDV Metrics
-                    sdv_completion_pct,
-                    forms_locked_pct,
-                    forms_signed_pct,
-                    crfs_overdue_count
+                    -- SDV Metrics (using actual UPR column names)
+                    sdv_completion_rate as sdv_completion_pct,
+                    crf_lock_rate as forms_locked_pct,
+                    signed_crf_rate as forms_signed_pct,
+                    total_overdue_signatures as crfs_overdue_count
                     
                 FROM unified_patient_record
                 WHERE site_id = :parent_id
-                ORDER BY risk_score DESC
+                ORDER BY risk_score DESC NULLS LAST
                 LIMIT 100
                 """
                 df = pd.read_sql(text(q), conn, params={"parent_id": parent_id})

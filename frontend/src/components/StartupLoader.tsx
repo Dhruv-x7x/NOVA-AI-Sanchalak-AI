@@ -75,8 +75,13 @@ export default function StartupLoader({ children }: StartupLoaderProps) {
     >
       {/* Logo/Title */}
       <div className="mb-8 text-center">
+        <img
+          src="/loading.gif"
+          alt="Loading"
+          className="w-20 h-20 object-contain mx-auto mb-4"
+        />
         <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-          TrialPlus Nexus
+          Sanchalak AI
         </h1>
         <p className="text-xs text-gray-500 mt-1 font-mono uppercase tracking-widest">
           Clinical Intelligence Platform

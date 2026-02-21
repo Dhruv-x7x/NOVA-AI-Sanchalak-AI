@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - Resolution Genome Engine v1.2
+SANCHALAK AI - Resolution Genome Engine v1.2
 =====================================================
 Every resolution becomes reusable knowledge.
 
@@ -1444,7 +1444,7 @@ def run_resolution_genome(
 ) -> Dict[str, Any]:
     """Run Resolution Genome pipeline with Assignment Loop."""
     logger.info("=" * 70)
-    logger.info("TRIALPULSE NEXUS 10X - RESOLUTION GENOME ENGINE v1.2")
+    logger.info("SANCHALAK AI - RESOLUTION GENOME ENGINE v1.2")
     logger.info("=" * 70)
     
     start_time = datetime.now()

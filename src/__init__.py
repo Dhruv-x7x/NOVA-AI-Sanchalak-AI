@@ -1,1 +1,1 @@
-"""TRIALPULSE NEXUS 10X - Source modules."""
+"""SANCHALAK AI - Source modules."""

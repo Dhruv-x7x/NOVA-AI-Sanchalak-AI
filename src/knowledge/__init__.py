@@ -1,6 +1,6 @@
 # File: src/knowledge/__init__.py
 """
-TRIALPULSE NEXUS 10X - Knowledge Module
+SANCHALAK AI - Knowledge Module
 
 Components:
 - Embedding Pipeline (4.1) - Requires sentence_transformers
@@ -15,9 +15,21 @@ from pathlib import Path
 # Module version
 __version__ = "1.0.0"
 
-# Always available components (no external ML dependencies)
-from .causal_hypothesis_engine import CausalHypothesisEngine
-from .cross_study_pattern_matcher import CrossStudyPatternMatcher
+# Core components (may fail due to transitive dependencies like torch/sentence_transformers)
+CausalHypothesisEngine = None
+CrossStudyPatternMatcher = None
+
+try:
+    from .causal_hypothesis_engine import CausalHypothesisEngine
+except (ImportError, OSError) as e:
+    import logging
+    logging.getLogger(__name__).warning(f"CausalHypothesisEngine not available: {e}")
+
+try:
+    from .cross_study_pattern_matcher import CrossStudyPatternMatcher
+except (ImportError, OSError) as e:
+    import logging
+    logging.getLogger(__name__).warning(f"CrossStudyPatternMatcher not available: {e}")
 
 # Optional components with external dependencies
 EmbeddingPipeline = None
@@ -26,19 +38,19 @@ RAGKnowledgeBase = None
 
 try:
     from .embedding_pipeline import EmbeddingPipeline
-except ImportError as e:
+except (ImportError, OSError) as e:
     import logging
     logging.getLogger(__name__).warning(f"EmbeddingPipeline not available: {e}")
 
 try:
     from .vector_store import VectorStore
-except ImportError as e:
+except (ImportError, OSError, ValueError) as e:
     import logging
     logging.getLogger(__name__).warning(f"VectorStore not available: {e}")
 
 try:
     from .rag_knowledge_base import RAGKnowledgeBase
-except ImportError as e:
+except (ImportError, OSError, ValueError) as e:
     import logging
     logging.getLogger(__name__).warning(f"RAGKnowledgeBase not available: {e}")
 

@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { mlApi } from '@/services/api';
+import SanchalakLoader from '@/components/SanchalakLoader';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -46,6 +47,7 @@ import {
 export default function MLGovernance() {
   const [activeTab, setActiveTab] = useState('overview');
   const queryClient = useQueryClient();
+  const [driftCheckLoading, setDriftCheckLoading] = useState(false);
 
   const { data: models, isLoading: modelsLoading } = useQuery({
     queryKey: ['ml-models'],
@@ -95,14 +97,37 @@ export default function MLGovernance() {
     },
   });
 
-  // Mock performance data for charts
-  const performanceData = [
-    { date: '2024-01-01', accuracy: 94.2, precision: 92.1, recall: 91.5 },
-    { date: '2024-01-08', accuracy: 94.5, precision: 92.4, recall: 91.8 },
-    { date: '2024-01-15', accuracy: 93.8, precision: 91.9, recall: 91.2 },
-    { date: '2024-01-22', accuracy: 94.8, precision: 93.1, recall: 92.4 },
-    { date: '2024-01-29', accuracy: 95.1, precision: 93.5, recall: 92.8 },
-  ];
+  const handleRunDriftCheck = async () => {
+    setDriftCheckLoading(true);
+    try {
+      await mlApi.runDriftCheck();
+      queryClient.invalidateQueries({ queryKey: ['ml-drift-reports'] });
+    } catch (e) {
+      console.error('Drift check failed', e);
+    } finally {
+      setDriftCheckLoading(false);
+    }
+  };
+
+  // Performance data from real drift reports
+  const performanceData = useMemo(() => {
+    if (!reports || reports.length === 0) {
+      return [
+        { date: 'No data', accuracy: 0, precision: 0, recall: 0 },
+      ];
+    }
+    // Group by model, use latest report per model for accuracy comparison
+    const modelMap: Record<string, any> = {};
+    for (const r of reports as any[]) {
+      const name = r.model_name || 'Unknown';
+      if (!modelMap[name]) modelMap[name] = r;
+    }
+    return Object.values(modelMap).map((r: any) => ({
+      date: r.model_name || 'Model',
+      accuracy: r.current_accuracy ?? r.baseline_accuracy ?? 0,
+      baseline: r.baseline_accuracy ?? 0,
+    }));
+  }, [reports]);
 
   const driftTrendData = useMemo(() => {
     if (!reports || reports.length === 0) {
@@ -139,11 +164,7 @@ export default function MLGovernance() {
   ];
 
   if (modelsLoading) {
-    return (
-      <div className="flex items-center justify-center h-[calc(100vh-200px)]">
-        <Loader2 className="w-12 h-12 text-primary animate-spin" />
-      </div>
-    );
+    return <SanchalakLoader size="lg" label="Loading AI governance models..." fullPage />;
   }
 
   return (
@@ -165,6 +186,19 @@ export default function MLGovernance() {
               <CheckCircle2 className="w-3 h-3" />
               21 CFR Part 11 Compliant
             </Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10 hover:text-purple-300"
+              onClick={handleRunDriftCheck}
+              disabled={driftCheckLoading}
+            >
+              {driftCheckLoading ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Analyzing...</>
+              ) : (
+                <><Activity className="w-4 h-4 mr-2" /> Run Drift Check</>
+              )}
+            </Button>
             <Button variant="outline" size="sm" className="border-nexus-border text-nexus-text-secondary hover:text-white" onClick={() => queryClient.invalidateQueries()}>
               <RefreshCw className="w-4 h-4 mr-2" />
               Refresh
@@ -576,22 +610,52 @@ export default function MLGovernance() {
               </CardHeader>
               <CardContent className="pt-6">
                 {selectedReport ? (
-                  <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
+                  <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
                     <div>
                       <h4 className="text-xs font-black text-nexus-text-muted uppercase mb-1">Root Cause Analysis</h4>
-                      <p className="text-sm text-white font-medium">{selectedReport.recommendations || "Automated check completed."}</p>
+                      <p className="text-xs text-white font-medium whitespace-pre-line">{selectedReport.recommendations || "Automated check completed."}</p>
                     </div>
 
-                    <div className="p-4 rounded-xl bg-nexus-bg border border-nexus-border space-y-4">
+                    <div className="p-3 rounded-xl bg-nexus-bg border border-nexus-border space-y-3">
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-nexus-text-secondary">Drift Probability</span>
-                        <span className="text-white font-bold">{typeof selectedReport.drift_score === 'number' ? (selectedReport.drift_score * 100).toFixed(1) : '0.0'}%</span>
+                        <span className="text-nexus-text-secondary">Overall PSI</span>
+                        <span className={cn("font-bold", (selectedReport.drift_score || 0) > 0.10 ? 'text-error-400' : (selectedReport.drift_score || 0) > 0.05 ? 'text-warning-400' : 'text-success-400')}>{typeof selectedReport.drift_score === 'number' ? selectedReport.drift_score.toFixed(4) : '0.0000'}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-nexus-text-secondary">Accuracy</span>
+                        <span className="text-white font-bold">{typeof selectedReport.baseline_accuracy === 'number' ? `${selectedReport.baseline_accuracy.toFixed(1)}% → ${(selectedReport.current_accuracy || 0).toFixed(1)}%` : '--'}</span>
                       </div>
                     </div>
 
+                    {/* Per-feature breakdown */}
+                    {selectedReport.feature_drift_details && Array.isArray(selectedReport.feature_drift_details) && selectedReport.feature_drift_details.length > 0 && (
+                      <div>
+                        <h4 className="text-xs font-black text-nexus-text-muted uppercase mb-2">Feature Drift Breakdown</h4>
+                        <div className="space-y-1.5 max-h-[200px] overflow-y-auto custom-scrollbar">
+                          {(selectedReport.feature_drift_details as any[]).map((fd: any, i: number) => (
+                            <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-nexus-card border border-nexus-border text-[10px]">
+                              <span className="text-white font-medium truncate max-w-[120px]">{(fd.feature_name || '').replace(/_/g, ' ')}</span>
+                              <div className="flex items-center gap-2">
+                                <span className={cn(
+                                  "font-bold",
+                                  fd.severity === 'CRITICAL' || fd.severity === 'HIGH' ? 'text-error-400' :
+                                    fd.severity === 'MEDIUM' ? 'text-warning-400' :
+                                      fd.severity === 'LOW' ? 'text-yellow-400' : 'text-success-400'
+                                )}>{typeof fd.psi === 'number' ? fd.psi.toFixed(4) : '0.00'}</span>
+                                <Badge variant={
+                                  fd.severity === 'CRITICAL' || fd.severity === 'HIGH' ? 'error' :
+                                    fd.severity === 'MEDIUM' ? 'warning' : 'success'
+                                } className="text-[8px] h-3.5 px-1">{fd.severity}</Badge>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {selectedReport.retrain_recommended && (
-                      <div className="p-4 bg-error-500/10 rounded-xl border border-error-500/20">
-                        <Button className="w-full bg-error-600 hover:bg-error-500 text-white text-xs font-bold h-9">
+                      <div className="p-3 bg-error-500/10 rounded-xl border border-error-500/20">
+                        <Button className="w-full bg-error-600 hover:bg-error-500 text-white text-xs font-bold h-8">
                           Initialize Retraining Loop
                         </Button>
                       </div>
@@ -610,18 +674,18 @@ export default function MLGovernance() {
 
         <TabsContent value="performance">
           <Card className="glass-card border-nexus-border">
-            <CardHeader><CardTitle className="text-white">Model Performance</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-white">Model Performance — Current vs Baseline Accuracy</CardTitle></CardHeader>
             <CardContent>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={performanceData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#2d3548" />
-                    <XAxis dataKey="date" stroke="#64748b" tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                    <YAxis domain={[85, 100]} stroke="#64748b" tick={{ fill: '#94a3b8' }} />
+                    <XAxis dataKey="date" stroke="#64748b" tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                    <YAxis domain={[80, 100]} stroke="#64748b" tick={{ fill: '#94a3b8' }} />
                     <Tooltip contentStyle={{ backgroundColor: '#1a1f2e', border: '1px solid #2d3548', borderRadius: '8px', color: '#fff' }} />
                     <Legend />
-                    <Line type="monotone" dataKey="accuracy" name="Accuracy" stroke="#8b5cf6" strokeWidth={2} />
-                    <Line type="monotone" dataKey="precision" name="Precision" stroke="#10b981" strokeWidth={2} />
+                    <Line type="monotone" dataKey="baseline" name="Baseline Accuracy" stroke="#64748b" strokeWidth={2} strokeDasharray="5 5" />
+                    <Line type="monotone" dataKey="accuracy" name="Current Accuracy" stroke="#8b5cf6" strokeWidth={2} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>

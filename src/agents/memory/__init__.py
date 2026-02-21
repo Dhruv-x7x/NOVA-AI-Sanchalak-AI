@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Agent Memory Package
+SANCHALAK AI - Agent Memory Package
 ========================================
 Memory, learning, and decision tracking for agents.
 """

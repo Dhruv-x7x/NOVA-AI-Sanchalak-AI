@@ -71,7 +71,7 @@ export const useAuthStore = create<AuthState>()(
       },
     }),
     {
-      name: 'trialpulse-auth',
+      name: 'sanchalak-auth',
       onRehydrateStorage: () => (state) => {
         state?.setLoading(false);
       },

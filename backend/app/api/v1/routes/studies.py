@@ -55,7 +55,7 @@ async def get_study(
     current_user: dict = Depends(get_current_user)
 ):
     """Get single study details."""
-    if study_id == "Unknown" or study_id == "all":
+    if study_id in ("Unknown", "all", "Multiple"):
         return {
             "study_id": "all",
             "name": "Global Portfolio",

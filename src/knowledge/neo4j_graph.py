@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Neo4j Knowledge Graph Service
+SANCHALAK AI - Neo4j Knowledge Graph Service
 =================================================
 Entity graph for Cascade Intelligence and relationship queries.
 
@@ -718,6 +718,108 @@ class Neo4jGraphService:
     
     # ============== Utility Methods ==============
     
+    def execute_query(self, cypher: str, **params) -> List[Dict[str, Any]]:
+        """Execute an arbitrary Cypher query and return results as list of dicts."""
+        self._ensure_connected()
+        self._metrics["queries_executed"] += 1
+        
+        if self._use_mock:
+            return []
+        
+        try:
+            with self._driver.session(database=NEO4J_DATABASE) as session:
+                result = session.run(cypher, **params)
+                return [dict(record) for record in result]
+        except Exception as e:
+            self._metrics["queries_failed"] += 1
+            logger.error(f"Cypher query failed: {e}")
+            raise
+    
+    def upsert_study(self, study_id: str, name: str):
+        """Upsert a Study node."""
+        self._ensure_connected()
+        if self._use_mock:
+            return
+        with self._driver.session(database=NEO4J_DATABASE) as session:
+            session.run(
+                "MERGE (s:Study {id: $id}) SET s.name = $name",
+                id=study_id, name=name
+            )
+    
+    def upsert_site(self, site_id: str, name: str, region: str = ""):
+        """Upsert a Site node."""
+        self._ensure_connected()
+        if self._use_mock:
+            return
+        with self._driver.session(database=NEO4J_DATABASE) as session:
+            session.run(
+                "MERGE (st:Site {id: $id}) SET st.name = $name, st.region = $region",
+                id=site_id, name=name, region=region
+            )
+    
+    def upsert_patient(self, patient_key: str, site_id: str):
+        """Upsert a Patient node and link to site."""
+        self._ensure_connected()
+        if self._use_mock:
+            return
+        with self._driver.session(database=NEO4J_DATABASE) as session:
+            session.run("""
+                MERGE (p:Patient {id: $patient_key})
+                WITH p
+                MATCH (st:Site {id: $site_id})
+                MERGE (st)-[:HAS_PATIENT]->(p)
+            """, patient_key=patient_key, site_id=site_id)
+    
+    def upsert_issue(self, issue_id: str, patient_key: str, issue_type: str,
+                     priority: str, impact: float = 0.0):
+        """Upsert an Issue node and link to patient."""
+        self._ensure_connected()
+        if self._use_mock:
+            return
+        with self._driver.session(database=NEO4J_DATABASE) as session:
+            session.run("""
+                MERGE (i:Issue {id: $issue_id})
+                SET i.type = $issue_type, i.priority = $priority, i.impact = $impact
+                WITH i
+                MATCH (p:Patient {id: $patient_key})
+                MERGE (p)-[:HAS_ISSUE]->(i)
+            """, issue_id=issue_id, patient_key=patient_key,
+                 issue_type=issue_type, priority=priority, impact=impact)
+    
+    def get_cascade_topology(self) -> Dict[str, List[str]]:
+        """Return BLOCKS topology as {source_type: [target_types]} from the graph."""
+        self._ensure_connected()
+        
+        if self._use_mock:
+            return {}
+        
+        try:
+            with self._driver.session(database=NEO4J_DATABASE) as session:
+                result = session.run("""
+                    MATCH (a:Issue)-[:BLOCKS]->(b:Issue)
+                    RETURN a.type as source, collect(DISTINCT b.type) as targets
+                """)
+                return {r["source"]: r["targets"] for r in result if r["source"]}
+        except Exception as e:
+            logger.error(f"get_cascade_topology failed: {e}")
+            return {}
+    
+    def create_cascade_schema(self):
+        """Create constraints and indexes for cascade-specific nodes."""
+        self._ensure_connected()
+        if self._use_mock:
+            return
+        with self._driver.session(database=NEO4J_DATABASE) as session:
+            session.run("CREATE CONSTRAINT IF NOT EXISTS FOR (s:Study) REQUIRE s.id IS UNIQUE")
+            session.run("CREATE CONSTRAINT IF NOT EXISTS FOR (st:Site) REQUIRE st.id IS UNIQUE")
+            session.run("CREATE CONSTRAINT IF NOT EXISTS FOR (p:Patient) REQUIRE p.id IS UNIQUE")
+            session.run("CREATE CONSTRAINT IF NOT EXISTS FOR (i:Issue) REQUIRE i.id IS UNIQUE")
+            # Indexes for cascade queries
+            session.run("CREATE INDEX IF NOT EXISTS FOR (i:Issue) ON (i.type)")
+            session.run("CREATE INDEX IF NOT EXISTS FOR (i:Issue) ON (i.priority)")
+            session.run("CREATE INDEX IF NOT EXISTS FOR (p:Patient) ON (p.site_id)")
+            logger.info("Cascade schema created/verified")
+    
     def get_graph_stats(self) -> Dict[str, int]:
         """Get graph statistics."""
         self._ensure_connected()
@@ -732,7 +834,7 @@ class Neo4jGraphService:
                 "using_mock": True
             }
         
-        with self._driver.session() as session:
+        with self._driver.session(database=NEO4J_DATABASE) as session:
             stats = {}
             for label in ["Study", "Site", "Patient", "Issue"]:
                 result = session.run(f"MATCH (n:{label}) RETURN count(n) as count")
@@ -753,7 +855,7 @@ class Neo4jGraphService:
             self._mock_service._relationships.clear()
             return
         
-        with self._driver.session() as session:
+        with self._driver.session(database=NEO4J_DATABASE) as session:
             session.run("MATCH (n) DETACH DELETE n")
             logger.warning("Cleared entire Neo4j graph")
     

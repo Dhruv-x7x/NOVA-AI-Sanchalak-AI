@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Data Repositories
+SANCHALAK AI - Data Repositories
 =====================================
 Data access layer with CRUD operations for all entities.
 """
@@ -11,7 +11,7 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy import func, and_, or_
 
-from .models import Patient, Site, Study, Issue, Resolution, AuditLog
+from .models import Patient, ClinicalSite as Site, Study, ProjectIssue as Issue, ResolutionAction as Resolution, AuditLog
 from .connection import get_db_manager
 
 logger = logging.getLogger(__name__)

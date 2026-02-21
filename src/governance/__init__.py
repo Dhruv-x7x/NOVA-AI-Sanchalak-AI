@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - Governance Module
+SANCHALAK AI - Governance Module
 
 Phase 10: Governance & Compliance
 

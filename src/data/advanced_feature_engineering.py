@@ -1,9 +1,9 @@
 """
-TRIALPULSE NEXUS 10X - Advanced Feature Engineering (v1.0)
+SANCHALAK AI - Advanced Feature Engineering (v1.0)
 ===========================================================
 Expands UPR from 93 to 264 features for ML models.
 
-Author: TrialPulse Team
+Author: Sanchalak AI Team
 Version: 1.0.0
 """
 
@@ -45,6 +45,20 @@ class AdvancedFeatureEngineer:
     
     def _ensure_numeric_types(self):
         """Ensure all potentially numeric columns are properly typed with memory efficiency."""
+        # Protect text columns that match numeric patterns by substring
+        PROTECTED_TEXT_COLS = {
+            'region', 'country', 'project_name', 'site', 'subject',
+            'study_id', 'site_id', 'subject_id', 'patient_key',
+            'subject_status', 'subject_status_original', 'subject_status_clean',
+            'latest_visit', '_source_file', '_study_id', '_file_type',
+            '_cleaned_ts', '_cleaning_version', 'input_files', 'cpmd', 'ssm',
+            'coded_terms', 'uncoded_terms', 'open_issues_lnr', 'open_issues_edrr',
+            'inactivated_forms_folders', 'sae_review_dm', 'sae_review_safety',
+            'latest_visit_parsed', 'patient_clean_status', 'risk_category',
+            'priority', '_upr_created_ts', '_upr_version', 'clean_status_tier',
+            'sae_severity_category',
+        }
+
         numeric_patterns = [
             'queries', 'count', 'total', 'pages', 'crfs', 'forms', 
             'visits', 'coded', 'uncoded', 'pending', 'completed',
@@ -55,7 +69,7 @@ class AdvancedFeatureEngineer:
         ]
         
         for col in self.df.columns:
-            if col == 'clean_status_tier':
+            if col in PROTECTED_TEXT_COLS:
                 continue
             if any(pattern in col.lower() for pattern in numeric_patterns):
                 try:

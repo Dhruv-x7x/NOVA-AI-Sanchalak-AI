@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - Digital Twin Service Layer
+SANCHALAK AI - Digital Twin Service Layer
 
 Provides unified access to all Digital Twin capabilities for
 dashboard integration and agent tools.

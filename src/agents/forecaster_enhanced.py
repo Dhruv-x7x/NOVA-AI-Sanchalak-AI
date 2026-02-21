@@ -1,6 +1,6 @@
 # src/agents/forecaster_enhanced.py
 """
-TRIALPULSE NEXUS 10X - Enhanced FORECASTER Agent v1.0
+SANCHALAK AI - Enhanced FORECASTER Agent v1.0
 
 Purpose: Generate timeline predictions, uncertainty quantification,
          what-if simulations, and risk-adjusted forecasting.

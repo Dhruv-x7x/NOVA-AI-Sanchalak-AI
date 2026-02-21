@@ -30,18 +30,17 @@ import {
   ChevronRight,
   Bell,
   Menu,
-  Zap,
   Target,
   X,
   AlertTriangle,
   CheckCircle,
   Info,
-  Globe,
+  Activity
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { studiesApi, issuesApi } from '@/services/api';
+import { studiesApi, issuesApi, analyticsApi, sitesApi, patientsApi } from '@/services/api';
 
 interface NavItem {
   name: string;
@@ -62,7 +61,8 @@ const navItems: NavItem[] = [
   { name: 'Cascade Explorer', href: '/cascade-explorer', icon: GitBranch, roles: ['lead', 'executive', 'dm'] },
   { name: 'Reports', href: '/reports', icon: FileText, roles: ['lead', 'executive', 'dm', 'coder', 'safety'] },
   { name: 'ML Governance', href: '/ml-governance', icon: Brain, roles: ['lead', 'executive'] },
-  { name: 'Drill Down', href: '/visualization', icon: Globe },
+  { name: 'Digital Twin', href: '/digital-twin', icon: Activity, roles: ['lead', 'executive'] },
+
   { name: 'Collaboration', href: '/collaboration-hub', icon: MessageSquare },
   { name: 'AI Assistant', href: '/ai-assistant', icon: Bot, badge: 'AI' },
   { name: 'Settings', href: '/settings', icon: Settings },
@@ -92,14 +92,13 @@ function Sidebar({ collapsed, onToggle }: SidebarProps) {
       {/* Logo */}
       <div className="flex items-center h-16 px-4 border-b border-nexus-border">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
-            <Zap className="w-5 h-5 text-white" />
-          </div>
+          <img
+            src="/logo_without_text.png"
+            alt="Sanchalak AI"
+            className="w-8 h-8 object-contain flex-shrink-0"
+          />
           {!collapsed && (
-            <div>
-              <span className="text-lg font-bold text-white">TrialPlus</span>
-              <span className="text-lg font-light text-purple-400 ml-1">NEXUS</span>
-            </div>
+            <span className="text-lg font-bold text-white">Sanchalak AI</span>
           )}
         </div>
       </div>
@@ -201,26 +200,45 @@ interface HeaderProps {
 function Header({ onMenuClick }: HeaderProps) {
   const { user } = useAuthStore();
   const { selectedStudy, setSelectedStudy } = useAppStore();
+  const queryClient = useQueryClient();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [showNotifications, setShowNotifications] = useState(false);
 
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
 
-  // Fetch studies for dropdown
+  // Fetch studies for dropdown (use same cache key as feature pages)
   const { data: studiesData } = useQuery({
-    queryKey: ['studies-list'],
+    queryKey: ['studies'],
     queryFn: () => studiesApi.list(),
   });
 
-  // Fetch issues for notifications
+  // Fetch issues for notifications (share cache with feature pages)
   const { data: issuesData } = useQuery({
-    queryKey: ['issues-notifications'],
+    queryKey: ['issues-summary', undefined],
     queryFn: () => issuesApi.getSummary(),
     refetchInterval: 30000, // Refresh every 30 seconds
   });
+
+  // Eagerly warm API caches for common dashboard data so tab switching is instant
+  useEffect(() => {
+    const study = selectedStudy;
+    const prefetches = [
+      { key: ['portfolio', study], fn: () => analyticsApi.getPortfolio(study) },
+      { key: ['dqi-distribution', study], fn: () => analyticsApi.getDQIDistribution(study) },
+      { key: ['regional-metrics'], fn: () => analyticsApi.getRegional() },
+      { key: ['clean-status-summary', study], fn: () => analyticsApi.getCleanStatusSummary(study) },
+      { key: ['sites', study], fn: () => sitesApi.list({ study_id: study }) },
+      { key: ['site-benchmarks', study], fn: () => sitesApi.getBenchmarks(study) },
+      { key: ['clean-status', study], fn: () => patientsApi.getCleanStatus(study) },
+      { key: ['dblock-status', study], fn: () => patientsApi.getDBLockStatus(study) },
+    ];
+    prefetches.forEach(({ key, fn }) => {
+      queryClient.prefetchQuery({ queryKey: key, queryFn: fn, staleTime: 1000 * 60 * 5 });
+    });
+  }, [selectedStudy, queryClient]);
 
   const allStudies = studiesData?.studies || [];
   const studies = allStudies;
@@ -465,7 +483,7 @@ export default function Layout({ children }: LayoutProps) {
         {/* Footer */}
         <footer className="border-t border-nexus-border px-4 lg:px-6 py-4 mt-auto">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-nexus-text-muted">
-            <span>&copy; 2026 TrialPlus NEXUS 10X &nbsp;&nbsp; v10.0.0</span>
+            <span>&copy; 2026 Sanchalak AI 10X &nbsp;&nbsp; v10.0.0</span>
             <div className="flex items-center gap-4">
               <span className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />

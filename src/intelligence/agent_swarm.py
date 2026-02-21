@@ -38,8 +38,8 @@ class AgentSwarm:
         ))
         
         # 2. Diagnostic Investigates (REAL DATA)
-        from src.data.sql_data_service import get_data_service
-        ds = get_data_service()
+        from src.database.pg_data_service import get_pg_data_service
+        ds = get_pg_data_service()
         metrics = ds.get_site_metrics(site_id)
         
         # Default if site not found

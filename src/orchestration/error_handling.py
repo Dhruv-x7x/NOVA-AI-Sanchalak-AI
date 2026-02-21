@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - Phase 11.2 Error Handling System v1.0
+SANCHALAK AI - Phase 11.2 Error Handling System v1.0
 # NOTE: This module previously used SQLite but has been migrated to PostgreSQL-only.
 # If you need to use this module, update it to use:
 #   from src.database.pg_data_service import get_pg_data_service
@@ -19,6 +19,7 @@ import os
 import sys
 import json
 # SQLite removed - using PostgreSQL
+import sqlite3  # kept for type annotations only
 import hashlib
 import traceback
 import threading
@@ -232,14 +233,8 @@ class ErrorDatabaseManager:
     def _get_connection(self) -> sqlite3.Connection:
         """Get thread-local database connection"""
         if not hasattr(self._local, 'connection') or self._local.connection is None:
-            self._local.connection = # REMOVED: sqlite3.connect(
-                str(self.db_path),
-                timeout=30.0,
-                check_same_thread=False
-            )
-            self._local.connection.execute("PRAGMA journal_mode=WAL")
-            self._local.connection.execute("PRAGMA busy_timeout=30000")
-            self._local.connection.row_factory = sqlite3.Row
+            self._local.connection = None  # DB persistence disabled
+            pass  # PRAGMA removed
         return self._local.connection
     
     def _init_database(self):

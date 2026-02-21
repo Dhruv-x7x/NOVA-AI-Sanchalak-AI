@@ -1,5 +1,5 @@
 """
-Data processing modules for TRIALPULSE NEXUS 10X.
+Data processing modules for SANCHALAK AI.
 
 Modules are imported explicitly to avoid circular imports and RuntimeWarnings.
 Use: from src.data.ingestion import DataIngestionEngine

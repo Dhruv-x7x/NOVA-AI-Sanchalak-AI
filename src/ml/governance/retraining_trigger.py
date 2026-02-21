@@ -6,7 +6,7 @@
 
 
 """
-TRIALPULSE NEXUS - ML Retraining Trigger v1.0
+SANCHALAK AI - ML Retraining Trigger v1.0
 Automated Model Retraining Pipeline Management
 
 Features:

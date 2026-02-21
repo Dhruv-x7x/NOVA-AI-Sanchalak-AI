@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Pattern Watcher v1.0
+SANCHALAK AI - Pattern Watcher v1.0
 ========================================
 Monitor for emerging issues and patterns before they escalate.
 """

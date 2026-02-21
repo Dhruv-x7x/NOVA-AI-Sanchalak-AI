@@ -1,4 +1,4 @@
-"""Agent Tracing Module for TRIALPULSE NEXUS 10X."""
+"""Agent Tracing Module for SANCHALAK AI."""
 
 from .agent_tracer import (
     AgentTracer,

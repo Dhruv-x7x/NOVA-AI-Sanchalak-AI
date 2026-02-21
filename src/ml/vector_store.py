@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Vector Store for RAG
+SANCHALAK AI - Vector Store for RAG
 ========================================
 ChromaDB-based vector store for semantic search and RAG.
 """
@@ -104,7 +104,7 @@ class VectorStore:
             
             # Get or create collection
             self._collection = self._client.get_or_create_collection(
-                name="trialpulse_rag",
+                name="sanchalak_rag",
                 metadata={"hnsw:space": "cosine"}
             )
             
@@ -381,9 +381,9 @@ class VectorStore:
         
         if self._collection:
             # Delete and recreate collection
-            self._client.delete_collection("trialpulse_rag")
+            self._client.delete_collection("sanchalak_rag")
             self._collection = self._client.create_collection(
-                name="trialpulse_rag",
+                name="sanchalak_rag",
                 metadata={"hnsw:space": "cosine"}
             )
     

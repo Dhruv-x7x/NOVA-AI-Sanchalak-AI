@@ -1,7 +1,7 @@
 """
 Pydantic Models/Schemas for API
 ================================
-Request and response models for the TrialPulse Nexus API.
+Request and response models for the Sanchalak AI API.
 """
 
 from pydantic import BaseModel, Field
@@ -42,22 +42,11 @@ class ReportType(str, Enum):
     SITE_PERFORMANCE = "site_performance"
     EXECUTIVE_BRIEF = "executive_brief"
     DB_LOCK_READINESS = "db_lock_readiness"
-    DAILY_DIGEST = "daily_digest"
     QUERY_SUMMARY = "query_summary"
-    SPONSOR_UPDATE = "sponsor_update"
-    MEETING_PACK = "meeting_pack"
     SAFETY_NARRATIVE = "safety_narrative"
-    INSPECTION_PREP = "inspection_prep"
-    SITE_NEWSLETTER = "site_newsletter"
-    ISSUE_ESCALATION = "issue_escalation"
-    DQI_TREND = "dqi_trend"
-    CASCADE_IMPACT = "cascade_impact"
-    RESOLUTION_GENOME = "resolution_genome"
-    TIMELINE_PROJECTION = "timeline_projection"
     PATIENT_RISK = "patient_risk"
     REGIONAL_SUMMARY = "regional_summary"
     CODING_STATUS = "coding_status"
-    CLINICAL_SUMMARY = "clinical_summary"
     ENROLLMENT_TRACKER = "enrollment_tracker"
 
 
@@ -233,6 +222,17 @@ class TrendData(BaseModel):
 
 
 # =============================================================================
+# DIGITAL TWIN SCHEMAS
+# =============================================================================
+
+class PredictRequest(BaseModel):
+    scenario_id: str
+    entity_type: str
+    entity_id: str
+    params: Optional[Dict[str, Any]] = None
+
+
+# =============================================================================
 # ISSUE SCHEMAS
 # =============================================================================
 
@@ -272,11 +272,12 @@ class IssueListResponse(BaseModel):
 # =============================================================================
 
 class ReportRequest(BaseModel):
-    report_type: str # Use str instead of Enum to avoid 422 on slight variations
+    report_type: str
     site_id: Optional[str] = None
     study_id: Optional[str] = None
+    view_level: str = "portfolio" # portfolio, study, site, country
     date_range_days: int = 30
-    format: str = "html"  # html or pdf
+    format: str = "xlsx"  # Default to xlsx
 
 
 class ReportResponse(BaseModel):

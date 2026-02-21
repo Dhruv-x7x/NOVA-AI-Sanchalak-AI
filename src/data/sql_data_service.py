@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - SQL Data Service  
+SANCHALAK AI - SQL Data Service  
 ========================================
 Unified data service that delegates all operations to PostgreSQL.
 This module exists for backward compatibility - all dashboard pages import from here.
@@ -24,7 +24,7 @@ except ImportError as e:
 
 class SQLiteDataService:
     """
-    Unified data service for TrialPulse Nexus.
+    Unified data service for Sanchalak AI.
     Now delegates ALL operations to PostgreSQL via pg_data_service.
     Kept for backward compatibility with existing dashboard imports.
     """

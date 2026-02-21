@@ -1,5 +1,5 @@
 """
-MLflow Configuration for TRIALPULSE NEXUS
+MLflow Configuration for SANCHALAK AI
 ==========================================
 Configuration settings for MLflow experiment tracking.
 """
@@ -21,7 +21,7 @@ class MLflowConfig:
     artifact_root: str = str(Path("data/mlruns/artifacts").absolute())
     
     # Default experiment name
-    default_experiment: str = "TrialPulse NEXUS"
+    default_experiment: str = "Sanchalak AI NEXUS"
     
     # Model registry backend (if using remote server)
     registry_uri: Optional[str] = None
@@ -54,7 +54,7 @@ class MLflowConfig:
             ),
             default_experiment=os.getenv(
                 "MLFLOW_EXPERIMENT_NAME",
-                "TrialPulse NEXUS"
+                "Sanchalak AI NEXUS"
             ),
             registry_uri=os.getenv("MLFLOW_MODEL_REGISTRY_URI"),
             host=os.getenv("MLFLOW_HOST", "127.0.0.1"),
@@ -62,10 +62,10 @@ class MLflowConfig:
         )
 
 
-# Experiment definitions for TrialPulse models
+# Experiment definitions for Sanchalak AI models
 EXPERIMENTS = {
     "risk_classifier": {
-        "name": "TrialPulse Risk Classifier",
+        "name": "Sanchalak AI Risk Classifier",
         "description": "Patient risk classification model (XGBoost + LightGBM)",
         "tags": {
             "model_type": "classification",
@@ -74,7 +74,7 @@ EXPERIMENTS = {
         }
     },
     "issue_detector": {
-        "name": "TrialPulse Issue Detector",
+        "name": "Sanchalak AI Issue Detector",
         "description": "Multi-label issue type detection model",
         "tags": {
             "model_type": "multi_label_classification",
@@ -83,7 +83,7 @@ EXPERIMENTS = {
         }
     },
     "site_ranker": {
-        "name": "TrialPulse Site Ranker",
+        "name": "Sanchalak AI Site Ranker",
         "description": "Site performance ranking model",
         "tags": {
             "model_type": "ranking",
@@ -92,7 +92,7 @@ EXPERIMENTS = {
         }
     },
     "anomaly_detector": {
-        "name": "TrialPulse Anomaly Detector",
+        "name": "Sanchalak AI Anomaly Detector",
         "description": "Unsupervised anomaly detection model",
         "tags": {
             "model_type": "anomaly_detection",
@@ -101,7 +101,7 @@ EXPERIMENTS = {
         }
     },
     "resolution_predictor": {
-        "name": "TrialPulse Resolution Time Predictor",
+        "name": "Sanchalak AI Resolution Time Predictor",
         "description": "Issue resolution time prediction model",
         "tags": {
             "model_type": "regression",

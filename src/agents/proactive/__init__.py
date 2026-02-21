@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Proactive Package
+SANCHALAK AI - Proactive Package
 =====================================
 Proactive monitoring and preemptive action capabilities.
 """

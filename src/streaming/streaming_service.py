@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Unified Streaming Service
+SANCHALAK AI - Unified Streaming Service
 =============================================
 Provides unified access to Kafka streaming for the dashboard.
 """
@@ -26,7 +26,7 @@ class StreamStatus:
 
 class StreamingService:
     """
-    Unified streaming service for TrialPulse Nexus.
+    Unified streaming service for Sanchalak AI.
     
     Provides:
     - Event publishing (producer)

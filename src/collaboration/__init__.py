@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - Collaboration Module
+SANCHALAK AI - Collaboration Module
 Phase 8: Collaboration Hub
 
 Includes:

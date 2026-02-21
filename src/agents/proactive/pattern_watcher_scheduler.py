@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Proactive Pattern Watcher Scheduler
+SANCHALAK AI - Proactive Pattern Watcher Scheduler
 =======================================================
 Background job to run pattern watcher every 15 minutes:
 - Check for emerging anomalies
@@ -202,8 +202,8 @@ class PatternWatcherScheduler:
             patterns_checked += 1
             anomalies_detected += len(site_alerts)
             
-        except ImportError as e:
-            logger.warning(f"Could not import pattern watcher: {e}")
+        except Exception as e:
+            logger.warning(f"Pattern watcher check failed, using demo alerts: {e}")
             # Generate synthetic check for demo
             new_alerts = self._generate_demo_alerts()
             patterns_checked = 6

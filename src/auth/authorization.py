@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - RBAC Authorization
+SANCHALAK AI - RBAC Authorization
 ======================================
 Role-based access control with permission checking.
 """

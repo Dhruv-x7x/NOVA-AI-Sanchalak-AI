@@ -1,6 +1,6 @@
 # src/orchestration/__init__.py
 """
-TRIALPULSE NEXUS 10X - Orchestration Module
+SANCHALAK AI - Orchestration Module
 
 Phase 11: End-to-End Integration
 - 11.1 Pipeline Orchestration

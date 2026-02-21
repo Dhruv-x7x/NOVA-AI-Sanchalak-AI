@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - PostgreSQL Data Writer
+SANCHALAK AI - PostgreSQL Data Writer
 ==========================================
 Helper utilities to write data to PostgreSQL instead of Parquet files.
 Provides drop-in replacements for parquet operations.

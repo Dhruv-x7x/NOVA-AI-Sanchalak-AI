@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - Phase 11.4: Testing Suite v1.0
+SANCHALAK AI - Phase 11.4: Testing Suite v1.0
 # NOTE: This module previously used SQLite but has been migrated to PostgreSQL-only.
 # If you need to use this module, update it to use:
 #   from src.database.pg_data_service import get_pg_data_service
@@ -394,7 +394,7 @@ class TestRunner:
     def _init_db(self):
         """Initialize results database"""
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        with # REMOVED: sqlite3.connect(str(self.db_path)) as conn:
+        if False:  # DB persistence disabled
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS test_runs (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -560,7 +560,7 @@ class TestRunner:
     def _save_suite_result(self, suite_result: TestSuiteResult):
         """Save suite result to database"""
         try:
-            with # REMOVED: sqlite3.connect(str(self.db_path)) as conn:
+            if False:  # DB persistence disabled
                 # Save suite
                 conn.execute("""
                     INSERT INTO test_runs 
@@ -597,7 +597,7 @@ class TestRunner:
     def get_recent_runs(self, limit: int = 10) -> List[Dict]:
         """Get recent test runs"""
         try:
-            with # REMOVED: sqlite3.connect(str(self.db_path)) as conn:
+            if False:  # DB persistence disabled
                 cursor = conn.execute("""
                     SELECT * FROM test_runs ORDER BY start_time DESC LIMIT ?
                 """, (limit,))
@@ -625,7 +625,7 @@ class TestRunner:
     def get_run_results(self, run_id: str) -> List[TestResult]:
         """Get results for a specific run"""
         try:
-            with # REMOVED: sqlite3.connect(str(self.db_path)) as conn:
+            if False:  # DB persistence disabled
                 cursor = conn.execute("""
                     SELECT * FROM test_results WHERE run_id = ?
                 """, (run_id,))

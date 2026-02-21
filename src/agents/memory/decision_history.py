@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Decision History Tracker v1.0
+SANCHALAK AI - Decision History Tracker v1.0
 =================================================
 Track all agent decisions and their outcomes for audit and learning.
 """

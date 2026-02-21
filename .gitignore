@@ -1,9 +1,6 @@
 # ===========================================
-# TrialPulse Nexus - Git Ignore
+# Sanchalak AI - Git Ignore
 # ===========================================
-
-# ----- Documentation (LaTeX) -----
-docs/
 
 # ----- Environment & Secrets -----
 .env
@@ -16,35 +13,19 @@ __pycache__/
 *.so
 .Python
 build/
-develop-eggs/
 dist/
-downloads/
-eggs/
-.eggs/
-/lib/
-/lib64/
-parts/
-sdist/
-var/
-wheels/
 *.egg-info/
-.installed.cfg
 *.egg
 
 # Virtual Environments
+.venv/
 venv/
 ENV/
-env/
-.venv/
-backend/venv/
 
 # ----- Node.js -----
 node_modules/
-frontend/node_modules/
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
 
 # ----- Build Outputs -----
 frontend/dist/
@@ -52,12 +33,11 @@ frontend/dist/
 *.bundle.js.map
 
 # ----- Database -----
-# Only ignore root database folder (contains large SQL dumps)
 /database/
-/database/*.sql
-
-# Explicitly track src/database/ (contains Python code)
 !src/database/
+
+# ----- Data (intermediate pipeline output) -----
+/data/
 
 # ----- IDE & Editors -----
 .vscode/
@@ -65,27 +45,19 @@ frontend/dist/
 *.swp
 *.swo
 *~
-.project
-.classpath
-.settings/
 
 # ----- OS Generated -----
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
 
 # ----- Logs -----
 logs/
 *.log
-*.log.*
 
 # ----- ML Artifacts -----
-models/*.pkl
-models/*.joblib
+models/
+*.pkl
+*.joblib
 *.h5
 *.onnx
 

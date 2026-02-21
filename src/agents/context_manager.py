@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - LLM Context Manager
+SANCHALAK AI - LLM Context Manager
 =======================================
 Build rich context for LLM interactions including:
 - User role and permissions

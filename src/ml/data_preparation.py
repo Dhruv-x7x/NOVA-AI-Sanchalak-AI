@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - ML Data Preparation v1.3 (LEAKAGE FULLY FIXED)
+SANCHALAK AI - ML Data Preparation v1.3 (LEAKAGE FULLY FIXED)
 Phase 3.1: Feature Engineering with STRICT leakage prevention
 
 FIXES v1.3:

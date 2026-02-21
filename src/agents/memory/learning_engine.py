@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Learning Engine v1.0
+SANCHALAK AI - Learning Engine v1.0
 =========================================
 Feedback loop processor for agent learning.
 # NOTE: This module previously used SQLite but has been migrated to PostgreSQL-only.

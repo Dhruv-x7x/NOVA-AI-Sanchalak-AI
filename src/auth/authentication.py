@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Authentication Service
+SANCHALAK AI - Authentication Service
 ==========================================
 Core authentication logic with 21 CFR Part 11 compliance.
 """
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 class AuthService:
     """
-    Authentication service for TrialPulse Nexus.
+    Authentication service for Sanchalak AI.
     
     Features:
     - Secure login with account lockout
@@ -47,7 +47,7 @@ class AuthService:
     def _create_default_users(self):
         """Create default system users."""
         default_users = [
-            ("admin", "Admin@TrialPulse2024!", Role.ADMIN, "System Administrator"),
+            ("admin", "Admin@Sanchalak AI2024!", Role.ADMIN, "System Administrator"),
             ("study_lead", "StudyLead@2024!", Role.STUDY_LEAD, "Dr. Sarah Chen"),
             ("cra", "CRA@Monitor2024!", Role.CRA, "Michael Thompson"),
             ("data_manager", "DataMgr@2024!", Role.DATA_MANAGER, "Emily Rodriguez"),
@@ -59,7 +59,7 @@ class AuthService:
             user = User(
                 id=i,
                 username=username,
-                email=f"{username}@trialpulse.com",
+                email=f"{username}@sanchalak.com",
                 password_hash=password_hash,
                 role=role,
                 full_name=full_name,

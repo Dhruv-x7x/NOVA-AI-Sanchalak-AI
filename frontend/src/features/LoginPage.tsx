@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Activity, AlertCircle, Eye, EyeOff, Lock, User, Zap, ShieldCheck, Database, LayoutDashboard, Building2, FileSearch, Shield } from 'lucide-react';
+import { Activity, AlertCircle, Eye, EyeOff, Lock, User, ShieldCheck, Database, LayoutDashboard, Building2, FileSearch, Shield } from 'lucide-react';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -50,22 +50,28 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0c] flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Animated Background Elements */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-600/10 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
-      </div>
+      {/* DNA Helix Video Background */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover opacity-30 z-0"
+      >
+        <source src="/dna_helix_video_animation_landing_page.mp4" type="video/mp4" />
+      </video>
+      {/* Dark overlay for readability */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0c]/60 via-[#0a0a0c]/40 to-[#0a0a0c]/80 z-0" />
 
       <div className="w-full max-w-md z-10">
         {/* Logo */}
         <div className="text-center mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-700 text-white mb-6 shadow-2xl shadow-indigo-500/20 rotate-3 hover:rotate-0 transition-transform duration-500">
-            <Zap className="w-10 h-10" />
-          </div>
-          <h1 className="text-4xl font-black tracking-tight text-white mb-2">
-            TrialPlus <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-400">NEXUS</span>
-          </h1>
-          <p className="text-gray-400 font-medium">Next-Gen Clinical Intelligence</p>
+          <img
+            src="/logo_with_text.png"
+            alt="Sanchalak AI"
+            className="h-24 mx-auto mb-6 drop-shadow-2xl hover:scale-105 transition-transform duration-500"
+          />
+          <p className="text-gray-400 font-medium text-sm tracking-wide">Orchestrating the Future of Clinical Trials</p>
         </div>
 
         {/* Login Card */}

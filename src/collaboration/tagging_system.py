@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - Phase 8.3: @Tagging System v1.1 (FIXED)
+SANCHALAK AI - Phase 8.3: @Tagging System v1.1 (FIXED)
 # NOTE: This module previously used SQLite but has been migrated to PostgreSQL-only.
 # If you need to use this module, update it to use:
 #   from src.database.pg_data_service import get_pg_data_service
@@ -1504,7 +1504,7 @@ def highlight_tags(text: str, format: str = 'html') -> str:
 def test_tagging_system():
     """Test the tagging system"""
     print("=" * 60)
-    print("TRIALPULSE NEXUS 10X - TAGGING SYSTEM TEST")
+    print("SANCHALAK AI - TAGGING SYSTEM TEST")
     print("=" * 60)
     
     import tempfile
@@ -1660,7 +1660,7 @@ def test_tagging_system():
     print("TEST 5: Link Generator")
     print("-" * 60)
     try:
-        link_gen = LinkGenerator(base_url="https://trialpulse.com")
+        link_gen = LinkGenerator(base_url="https://sanchalak.com")
         
         tag = Tag(
             tag_id="TEST-003",

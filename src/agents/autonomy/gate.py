@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - Agent Autonomy Gate
+SANCHALAK AI - Agent Autonomy Gate
 Enforces the Layer 5 Autonomy Matrix (Confidence vs Risk).
 """
 

@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - UPR Real-time Updater
+SANCHALAK AI - UPR Real-time Updater
 =========================================
 Apply streaming events to PostgreSQL database in real-time.
 """

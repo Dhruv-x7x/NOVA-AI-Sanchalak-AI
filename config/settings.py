@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - Configuration Settings
+SANCHALAK AI - Configuration Settings
 ==============================================
 """
 
@@ -11,9 +11,8 @@ from typing import Dict, List
 # PATH CONFIGURATION
 # ============================================
 
-# Project root (dynamically detected from this file's location)
-# config/settings.py → parent is config/, parent of that is project root
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+# Project root (auto-detected)
+PROJECT_ROOT = Path(__file__).parent.parent.resolve()
 
 # Data paths
 DATA_RAW = PROJECT_ROOT / "data" / "raw"
@@ -183,9 +182,24 @@ LOG_ROTATION = "10 MB"
 LOG_RETENTION = "7 days"
 
 
+@dataclass
+class ReportQualityConfig:
+    """Thresholds for report quality and conditional formatting."""
+    dqi_target: float = 90.0
+    clean_rate_target: float = 0.70
+    query_resolution_days_target: float = 7.0
+    data_entry_lag_target: float = 3.0
+    signature_completion_target: float = 1.0  # 100%
+    sdv_completion_target: float = 0.95
+    missing_pages_threshold_pct: float = 5.0
+    sae_reconciliation_target: float = 1.0
+
+REPORT_QUALITY = ReportQualityConfig()
+
 # ============================================
 # EXPORT CONFIGURATION INSTANCES
 # ============================================
+
 
 FILE_PATTERNS = FilePatternConfig()
 DQI_CONFIG = DQIConfig()

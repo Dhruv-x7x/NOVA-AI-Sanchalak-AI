@@ -1,5 +1,5 @@
 """
-Alembic Environment Configuration for TrialPulse Nexus
+Alembic Environment Configuration for Sanchalak AI
 """
 
 from logging.config import fileConfig

@@ -1,6 +1,6 @@
 # src/generation/auto_summarizer.py
 """
-TRIALPULSE NEXUS 10X - Auto-Summarization Engine v1.0
+SANCHALAK AI - Auto-Summarization Engine v1.0
 Phase 6.5: Patient Summaries, Site Narratives, Investigation Summaries, Daily Digest
 
 Features:
@@ -1860,7 +1860,7 @@ def executive_summary(study_id: Optional[str] = None) -> Summary:
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("TRIALPULSE NEXUS 10X - Auto-Summarization Engine v1.0")
+    print("SANCHALAK AI - Auto-Summarization Engine v1.0")
     print("=" * 60)
     
     summarizer = get_auto_summarizer()

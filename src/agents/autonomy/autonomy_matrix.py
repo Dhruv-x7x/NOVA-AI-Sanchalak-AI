@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - Autonomy Matrix v1.0
+SANCHALAK AI - Autonomy Matrix v1.0
 Risk-based action classification for agent autonomy.
 
 Implements the Autonomy Matrix:

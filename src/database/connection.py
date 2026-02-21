@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Database Connection Manager
+SANCHALAK AI - Database Connection Manager
 ===============================================
 Connection pool and session management for PostgreSQL.
 """

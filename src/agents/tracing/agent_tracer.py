@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - Agent Tracer v1.0
+SANCHALAK AI - Agent Tracer v1.0
 Comprehensive observability for agent decision chains.
 
 Logs every Thought → Action → Observation in the ReAct loop.

@@ -3686,7 +3686,7 @@
   {
     "chunk_id": "chunk_da43d1480abb",
     "chunk_index": 0,
-    "text": "Clean Patient status indicates a subject's data is ready for database lock. TRIALPULSE uses a two-tier system.\n\nTIER 1: CLINICAL CLEAN (Hard Blocks)\nThese criteria MUST be met for clinical data integrity:\n\n1. No Missing Visits (visit_missing_visit_count = 0)\n - All protocol-required visits completed\n - Visit data entered in EDC\n\n2. No Missing Pages (pages_missing_page_count = 0)\n - All required CRF pages completed\n - No blank or partially completed forms",
+    "text": "Clean Patient status indicates a subject's data is ready for database lock. SANCHALAK AI uses a two-tier system.\n\nTIER 1: CLINICAL CLEAN (Hard Blocks)\nThese criteria MUST be met for clinical data integrity:\n\n1. No Missing Visits (visit_missing_visit_count = 0)\n - All protocol-required visits completed\n - Visit data entered in EDC\n\n2. No Missing Pages (pages_missing_page_count = 0)\n - All required CRF pages completed\n - No blank or partially completed forms",
     "char_count": 458,
     "word_count": 70,
     "metadata": {
@@ -4622,7 +4622,7 @@
   {
     "chunk_id": "chunk_2c59d288ca18",
     "chunk_index": 4,
-    "text": "TRIALPULSE PATTERN DETECTION\n\nThe system monitors for:\n- Cluster patterns (same AE at multiple sites)\n- Temporal patterns (AE onset timing)\n- Demographic patterns (specific populations)\n- Geographic patterns (regional differences)\n\nAlert triggers when:\n- AE rate > 2σ above baseline\n- Cluster of similar AEs detected\n- Unexpected AE pattern identified",
+    "text": "SANCHALAK AI PATTERN DETECTION\n\nThe system monitors for:\n- Cluster patterns (same AE at multiple sites)\n- Temporal patterns (AE onset timing)\n- Demographic patterns (specific populations)\n- Geographic patterns (regional differences)\n\nAlert triggers when:\n- AE rate > 2σ above baseline\n- Cluster of similar AEs detected\n- Unexpected AE pattern identified",
     "char_count": 351,
     "word_count": 52,
     "metadata": {
@@ -4644,7 +4644,7 @@
         "AN-001",
         "PA-001"
       ],
-      "section_title": "TRIALPULSE PATTERN DETECTION",
+      "section_title": "SANCHALAK AI PATTERN DETECTION",
       "section_type": "header"
     }
   },
@@ -5761,7 +5761,7 @@
   {
     "chunk_id": "chunk_7a14627a9e49",
     "chunk_index": 2,
-    "text": "TRIALPULSE COMPLIANCE\n\nAudit Trail:\n- All data changes logged\n- User, timestamp, old/new values\n- Immutable log (append-only)\n- Exportable for inspection\n\nAccess Control:\n- Role-based access\n- User authentication\n- Session management\n- Privilege verification\n\nData Integrity:\n- Input validation\n- Checksums\n- Backup procedures\n- Recovery testing",
+    "text": "SANCHALAK AI COMPLIANCE\n\nAudit Trail:\n- All data changes logged\n- User, timestamp, old/new values\n- Immutable log (append-only)\n- Exportable for inspection\n\nAccess Control:\n- Role-based access\n- User authentication\n- Session management\n- Privilege verification\n\nData Integrity:\n- Input validation\n- Checksums\n- Backup procedures\n- Recovery testing",
     "char_count": 345,
     "word_count": 49,
     "metadata": {
@@ -5783,7 +5783,7 @@
         "ES-001",
         "AU-001"
       ],
-      "section_title": "TRIALPULSE COMPLIANCE",
+      "section_title": "SANCHALAK AI COMPLIANCE",
       "section_type": "header"
     }
   },
@@ -5964,7 +5964,7 @@
   {
     "chunk_id": "chunk_425a77f55c97",
     "chunk_index": 4,
-    "text": "TRIALPULSE AUDIT TRAIL\n\nCaptures:\n- All data changes\n- User actions\n- Agent recommendations\n- Human decisions\n- Override reasons\n\nFormat:\n- Timestamp (ISO 8601)\n- User/Agent ID\n- Action type\n- Entity affected\n- Before/after values\n- Reasoning (for AI actions)\n\nExport:\n- JSON format\n- CSV format\n- Regulatory format\n- Date range filtering",
+    "text": "SANCHALAK AI AUDIT TRAIL\n\nCaptures:\n- All data changes\n- User actions\n- Agent recommendations\n- Human decisions\n- Override reasons\n\nFormat:\n- Timestamp (ISO 8601)\n- User/Agent ID\n- Action type\n- Entity affected\n- Before/after values\n- Reasoning (for AI actions)\n\nExport:\n- JSON format\n- CSV format\n- Regulatory format\n- Date range filtering",
     "char_count": 338,
     "word_count": 56,
     "metadata": {
@@ -5986,7 +5986,7 @@
         "RE-001",
         "ES-001"
       ],
-      "section_title": "TRIALPULSE AUDIT TRAIL",
+      "section_title": "SANCHALAK AI AUDIT TRAIL",
       "section_type": "header"
     }
   },

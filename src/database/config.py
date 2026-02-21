@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Database Configuration
+SANCHALAK AI - Database Configuration
 ==========================================
 Database connection settings and configuration management.
 """
@@ -21,7 +21,7 @@ class DatabaseConfig:
     
     host: str = os.getenv('DB_HOST', 'localhost')
     port: int = int(os.getenv('DB_PORT', '5432'))
-    database: str = os.getenv('DB_NAME', 'trialpulse_nexus')
+    database: str = os.getenv('DB_NAME', 'sanchalak_ai')
     username: str = os.getenv('DB_USER', 'postgres')
     password: str = os.getenv('DB_PASSWORD', 'postgres')
     

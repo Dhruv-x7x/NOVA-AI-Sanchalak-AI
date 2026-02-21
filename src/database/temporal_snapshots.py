@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Temporal Snapshots Service
+SANCHALAK AI - Temporal Snapshots Service
 ==============================================
 Captures hourly state saves for trend analysis and delta tracking.
 

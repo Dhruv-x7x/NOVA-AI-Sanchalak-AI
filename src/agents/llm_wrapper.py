@@ -2,11 +2,10 @@ import os
 import time
 import logging
 from typing import Dict, Any, Optional, List
-import requests
-from groq import Groq
 from config.llm_config import get_config
 
 logger = logging.getLogger(__name__)
+
 
 class LLMResponse:
     def __init__(self, content: str, model: str, total_tokens: int = 0, latency_ms: float = 0):
@@ -15,140 +14,235 @@ class LLMResponse:
         self.total_tokens = total_tokens
         self.latency_ms = latency_ms
 
+
 class LLMWrapper:
     """
-    Standard interface for Groq/Ollama inference.
+    Multi-provider LLM interface.
+    Provider chain: Gemini (primary) → Groq (fallback) → vLLM (legacy).
     """
+
     def __init__(self):
         self.config = get_config()
-        self.client = None
-        self._init_client()
+        self._gemini_client = None
+        self._groq_client = None
+        self._vllm_client = None
+        self._init_clients()
 
-    def _init_client(self):
-        try:
-            # Prefer environment variable if set, otherwise use config
-            api_key = os.getenv("GROQ_API_KEY") or self.config.groq.api_key
-            if api_key and api_key != "mock":
-                self.client = Groq(api_key=api_key)
-                logger.info("Groq client initialized")
-            else:
-                logger.warning("GROQ_API_KEY not found or mock. Checking for Ollama...")
-        except Exception as e:
-            logger.error(f"Failed to initialize Groq client: {e}")
+    # ── Initialisation ──────────────────────────────────────────
 
-    def generate(self, prompt: str, system_prompt: str = "You are a helpful AI assistant.", model: Optional[str] = None) -> LLMResponse:
-        start_time = time.time()
-        
-        # Determine model
-        groq_model = model or self.config.groq.model or "llama-3.3-70b-versatile"
-        
-        # Try Groq first as primary
-        if self.client and os.getenv("GROQ_API_KEY"):
+    def _init_clients(self):
+        """Initialise available provider clients."""
+        # Gemini
+        if self.config.gemini.api_key:
             try:
-                chat_completion = self.client.chat.completions.create(
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": prompt},
-                    ],
-                    model=groq_model,
-                    temperature=0.7,
-                    max_tokens=2048,
-                )
-                
-                latency = (time.time() - start_time) * 1000
-                content = chat_completion.choices[0].message.content or ""
-                tokens = chat_completion.usage.total_tokens if chat_completion.usage else 0
-                
-                return LLMResponse(
-                    content=content,
-                    model=groq_model,
-                    total_tokens=tokens,
-                    latency_ms=latency
-                )
+                from google import genai
+                self._gemini_client = genai.Client(api_key=self.config.gemini.api_key)
+                logger.info(f"Gemini client initialised → model={self.config.gemini.model}")
             except Exception as e:
-                logger.error(f"Groq primary generation failed, falling back to Ollama: {e}")
+                logger.warning(f"Gemini init failed: {e}")
 
-        # Fallback to Ollama if Groq failed or is not configured
+        # Groq (OpenAI-compatible)
+        if self.config.groq.api_key:
+            try:
+                from openai import OpenAI
+                self._groq_client = OpenAI(
+                    base_url=self.config.groq.base_url,
+                    api_key=self.config.groq.api_key,
+                )
+                logger.info("Groq client initialised")
+            except Exception as e:
+                logger.warning(f"Groq init failed: {e}")
+
+        # vLLM (legacy)
         try:
-            ollama_host = self.config.ollama.host or "http://localhost:11434"
-            ollama_model = model if model and "/" not in model else self.config.ollama.model or "trialpulse-nexus"
-            
-            # Use /api/chat if possible for better system prompt handling
-            response = requests.post(
-                f"{ollama_host}/api/chat",
-                json={
-                    "model": ollama_model,
-                    "messages": [
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": prompt}
-                    ],
-                    "stream": False,
-                    "options": {
-                        "temperature": 0.7,
-                        "num_predict": 2048
-                    }
-                },
-                timeout=60 # Increased timeout for local models
+            from openai import OpenAI
+            self._vllm_client = OpenAI(
+                base_url=self.config.vllm.base_url,
+                api_key=self.config.vllm.api_key,
+                default_headers={"bypass-tunnel-reminder": "true"},
             )
-            
-            if response.status_code == 200:
-                data = response.json()
-                latency = (time.time() - start_time) * 1000
-                message = data.get("message", {})
-                content = message.get("content", "")
-                
-                return LLMResponse(
-                    content=content,
-                    model=f"ollama/{ollama_model}",
-                    total_tokens=data.get("prompt_eval_count", 0) + data.get("eval_count", 0),
-                    latency_ms=latency
-                )
-            else:
-                # Fallback to old /api/generate if /api/chat fails
-                response = requests.post(
-                    f"{ollama_host}/api/generate",
-                    json={
-                        "model": ollama_model,
-                        "prompt": f"{system_prompt}\n\nUser: {prompt}\nAssistant:",
-                        "stream": False
-                    },
-                    timeout=30
-                )
-                if response.status_code == 200:
-                    data = response.json()
-                    latency = (time.time() - start_time) * 1000
-                    return LLMResponse(
-                        content=data.get("response", ""),
-                        model=f"ollama/{ollama_model}",
-                        total_tokens=data.get("eval_count", 0),
-                        latency_ms=latency
-                    )
+            logger.info(f"vLLM client initialised → {self.config.vllm.base_url}")
         except Exception as e:
-            logger.error(f"Ollama fallback generation failed: {e}")
+            logger.warning(f"vLLM init failed: {e}")
 
+    # ── Provider helpers ────────────────────────────────────────
+
+    def _generate_gemini(self, prompt: str, system_prompt: str) -> LLMResponse:
+        """Generate using Google Gemini."""
+        start = time.time()
+        contents = f"{system_prompt}\n\n{prompt}" if system_prompt else prompt
+        response = self._gemini_client.models.generate_content(
+            model=self.config.gemini.model,
+            contents=contents,
+        )
+        latency = (time.time() - start) * 1000
+        content = response.text or ""
+        tokens = 0
+        if hasattr(response, "usage_metadata") and response.usage_metadata:
+            tokens = getattr(response.usage_metadata, "total_token_count", 0)
         return LLMResponse(
-            content="[LLM Unavailable] All providers failed. Check your configuration and connection.",
-            model="none"
+            content=content,
+            model=f"gemini/{self.config.gemini.model}",
+            total_tokens=tokens,
+            latency_ms=latency,
         )
 
+    def _generate_groq(self, prompt: str, system_prompt: str) -> LLMResponse:
+        """Generate using Groq (OpenAI-compatible)."""
+        start = time.time()
+        chat = self._groq_client.chat.completions.create(
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt},
+            ],
+            model=self.config.groq.model,
+            temperature=0.7,
+            max_tokens=4096,
+        )
+        latency = (time.time() - start) * 1000
+        content = chat.choices[0].message.content or ""
+        tokens = chat.usage.total_tokens if chat.usage else 0
+        return LLMResponse(
+            content=content,
+            model=f"groq/{self.config.groq.model}",
+            total_tokens=tokens,
+            latency_ms=latency,
+        )
+
+    def _generate_vllm(self, prompt: str, system_prompt: str, model: Optional[str] = None) -> LLMResponse:
+        """Generate using vLLM (OpenAI-compatible)."""
+        start = time.time()
+        target_model = model or self.config.vllm.model
+        chat = self._vllm_client.chat.completions.create(
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt},
+            ],
+            model=target_model,
+            temperature=0.7,
+            max_tokens=4096,
+            extra_body={
+                "repetition_penalty": 1.05,
+                "presence_penalty": 0.1,
+                "frequency_penalty": 0.1,
+                "top_p": 0.9,
+            },
+        )
+        latency = (time.time() - start) * 1000
+        content = chat.choices[0].message.content or ""
+        tokens = chat.usage.total_tokens if chat.usage else 0
+        return LLMResponse(
+            content=content,
+            model=f"vllm/{target_model}",
+            total_tokens=tokens,
+            latency_ms=latency,
+        )
+
+    # ── Public API ──────────────────────────────────────────────
+
+    def generate(
+        self,
+        prompt: str,
+        system_prompt: str = "You are a helpful AI assistant.",
+        model: Optional[str] = None,
+    ) -> LLMResponse:
+        """Generate a response using the configured provider chain."""
+        providers = self._get_provider_chain()
+
+        for name, fn in providers:
+            try:
+                if name == "vllm":
+                    return fn(prompt, system_prompt, model)
+                return fn(prompt, system_prompt)
+            except Exception as e:
+                logger.warning(f"{name} generation failed: {e}")
+
+        # All providers exhausted
+        return LLMResponse(
+            content=(
+                "[AI SERVICE OFFLINE] All configured AI providers (Gemini, Groq, vLLM) are "
+                "currently unreachable. Please check your API keys and network connectivity."
+            ),
+            model="offline-fallback",
+        )
+
+    def _get_provider_chain(self) -> List:
+        """Return ordered list of (name, callable) based on config."""
+        chain = []
+        order = [self.config.primary_provider, self.config.secondary_provider, "vllm"]
+        seen = set()
+        for p in order:
+            if p in seen:
+                continue
+            seen.add(p)
+            if p == "gemini" and self._gemini_client:
+                chain.append(("gemini", self._generate_gemini))
+            elif p == "groq" and self._groq_client:
+                chain.append(("groq", self._generate_groq))
+            elif p == "vllm" and self._vllm_client:
+                chain.append(("vllm", self._generate_vllm))
+        return chain
+
     def health_check(self) -> Dict[str, Any]:
-        groq_avail = False
-        ollama_avail = False
-        
-        if self.client:
-            groq_avail = True
-            
-        try:
-            res = requests.get(f"{self.config.ollama.host}/api/tags", timeout=2)
-            if res.status_code == 200:
-                ollama_avail = True
-        except:
-            pass
-        
-        return {
-            "groq": {"available": groq_avail},
-            "ollama": {"available": ollama_avail}
+        """Check availability of all configured providers."""
+        result: Dict[str, Any] = {}
+
+        # Gemini
+        gemini_ok = False
+        gemini_err = None
+        if self._gemini_client:
+            try:
+                self._gemini_client.models.generate_content(
+                    model=self.config.gemini.model,
+                    contents="ping",
+                )
+                gemini_ok = True
+            except Exception as e:
+                gemini_err = str(e)
+        result["gemini"] = {
+            "available": gemini_ok,
+            "error": gemini_err,
+            "model": self.config.gemini.model,
+            "is_primary": self.config.primary_provider == "gemini",
         }
+
+        # Groq
+        groq_ok = False
+        groq_err = None
+        if self._groq_client:
+            try:
+                self._groq_client.models.list()
+                groq_ok = True
+            except Exception as e:
+                groq_err = str(e)
+        result["groq"] = {
+            "available": groq_ok,
+            "error": groq_err,
+            "model": self.config.groq.model,
+            "is_primary": self.config.primary_provider == "groq",
+        }
+
+        # vLLM
+        vllm_ok = False
+        vllm_err = None
+        models: List[str] = []
+        if self._vllm_client:
+            try:
+                model_list = self._vllm_client.models.list()
+                models = [m.id for m in model_list.data]
+                vllm_ok = True
+            except Exception as e:
+                vllm_err = str(e)
+        result["vllm"] = {
+            "available": vllm_ok,
+            "error": vllm_err,
+            "base_url": self.config.vllm.base_url,
+            "model": self.config.vllm.model,
+            "available_models": models,
+        }
+
+        return result
+
 
 def get_llm():
     return LLMWrapper()

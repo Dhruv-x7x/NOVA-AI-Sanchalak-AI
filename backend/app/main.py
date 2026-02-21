@@ -1,5 +1,5 @@
 """
-TrialPulse Nexus API - FastAPI Application
+Sanchalak AI API - FastAPI Application
 ==========================================
 Production-ready API for clinical trial intelligence platform.
 """
@@ -26,13 +26,7 @@ from app.api.v1.routes import (
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Startup and shutdown events with progress tracking."""
-    from app.services.startup_status import get_startup_status
-    from app.services.database import get_data_service
-    
-    status = get_startup_status()
-    status.reset()
-    
+    """Startup and shutdown events."""
     # Add root to sys path for src imports
     root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     if root_dir not in sys.path:
@@ -40,36 +34,9 @@ async def lifespan(app: FastAPI):
     
     print(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
     print(f"Database: {settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}")
-    
-    # Stage 1: Database connection
-    status.update("connecting_database", 20, "Connecting to database...")
-    try:
-        data_service = get_data_service()
-        health = data_service.health_check()
-        if health.get("connected"):
-            status.update("database_connected", 40, "Database connected")
-        else:
-            status.update("database_connected", 40, "Database connection pending...")
-    except Exception as e:
-        status.update("database_error", 30, f"Database: {str(e)[:50]}")
-    
-    # Stage 2: Loading initial data
-    status.update("loading_data", 60, "Loading patient data...")
-    try:
-        # Trigger initial data load
-        df = data_service.get_patients(limit=1)
-        status.update("data_loaded", 80, "Data cache initialized")
-    except Exception:
-        status.update("data_loaded", 80, "Data loading (some tables pending)")
-    
-    # Stage 3: Ready
-    status.mark_ready()
-    print("✓ Application startup complete")
-    
     yield
-    
     # Shutdown
-    print("Shutting down TrialPulse Nexus API")
+    print("Shutting down Sanchalak AI API")
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -216,11 +183,3 @@ async def health_check():
             "api": "running",
             "database": {"error": str(e)},
         }
-
-
-@app.get("/api/startup-status", tags=["Startup"])
-@app.get("/api/v1/startup-status", tags=["Startup"])
-async def startup_status():
-    """Get application startup progress for loading screen."""
-    from app.services.startup_status import get_startup_status
-    return get_startup_status().get_status()

@@ -1,6 +1,6 @@
 # src/orchestration/pipeline_orchestrator.py
 """
-TRIALPULSE NEXUS 10X - Pipeline Orchestrator v1.1
+SANCHALAK AI - Pipeline Orchestrator v1.1
 Phase 11.1: Pipeline Orchestration
 # NOTE: This module previously used SQLite but has been migrated to PostgreSQL-only.
 # If you need to use this module, update it to use:
@@ -14,13 +14,14 @@ FIXES in v1.1:
 - WAL mode for better concurrent access
 - Retry logic for database operations
 
-Author: TrialPulse Team
+Author: Sanchalak AI Team
 Date: 2026-01-02
 """
 
 import os
 import json
 # SQLite removed - using PostgreSQL
+import sqlite3  # kept for type annotations only
 import hashlib
 import logging
 import threading
@@ -317,17 +318,16 @@ class DatabaseManager:
     def _get_connection(self) -> sqlite3.Connection:
         """Get thread-local connection"""
         if not hasattr(self._local, 'connection') or self._local.connection is None:
-            conn = # REMOVED: sqlite3.connect(self.db_path, timeout=30.0)
-            conn.execute("PRAGMA journal_mode=WAL")
-            conn.execute("PRAGMA synchronous=NORMAL")
+            conn = None  # DB persistence disabled
+            pass  # PRAGMA removed (no connection)
             conn.execute("PRAGMA busy_timeout=30000")
             self._local.connection = conn
         return self._local.connection
     
     def _init_database(self):
         """Initialize database schema"""
-        conn = # REMOVED: sqlite3.connect(self.db_path, timeout=30.0)
-        conn.execute("PRAGMA journal_mode=WAL")
+        conn = None  # DB persistence disabled
+        pass  # PRAGMA removed (no connection)
         cursor = conn.cursor()
         
         # Pipeline runs table
@@ -415,9 +415,8 @@ class DatabaseManager:
         for attempt in range(max_retries):
             try:
                 with self._write_lock:
-                    conn = # REMOVED: sqlite3.connect(self.db_path, timeout=30.0)
-                    conn.execute("PRAGMA journal_mode=WAL")
-                    conn.execute("PRAGMA busy_timeout=30000")
+                    conn = None  # DB persistence disabled
+                    pass  # PRAGMA removed (no connection)
                     cursor = conn.cursor()
                     cursor.execute(sql, params)
                     conn.commit()
@@ -651,7 +650,7 @@ class TaskRegistry:
 
 class PipelineOrchestrator:
     """
-    Main Pipeline Orchestrator for TRIALPULSE NEXUS 10X
+    Main Pipeline Orchestrator for SANCHALAK AI
     v1.1 - Thread-safe database operations
     """
     

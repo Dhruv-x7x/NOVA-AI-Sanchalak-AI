@@ -8,12 +8,16 @@ Required for TC005: verify_role_based_dashboard_rendering_and_data_accuracy
 from fastapi import APIRouter, HTTPException, Depends, Query
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timedelta
+from concurrent.futures import ThreadPoolExecutor
 import random
 
 from app.core.security import get_current_user
 from app.services.database import get_data_service
 
 router = APIRouter()
+
+# Thread pool for parallelizing synchronous DB calls
+_executor = ThreadPoolExecutor(max_workers=4)
 
 
 def _sanitize(data):
@@ -94,8 +98,14 @@ async def get_main_dashboard(
     """
     try:
         data_service = get_data_service()
-        summary = data_service.get_portfolio_summary(study_id=study_id)
-        regional = data_service.get_regional_metrics()
+        
+        # Parallelize independent queries
+        import asyncio
+        loop = asyncio.get_event_loop()
+        summary, regional = await asyncio.gather(
+            loop.run_in_executor(_executor, lambda: data_service.get_portfolio_summary(study_id=study_id)),
+            loop.run_in_executor(_executor, lambda: data_service.get_regional_metrics()),
+        )
         
         regions_data = []
         if not regional.empty:
@@ -180,10 +190,17 @@ async def get_data_manager_dashboard(
     try:
         data_service = get_data_service()
         
-        summary = data_service.get_portfolio_summary(study_id=study_id)
-        regional = data_service.get_regional_metrics()
-        dqi_dist = data_service.get_dqi_distribution(study_id=study_id)
-        bottlenecks = data_service.get_bottlenecks(study_id=study_id)
+        # Parallelize 4 independent DB calls
+        import asyncio
+        loop = asyncio.get_event_loop()
+        summary_fut = loop.run_in_executor(_executor, lambda: data_service.get_portfolio_summary(study_id=study_id))
+        regional_fut = loop.run_in_executor(_executor, lambda: data_service.get_regional_metrics())
+        dqi_fut = loop.run_in_executor(_executor, lambda: data_service.get_dqi_distribution(study_id=study_id))
+        bottleneck_fut = loop.run_in_executor(_executor, lambda: data_service.get_bottlenecks(study_id=study_id))
+        
+        summary, regional, dqi_dist, bottlenecks = await asyncio.gather(
+            summary_fut, regional_fut, dqi_fut, bottleneck_fut
+        )
         
         return _sanitize({
             "portfolio_summary": summary,

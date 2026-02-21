@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Notifications Module
+SANCHALAK AI - Notifications Module
 ========================================
 Centralized notification queue system for all platform notifications.
 """

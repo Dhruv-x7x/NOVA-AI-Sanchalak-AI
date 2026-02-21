@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Streaming Package
+SANCHALAK AI - Streaming Package
 =====================================
 Real-time event streaming with Apache Kafka.
 """

@@ -66,7 +66,7 @@ export default function CollaborationHub() {
       return { messages: [] };
     },
     enabled: !!selectedRoomId,
-    refetchInterval: 5000, 
+    refetchInterval: 20000, 
   });
 
   const messages = messagesData?.messages || [];

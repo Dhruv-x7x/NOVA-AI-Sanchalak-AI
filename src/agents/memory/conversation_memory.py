@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - Conversation Memory v1.0
+SANCHALAK AI - Conversation Memory v1.0
 SQLite-based persistence for agent conversations.
 # NOTE: This module previously used SQLite but has been migrated to PostgreSQL-only.
 # If you need to use this module, update it to use:

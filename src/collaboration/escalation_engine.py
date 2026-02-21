@@ -1,6 +1,6 @@
 # src/collaboration/escalation_engine.py
 """
-TRIALPULSE NEXUS 10X - 5-Level Escalation Engine v1.2
+SANCHALAK AI - 5-Level Escalation Engine v1.2
 # NOTE: This module previously used SQLite but has been migrated to PostgreSQL-only.
 # If you need to use this module, update it to use:
 #   from src.database.pg_data_service import get_pg_data_service
@@ -1011,7 +1011,7 @@ def get_escalation_stats() -> Dict[str, Any]:
 
 def test_escalation_engine():
     print("=" * 70)
-    print("TRIALPULSE NEXUS 10X - ESCALATION ENGINE TEST")
+    print("SANCHALAK AI - ESCALATION ENGINE TEST")
     print("=" * 70)
     
     reset_escalation_engine()

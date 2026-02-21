@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Authentication Module
+SANCHALAK AI - Authentication Module
 =========================================
 21 CFR Part 11 compliant authentication with JWT and RBAC.
 """

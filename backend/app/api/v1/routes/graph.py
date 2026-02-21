@@ -241,7 +241,8 @@ async def get_cascade_analysis(
         
         df = df.head(limit)
         
-        return {"analysis": df.to_dict('records'), "total": len(df)}
+        from .patients import sanitize_for_json
+        return {"analysis": sanitize_for_json(df.to_dict('records')), "total": len(df)}
         
     except Exception:
         return {"analysis": _get_sample_cascade_analysis(), "total": 50}
@@ -611,57 +612,110 @@ async def get_cascade_issue_types(
     site_id: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get issue counts by type for cascade analysis matching Streamlit structure."""
+    """Get issue counts by type for cascade analysis — real data from UPR/project_issues."""
     try:
         data_service = get_data_service()
+        from sqlalchemy import text
         
-        # Get issue summary stats from database
-        stats = data_service.get_issue_summary_stats(study_id=study_id)
-        raw_types = stats.get('raw_types', {}) if stats else {}
+        with data_service._db_manager.engine.connect() as conn:
+            upr_exists = conn.execute(text(
+                "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'unified_patient_record')"
+            )).scalar()
+            
+            params = {}
+            where = "WHERE 1=1"
+            if study_id and str(study_id).lower() not in ['all', 'all studies', 'multiple', '{']:
+                where += " AND study_id = :study_id"
+                params["study_id"] = str(study_id)
+            if site_id and str(site_id).lower() not in ['all', 'multiple', 'all sites']:
+                upr_site_id = data_service._map_upr_site_id(site_id)
+                where += " AND site_id = :site_id"
+                params["site_id"] = str(upr_site_id)
+            
+            if upr_exists:
+                q = f"""
+                SELECT
+                    SUM(CASE WHEN has_missing_visits = 1 THEN 1 ELSE 0 END)       as missing_visits,
+                    SUM(CASE WHEN has_missing_pages = 1 THEN 1 ELSE 0 END)        as missing_pages,
+                    SUM(CASE WHEN total_queries > 0 THEN 1 ELSE 0 END)            as open_queries,
+                    SUM(CASE WHEN sdv_pending_count > 0 THEN 1 ELSE 0 END)        as sdv_incomplete,
+                    SUM(CASE WHEN has_overdue_signatures = 1 THEN 1 ELSE 0 END)   as signature_gaps,
+                    SUM(CASE WHEN has_broken_signatures = 1 THEN 1 ELSE 0 END)    as broken_signatures,
+                    SUM(CASE WHEN has_sae_dm_pending = 1 THEN 1 ELSE 0 END)       as sae_dm_pending,
+                    SUM(CASE WHEN has_sae_safety_pending = 1 THEN 1 ELSE 0 END)   as sae_safety_pending,
+                    SUM(CASE WHEN has_meddra_uncoded = 1 THEN 1 ELSE 0 END)       as meddra_uncoded,
+                    SUM(CASE WHEN has_whodrug_uncoded = 1 THEN 1 ELSE 0 END)      as whodrug_uncoded,
+                    SUM(CASE WHEN has_lab_issues = 1 THEN 1 ELSE 0 END)           as lab_issues,
+                    SUM(CASE WHEN edrr_edrr_issue_count > 0 THEN 1 ELSE 0 END)    as edrr_issues,
+                    SUM(CASE WHEN has_inactivated_forms = 1 THEN 1 ELSE 0 END)    as inactivated_forms,
+                    SUM(CASE WHEN total_queries > 5 THEN 1 ELSE 0 END)            as high_query_volume,
+                    COALESCE(SUM(total_open_issues), 0)                           as total_open_issues
+                FROM unified_patient_record {where}
+                """
+            else:
+                # Fallback: aggregate from project_issues
+                pi_where = "WHERE LOWER(status) = 'open'"
+                if study_id and str(study_id).lower() != 'all':
+                    pi_where += " AND site_id IN (SELECT site_id FROM patients WHERE study_id = :study_id)"
+                q = f"""
+                SELECT
+                    SUM(CASE WHEN issue_type = 'missing_visit' THEN 1 ELSE 0 END) as missing_visits,
+                    SUM(CASE WHEN issue_type = 'missing_page' THEN 1 ELSE 0 END) as missing_pages,
+                    SUM(CASE WHEN issue_type = 'query' THEN 1 ELSE 0 END) as open_queries,
+                    SUM(CASE WHEN issue_type = 'sdv' THEN 1 ELSE 0 END) as sdv_incomplete,
+                    SUM(CASE WHEN issue_type = 'signature' THEN 1 ELSE 0 END) as signature_gaps,
+                    0 as broken_signatures, 0 as sae_dm_pending, 0 as sae_safety_pending,
+                    0 as meddra_uncoded, 0 as whodrug_uncoded, 0 as lab_issues,
+                    0 as edrr_issues, 0 as inactivated_forms, 0 as high_query_volume,
+                    COUNT(*) as total_open_issues
+                FROM project_issues {pi_where}
+                """
+            
+            row = conn.execute(text(q), params).fetchone()
+            
+            issue_counts = {
+                "missing_visits": int(row[0] or 0),
+                "missing_pages": int(row[1] or 0),
+                "open_queries": int(row[2] or 0),
+                "sdv_incomplete": int(row[3] or 0),
+                "signature_gaps": int(row[4] or 0),
+                "broken_signatures": int(row[5] or 0),
+                "sae_dm_pending": int(row[6] or 0),
+                "sae_safety_pending": int(row[7] or 0),
+                "meddra_uncoded": int(row[8] or 0),
+                "whodrug_uncoded": int(row[9] or 0),
+                "lab_issues": int(row[10] or 0),
+                "edrr_issues": int(row[11] or 0),
+                "inactivated_forms": int(row[12] or 0),
+                "high_query_volume": int(row[13] or 0),
+                "db_lock": 0  # Target — not an issue count
+            }
+            total_open = int(row[14] or 0)  # From total_open_issues column
         
-        # Map to cascade issue types
-        issue_counts = {
-            "missing_visits": raw_types.get("missing_visits", 0) or int(250 + hash(str(study_id)) % 200),
-            "missing_pages": raw_types.get("missing_pages", 0) or int(180 + hash(str(study_id)) % 150),
-            "open_queries": raw_types.get("open_queries", 0) or int(350 + hash(str(study_id)) % 300),
-            "sdv_incomplete": raw_types.get("sdv_incomplete", 0) or int(120 + hash(str(study_id)) % 100),
-            "signature_gaps": raw_types.get("signature_gaps", 0) or int(200 + hash(str(study_id)) % 180),
-            "broken_signatures": raw_types.get("broken_signatures", 0) or int(80 + hash(str(study_id)) % 60),
-            "sae_dm_pending": raw_types.get("sae_dm_pending", 0) or int(45 + hash(str(study_id)) % 40),
-            "sae_safety_pending": raw_types.get("sae_safety_pending", 0) or int(25 + hash(str(study_id)) % 20),
-            "meddra_uncoded": raw_types.get("meddra_uncoded", 0) or int(90 + hash(str(study_id)) % 80),
-            "whodrug_uncoded": raw_types.get("whodrug_uncoded", 0) or int(70 + hash(str(study_id)) % 60),
-            "lab_issues": raw_types.get("lab_issues", 0) or int(100 + hash(str(study_id)) % 90),
-            "edrr_issues": raw_types.get("edrr_issues", 0) or int(60 + hash(str(study_id)) % 50),
-            "inactivated_forms": raw_types.get("inactivated_forms", 0) or int(40 + hash(str(study_id)) % 30),
-            "high_query_volume": raw_types.get("high_query_volume", 0) or int(150 + hash(str(study_id)) % 120),
-            "db_lock": 0  # Target - not an issue count
-        }
-        
-        # Calculate total excluding db_lock
-        total = sum(v for k, v in issue_counts.items() if k != 'db_lock')
+        source = "unified_patient_record" if upr_exists else "project_issues"
         
         return {
             "issue_counts": issue_counts,
-            "total_issues": total,
+            "total_issues": total_open,
             "critical_issues": issue_counts["sae_dm_pending"] + issue_counts["sae_safety_pending"],
             "study_id": study_id,
-            "site_id": site_id
+            "site_id": site_id,
+            "source": source
         }
         
     except Exception as e:
-        # Return reasonable defaults on error
+        logger.error(f"cascade-issue-types error: {e}")
         return {
-            "issue_counts": {
-                "missing_visits": 287, "missing_pages": 203, "open_queries": 412,
-                "sdv_incomplete": 156, "signature_gaps": 234, "broken_signatures": 89,
-                "sae_dm_pending": 52, "sae_safety_pending": 31, "meddra_uncoded": 124,
-                "whodrug_uncoded": 87, "lab_issues": 143, "edrr_issues": 78,
-                "inactivated_forms": 45, "high_query_volume": 189, "db_lock": 0
-            },
-            "total_issues": 2130,
-            "critical_issues": 83,
-            "error": str(e)
+            "issue_counts": {k: 0 for k in [
+                "missing_visits", "missing_pages", "open_queries", "sdv_incomplete",
+                "signature_gaps", "broken_signatures", "sae_dm_pending", "sae_safety_pending",
+                "meddra_uncoded", "whodrug_uncoded", "lab_issues", "edrr_issues",
+                "inactivated_forms", "high_query_volume", "db_lock"
+            ]},
+            "total_issues": 0,
+            "critical_issues": 0,
+            "error": str(e),
+            "source": "error"
         }
 
 
@@ -750,10 +804,11 @@ async def get_cascade_topology(
     """
     Get the full topology of issue dependencies for the cascade graph.
     Returns a mapping of issue types and what they block.
+    Tries Neo4j first, then falls back to clinical defaults.
     """
     from app.config import settings
     
-    # Static fallback map (matching current frontend hardcoded values)
+    # Clinical cascade dependency rules (last-resort fallback)
     default_topology = {
         "missing_visits": ["missing_pages", "open_queries", "sdv_incomplete", "signature_gaps"],
         "missing_pages": ["open_queries", "sdv_incomplete", "signature_gaps"],
@@ -771,26 +826,105 @@ async def get_cascade_topology(
         "high_query_volume": ["open_queries"],
     }
     
-    if not settings.NEO4J_ENABLED:
-        return {"source": "default", "topology": default_topology}
-        
+    # 1. Try Neo4j graph service
     gs = get_graph_service()
-    if not gs or not gs.is_connected or gs.uses_mock:
-        return {"source": "default_fallback", "topology": default_topology}
-        
+    if gs and gs.is_connected and not gs.uses_mock:
+        try:
+            neo4j_topology = gs.get_cascade_topology()
+            if neo4j_topology:
+                return {"source": "neo4j", "topology": neo4j_topology}
+            else:
+                logger.info("Neo4j returned empty topology, using clinical defaults")
+        except Exception as e:
+            logger.warning(f"Neo4j topology query failed: {e}")
+    
+    # 2. Fallback to clinical defaults
+    return {"source": "clinical_defaults", "topology": default_topology}
+
+
+@router.post("/cascade-seed")
+async def seed_cascade_graph(
+    current_user: dict = Depends(get_current_user)
+):
+    """Trigger on-demand PostgreSQL → Neo4j sync for cascade data."""
+    gs = get_graph_service()
+    if not gs or gs.uses_mock:
+        return {"status": "skipped", "reason": "Neo4j not available"}
+    
     try:
-        # Query Neo4j for actual relationship types
-        with gs._driver.session() as session:
-            result = session.run("""
-                MATCH (a:Issue)-[:BLOCKS]->(b:Issue)
-                RETURN a.type as source, collect(DISTINCT b.type) as targets
-            """)
-            neo4j_topology = {r["source"]: r["targets"] for r in result}
+        data_service = get_data_service()
+        from sqlalchemy import text
+        import pandas as pd
+        
+        with data_service._db_manager.engine.connect() as conn:
+            # 1. Create schema
+            gs.create_cascade_schema()
             
-            if not neo4j_topology:
-                return {"source": "neo4j_empty", "topology": default_topology}
-                
-            return {"source": "neo4j", "topology": neo4j_topology}
+            # 2. Seed studies/sites/patients from UPR
+            upr_exists = conn.execute(text(
+                "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'unified_patient_record')"
+            )).scalar()
+            
+            if upr_exists:
+                upr_df = pd.read_sql(text("SELECT * FROM unified_patient_record LIMIT 500"), conn)
+                gs.build_entity_graph(upr_df)
+                patients_count = len(upr_df)
+            else:
+                patients_count = 0
+            
+            # 3. Seed issues
+            issues_df = pd.read_sql(text(
+                "SELECT issue_id, patient_key, issue_type as type, priority FROM project_issues WHERE status = 'open' LIMIT 1000"
+            ), conn)
+            if not issues_df.empty:
+                gs.add_issues_batch(issues_df)
+            
+            # 4. Create IssueType aggregate nodes
+            all_types = [
+                "missing_visits", "missing_pages", "open_queries", "sdv_incomplete",
+                "signature_gaps", "broken_signatures", "sae_dm_pending", "sae_safety_pending",
+                "meddra_uncoded", "whodrug_uncoded", "lab_issues", "edrr_issues",
+                "inactivated_forms", "high_query_volume", "db_lock"
+            ]
+            with gs._driver.session() as session:
+                for type_key in all_types:
+                    session.run("""
+                        MERGE (t:Issue {id: $type_id, type: $type_key})
+                        SET t.priority = CASE $type_key WHEN 'db_lock' THEN 'Target' ELSE 'Cascade' END
+                    """, type_id=f"CASCADE_{type_key.upper()}", type_key=type_key)
+            
+            # 5. Create BLOCKS relationships between aggregate type nodes
+            cascade_rules = [
+                ('missing_visits', 'missing_pages'), ('missing_visits', 'open_queries'),
+                ('missing_visits', 'sdv_incomplete'), ('missing_visits', 'signature_gaps'),
+                ('missing_pages', 'open_queries'), ('missing_pages', 'sdv_incomplete'),
+                ('missing_pages', 'signature_gaps'),
+                ('open_queries', 'signature_gaps'), ('open_queries', 'db_lock'),
+                ('sdv_incomplete', 'signature_gaps'), ('sdv_incomplete', 'db_lock'),
+                ('signature_gaps', 'db_lock'),
+                ('broken_signatures', 'signature_gaps'), ('broken_signatures', 'db_lock'),
+                ('sae_dm_pending', 'sae_safety_pending'), ('sae_dm_pending', 'db_lock'),
+                ('sae_safety_pending', 'db_lock'),
+                ('meddra_uncoded', 'db_lock'), ('whodrug_uncoded', 'db_lock'),
+                ('lab_issues', 'db_lock'), ('edrr_issues', 'db_lock'),
+                ('inactivated_forms', 'db_lock'), ('high_query_volume', 'open_queries'),
+            ]
+            
+            with gs._driver.session() as session:
+                for source, target in cascade_rules:
+                    session.run("""
+                        MATCH (a:Issue {id: $src_id})
+                        MATCH (b:Issue {id: $tgt_id})
+                        MERGE (a)-[:BLOCKS]->(b)
+                    """, src_id=f"CASCADE_{source.upper()}", tgt_id=f"CASCADE_{target.upper()}")
+            
+            return {
+                "status": "success",
+                "patients_seeded": patients_count,
+                "issues_seeded": len(issues_df),
+                "cascade_rules_applied": len(cascade_rules),
+                "type_nodes_created": len(all_types)
+            }
     except Exception as e:
-        logger.warning(f"Failed to fetch topology from Neo4j: {e}")
-        return {"source": "error_fallback", "topology": default_topology}
+        logger.error(f"Cascade seed failed: {e}")
+        return {"status": "error", "error": str(e)}

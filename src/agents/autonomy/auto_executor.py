@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Auto Executor v2.0
+SANCHALAK AI - Auto Executor v2.0
 ======================================
 Automatically execute safe, low-risk agent actions with real database operations.
 """

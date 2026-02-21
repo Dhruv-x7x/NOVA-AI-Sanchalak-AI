@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - Phase 9.3: Resource Optimizer v1.0
+SANCHALAK AI - Phase 9.3: Resource Optimizer v1.0
 
 Optimal resource allocation for clinical trial operations using
 linear programming and constraint optimization.
@@ -11,7 +11,7 @@ Features:
 - Impact projection with uncertainty
 - Actionable recommendations
 
-Author: TrialPulse Team
+Author: Sanchalak AI Team
 Date: 2026-01-02
 """
 
@@ -1379,7 +1379,7 @@ def get_resource_stats() -> Dict[str, Any]:
 def test_resource_optimizer():
     """Test the Resource Optimizer."""
     print("=" * 70)
-    print("TRIALPULSE NEXUS 10X - RESOURCE OPTIMIZER TEST")
+    print("SANCHALAK AI - RESOURCE OPTIMIZER TEST")
     print("=" * 70)
     
     tests_passed = 0

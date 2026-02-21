@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Database Enums
+SANCHALAK AI - Database Enums
 ==================================
 SQLAlchemy enum types for consistent database values.
 """

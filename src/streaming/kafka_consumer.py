@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Kafka Event Consumer (Production-Ready)
+SANCHALAK AI - Kafka Event Consumer (Production-Ready)
 ============================================================
 Subscribe to Kafka topics and process events in real-time.
 
@@ -101,7 +101,7 @@ class DeadLetterQueue:
     for manual review or automated reprocessing later.
     """
     
-    def __init__(self, dlq_topic: str = "trialpulse.dlq"):
+    def __init__(self, dlq_topic: str = "sanchalak.dlq"):
         self.dlq_topic = dlq_topic
         self._producer = None
         self._local_queue: List[Dict] = []  # Fallback when Kafka unavailable
@@ -165,7 +165,7 @@ class DeadLetterQueue:
 
 class EventConsumer:
     """
-    Production-ready Kafka event consumer for processing TrialPulse events.
+    Production-ready Kafka event consumer for processing Sanchalak AI events.
     
     Features:
     - Consumer groups for horizontal scaling
@@ -235,7 +235,7 @@ class EventConsumer:
     def _should_use_real_kafka(self) -> bool:
         """Check if real Kafka should be used based on environment."""
         # Check environment variable
-        use_mock = os.environ.get("TRIALPULSE_KAFKA_MOCK", "false").lower()
+        use_mock = os.environ.get("SANCHALAK AI_KAFKA_MOCK", "false").lower()
         if use_mock in ("true", "1", "yes"):
             return False
         

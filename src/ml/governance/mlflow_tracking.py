@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - MLflow Experiment Tracking
+SANCHALAK AI - MLflow Experiment Tracking
 ==================================================
 Production ML experiment tracking and model registry.
 
@@ -11,7 +11,7 @@ Features:
 - Artifact storage
 - Integration with existing training pipelines
 
-Author: TrialPulse Team
+Author: Sanchalak AI Team
 Date: 2026-01-24
 """
 
@@ -254,7 +254,7 @@ class MockMLflowClient:
 
 class MLflowTracker:
     """
-    MLflow experiment tracking service for TrialPulse NEXUS.
+    MLflow experiment tracking service for Sanchalak AI NEXUS.
     
     Provides:
     - Experiment management
@@ -274,11 +274,11 @@ class MLflowTracker:
     
     # Default experiment names
     EXPERIMENTS = {
-        "risk_classifier": "TrialPulse Risk Classifier",
-        "issue_detector": "TrialPulse Issue Detector",
-        "site_ranker": "TrialPulse Site Ranker",
-        "anomaly_detector": "TrialPulse Anomaly Detector",
-        "resolution_predictor": "TrialPulse Resolution Time Predictor"
+        "risk_classifier": "Sanchalak AI Risk Classifier",
+        "issue_detector": "Sanchalak AI Issue Detector",
+        "site_ranker": "Sanchalak AI Site Ranker",
+        "anomaly_detector": "Sanchalak AI Anomaly Detector",
+        "resolution_predictor": "Sanchalak AI Resolution Time Predictor"
     }
     
     def __init__(
@@ -302,7 +302,7 @@ class MLflowTracker:
             default_uri
         )
         self.artifact_location = artifact_location or str(Path("data/mlruns/artifacts").absolute())
-        self.experiment_name = experiment_name or "TrialPulse NEXUS"
+        self.experiment_name = experiment_name or "Sanchalak AI NEXUS"
         
         self._client = None
         self._current_run = None
@@ -1002,7 +1002,7 @@ def track_training(
 def main():
     """Demo the MLflow tracker."""
     print("=" * 70)
-    print("TRIALPULSE NEXUS - MLFLOW EXPERIMENT TRACKING DEMO")
+    print("SANCHALAK AI - MLFLOW EXPERIMENT TRACKING DEMO")
     print("=" * 70)
     
     # Initialize tracker
@@ -1017,7 +1017,7 @@ def main():
     print("DEMO: Training Run")
     print("-" * 50)
     
-    with tracker.start_run("demo_training", "TrialPulse Demo"):
+    with tracker.start_run("demo_training", "Sanchalak AI Demo"):
         # Log parameters
         tracker.log_params({
             "model_type": "RandomForest",
@@ -1076,7 +1076,7 @@ def main():
     print("DEMO: Search Runs")
     print("-" * 50)
     
-    runs = tracker.search_runs(["TrialPulse Demo"])
+    runs = tracker.search_runs(["Sanchalak AI Demo"])
     print(f"Found {len(runs)} runs")
     for run in runs[:3]:
         print(f"  - {run.run_id}: accuracy={run.metrics.get('accuracy', 'N/A')}")

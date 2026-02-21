@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - PostgreSQL Data Service
+SANCHALAK AI - PostgreSQL Data Service
 ==========================================
 Hardened, production-grade data service using PostgreSQL.
 Handles all dashboard requirements with extreme resilience and strict frontend key mapping.
@@ -15,7 +15,7 @@ import os
 import random
 import uuid
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import func, text, desc
+from sqlalchemy import func, text, desc, or_
 
 from src.database.connection import get_db_manager
 from src.database.models import (
@@ -87,29 +87,14 @@ class PostgreSQLDataService:
     # =========================================================================
 
     def execute_query(self, query: str, params: Optional[Dict[str, Any]] = None) -> pd.DataFrame:
-        """Execute a raw SQL query and return a DataFrame.
-        
-        For SELECT statements: returns DataFrame with results.
-        For INSERT/UPDATE/DELETE: returns DataFrame with single 'affected_rows' column.
-        """
+        """Execute a raw SQL query and return a DataFrame."""
         try:
             if not PostgreSQLDataService._db_manager: self._initialize()
             if not PostgreSQLDataService._db_manager or not PostgreSQLDataService._db_manager.engine:
                 return pd.DataFrame()
             
-            # Detect if this is a modifying statement
-            query_upper = query.strip().upper()
-            is_modifying = query_upper.startswith(('INSERT', 'UPDATE', 'DELETE', 'CREATE', 'DROP', 'ALTER', 'TRUNCATE'))
-            
             with PostgreSQLDataService._db_manager.engine.connect() as conn:
-                if is_modifying:
-                    # Execute without trying to fetch rows
-                    result = conn.execute(text(query), params or {})
-                    conn.commit()
-                    return pd.DataFrame({'affected_rows': [result.rowcount]})
-                else:
-                    # SELECT - use read_sql as before
-                    return pd.read_sql(text(query), conn, params=params or {})
+                return pd.read_sql(text(query), conn, params=params or {})
         except Exception as e:
             logger.error(f"execute_query error: {e}")
             return pd.DataFrame()
@@ -149,16 +134,25 @@ class PostgreSQLDataService:
     def _map_site_id(self, site_id: str) -> str:
         """Map demo site IDs (US-001, etc) to rich Gold Standard data sites."""
         demo_mapping = {
-            "US-001": "Site_1640",
-            "US-002": "Site_3",
-            "US-003": "Site_2",
-            "CA-001": "Site_925",
-            "UK-001": "Site_1513",
-            "DE-001": "Site_1580",
-            "FR-001": "Site_71",
-            "JP-001": "Site_1"
+            "US-001": "Site 1640",
+            "US-002": "Site 3",
+            "US-003": "Site 2",
+            "CA-001": "Site 925",
+            "UK-001": "Site 1513",
+            "DE-001": "Site 1580",
+            "FR-001": "Site 71",
+            "JP-001": "Site 1"
         }
-        return demo_mapping.get(site_id, site_id)
+        mapped = demo_mapping.get(site_id, site_id)
+        return str(mapped)
+
+    def _map_upr_site_id(self, site_id: str) -> str:
+        """Map site ID specifically to the format used in UPR (underscores)."""
+        if not site_id: return site_id
+        mapped = self._map_site_id(site_id)
+        if "Site " in mapped:
+            return mapped.replace(" ", "_")
+        return mapped
 
     def get_patients(self, limit: Optional[int] = None, study_id: Optional[str] = None, site_id: Optional[str] = None, upr: bool = False) -> pd.DataFrame:
         try:
@@ -189,7 +183,12 @@ class PostgreSQLDataService:
                 if study_id and str(study_id).lower() != 'all' and "{" not in str(study_id):
                     q += " AND study_id = :study_id"; params["study_id"] = str(study_id)
                 if mapped_site_id:
-                    q += " AND site_id = :site_id"; params["site_id"] = str(mapped_site_id)
+                    # UPR uses underscores, patients uses spaces
+                    if table == "unified_patient_record":
+                        upr_site_id = self._map_upr_site_id(site_id)
+                        q += " AND site_id = :site_id"; params["site_id"] = str(upr_site_id)
+                    else:
+                        q += " AND site_id = :site_id"; params["site_id"] = str(mapped_site_id)
                 if limit:
                     q += f" LIMIT {int(limit)}"
                 return pd.read_sql(text(q), conn, params=params)
@@ -238,10 +237,10 @@ class PostgreSQLDataService:
                     q = """
                     SELECT 
                         patient_key, study_id, site_id,
-                        has_issues,
+                        has_any_open_issues as has_issues,
                         open_issues_count,
                         CASE 
-                            WHEN is_critical_patient::integer = 1 THEN 'critical'
+                            WHEN is_critical_patient = 1 THEN 'critical'
                             WHEN LOWER(priority) = 'high' THEN 'high'
                             WHEN LOWER(priority) = 'medium' THEN 'medium'
                             ELSE 'low'
@@ -279,8 +278,13 @@ class PostgreSQLDataService:
                     upr_exists = upr_has_data
             
             p_table = "unified_patient_record" if upr_exists else "patients"
-            dqi_col = "dqi_score"
+            dqi_col = "data_quality_index_8comp"
             
+            # Helper to check if column exists
+            def col_exists(table, column):
+                with PostgreSQLDataService._db_manager.engine.connect() as conn:
+                    return conn.execute(text(f"SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = '{table}' AND column_name = '{column}')")).scalar()
+
             # Base query
             where = "WHERE 1=1"
             params = {}
@@ -290,35 +294,69 @@ class PostgreSQLDataService:
                 
             with PostgreSQLDataService._db_manager.engine.connect() as conn:
                 p_count = conn.execute(text(f"SELECT COUNT(*) FROM {p_table} {where}"), params).scalar() or 0
-                avg_dqi = conn.execute(text(f"SELECT AVG({dqi_col}) FROM {p_table} {where}"), params).scalar() or 0
+                avg_dqi = conn.execute(text(f"SELECT AVG(COALESCE({dqi_col}, 0)) FROM {p_table} {where}"), params).scalar() or 0
                 
-                # Use robust integer comparison for boolean conversion for safety in Postgres
-                dblock_ready = conn.execute(text(f"SELECT COUNT(*) FROM {p_table} {where} AND is_db_lock_ready::integer = 1"), params).scalar() or 0
-                sdtm_ready = conn.execute(text(f"SELECT COUNT(*) FROM {p_table} {where} AND sdtm_ready::integer = 1"), params).scalar() or 0
+                # Robust checks for columns
+                has_lock_ready = col_exists(p_table, 'is_db_lock_ready')
+                has_sdtm_ready = col_exists(p_table, 'is_ready_for_review')
+                has_tier1 = col_exists(p_table, 'is_clean_clinical')
+                has_tier2 = col_exists(p_table, 'is_clean_operational')
+
+                dblock_ready = 0
+                if has_lock_ready:
+                    dblock_ready = conn.execute(text(f"SELECT COUNT(*) FROM {p_table} {where} AND is_db_lock_ready::integer = 1"), params).scalar() or 0
+                
+                sdtm_ready = 0
+                if has_sdtm_ready:
+                    # Some tables might have it as boolean, some as int. ::integer cast is safe for both in Postgres if boolean
+                    sdtm_ready = conn.execute(text(f"SELECT COUNT(*) FROM {p_table} {where} AND is_ready_for_review::integer = 1"), params).scalar() or 0
+                
+                # Tiers
+                tier1_count = 0
+                if has_tier1:
+                    tier1_count = conn.execute(text(f"SELECT COUNT(*) FROM {p_table} {where} AND is_clean_clinical::integer = 1"), params).scalar() or 0
+                
+                tier2_count = 0
+                if has_tier2:
+                    tier2_count = conn.execute(text(f"SELECT COUNT(*) FROM {p_table} {where} AND is_clean_operational::integer = 1"), params).scalar() or 0
                 
                 # Sites and studies count
                 total_sites = conn.execute(text(f"SELECT COUNT(DISTINCT site_id) FROM {p_table} {where}"), params).scalar() or 0
                 total_studies = conn.execute(text(f"SELECT COUNT(DISTINCT study_id) FROM {p_table}"), params).scalar() or 0
                 
-                # Tiers from the same table (UPR preferred)
-                tier1_count = conn.execute(text(f"SELECT COUNT(*) FROM {p_table} {where} AND is_tier1_clean::integer = 1"), params).scalar() or 0
-                tier2_count = conn.execute(text(f"SELECT COUNT(*) FROM {p_table} {where} AND is_tier2_clean::integer = 1"), params).scalar() or 0
-                
-                # Issues: Prefer UPR-based aggregation for realistic burden
+                # Issues: Use project_issues table for accurate open count
+                # NOTE: UPR's total_open_issues column is inflated and unreliable
                 if upr_exists:
-                    # total_issues_all_sources
-                    total_issues = conn.execute(text(f"SELECT SUM(total_open_issues) FROM {p_table} {where}"), params).scalar() or 0
-                    critical_issues = conn.execute(text(f"SELECT SUM(CASE WHEN is_critical_patient::integer = 1 THEN 1 ELSE 0 END) FROM {p_table} {where}"), params).scalar() or 0
-                    high_issues = conn.execute(text(f"SELECT SUM(CASE WHEN priority = 'High' THEN 1 ELSE 0 END) FROM {p_table} {where}"), params).scalar() or 0
+                    # Get real open issue count from project_issues — single optimized query
+                    pi_where = "WHERE LOWER(status) = 'open'"
+                    if study_id and str(study_id).lower() != 'all' and '{' not in str(study_id):
+                        pi_where += " AND study_id = :study_id"
+                    issue_row = conn.execute(text(f"""
+                        SELECT 
+                            COUNT(*) as total,
+                            COUNT(*) FILTER (WHERE LOWER(priority) = 'critical') as critical,
+                            COUNT(*) FILTER (WHERE LOWER(priority) = 'high') as high
+                        FROM project_issues {pi_where}
+                    """), params).fetchone()
+                    total_issues = int(issue_row[0] or 0)
+                    critical_issues = int(issue_row[1] or 0)
+                    high_issues = int(issue_row[2] or 0)
                 else:
-                    # Fallback to local project_issues table
+                    # Fallback — single optimized query
                     issues_where = "WHERE LOWER(status) = 'open'"
                     if study_id and study_id != 'all':
                         issues_where += " AND site_id IN (SELECT site_id FROM patients WHERE study_id = :study_id)"
-                        
-                    total_issues = conn.execute(text(f"SELECT COUNT(*) FROM project_issues {issues_where}"), params).scalar() or 0
-                    critical_issues = conn.execute(text(f"SELECT COUNT(*) FROM project_issues {issues_where} AND LOWER(priority) = 'critical'"), params).scalar() or 0
-                    high_issues = conn.execute(text(f"SELECT COUNT(*) FROM project_issues {issues_where} AND LOWER(priority) = 'high'"), params).scalar() or 0
+                    
+                    issue_row = conn.execute(text(f"""
+                        SELECT 
+                            COUNT(*) as total,
+                            COUNT(*) FILTER (WHERE LOWER(priority) = 'critical') as critical,
+                            COUNT(*) FILTER (WHERE LOWER(priority) = 'high') as high
+                        FROM project_issues {issues_where}
+                    """), params).fetchone()
+                    total_issues = int(issue_row[0] or 0)
+                    critical_issues = int(issue_row[1] or 0)
+                    high_issues = int(issue_row[2] or 0)
 
             return {
                 "total_patients": p_count, 
@@ -365,18 +403,20 @@ class PostgreSQLDataService:
                     # Use UPR for 10X accuracy
                     p_table = "unified_patient_record"
                     
-                    # 1. Open and Critical Counts
-                    stats_q = f"""
+                    # 1. Open and Critical Counts — single optimized query
+                    pi_where = "WHERE LOWER(status) = 'open'"
+                    if study_id and str(study_id).lower() != 'all' and '{' not in str(study_id):
+                        pi_where += " AND study_id = :study_id"
+                    counts_row = conn.execute(text(f"""
                         SELECT 
-                            SUM(total_open_issues) as total_open,
-                            SUM(CASE WHEN is_critical_patient::integer = 1 THEN 1 ELSE 0 END) as critical_count,
-                            SUM(CASE WHEN priority = 'High' THEN 1 ELSE 0 END) as high_count
-                        FROM {p_table} {where}
-                    """
-                    stats_res = conn.execute(text(stats_q), params).fetchone()
-                    open_count = int(stats_res[0] or 0)
-                    critical_count = int(stats_res[1] or 0)
-                    high_count = int(stats_res[2] or 0)
+                            COUNT(*) as open_count,
+                            COUNT(*) FILTER (WHERE LOWER(priority) = 'critical') as critical_count,
+                            COUNT(*) FILTER (WHERE LOWER(priority) = 'high') as high_count
+                        FROM project_issues {pi_where}
+                    """), params).fetchone()
+                    open_count = int(counts_row[0] or 0)
+                    critical_count = int(counts_row[1] or 0)
+                    high_count = int(counts_row[2] or 0)
                     
                     # 2. Priority Breakdown
                     prio_q = f"SELECT priority, COUNT(*) as count FROM {p_table} {where} GROUP BY priority"
@@ -388,14 +428,21 @@ class PostgreSQLDataService:
                             nk = str(k).capitalize()
                             if nk in by_prio: by_prio[nk] = int(v)
                     
-                    # 3. Type Breakdown (Synthesized from metrics)
+                    # 3. Type Breakdown — aligned with Phase 5 total_open_issues formula (Bug #18 fix)
+                    # total_open_issues = query_open_count + edrr_open_issues + total_sae_pending
+                    #                   + total_uncoded_terms (4 ACTIONABLE components only)
+                    # Excluded from open issues: missing_visit/page (completeness), lab_issue (config findings)
+                    # protocol_deviations is a SEPARATE compliance metric, not in total_open_issues
                     type_q = f"""
                         SELECT 
-                            SUM(total_queries) as query_count,
-                            SUM(total_sae_pending) as safety_count,
-                            SUM(total_uncoded_terms) as coding_count,
-                            SUM(visit_missing_visit_count + pages_missing_page_count) as missing_count,
-                            SUM(protocol_deviations) as deviation_count
+                            SUM(COALESCE(total_queries, 0)) as query_count,
+                            SUM(COALESCE(total_sae_pending, 0)) as safety_count,
+                            SUM(COALESCE(total_uncoded_terms, 0)) as coding_count,
+                            SUM(COALESCE(edrr_edrr_issue_count, 0)) as edrr_count,
+                            SUM(COALESCE(pds_total, 0)) as deviation_count,
+                            SUM(COALESCE(visit_missing_visit_count, 0)) as missing_visits,
+                            SUM(COALESCE(pages_missing_page_count, 0)) as missing_pages,
+                            SUM(COALESCE(lab_lab_issue_count, 0)) as lab_findings
                         FROM {p_table} {where}
                     """
                     t_res = conn.execute(text(type_q), params).fetchone()
@@ -403,8 +450,7 @@ class PostgreSQLDataService:
                         "query": int(t_res[0] or 0),
                         "safety": int(t_res[1] or 0),
                         "coding": int(t_res[2] or 0),
-                        "missing_data": int(t_res[3] or 0),
-                        "protocol_deviations": int(t_res[4] or 0)
+                        "edrr": int(t_res[3] or 0),
                     }
                     
                     return {
@@ -416,6 +462,11 @@ class PostgreSQLDataService:
                         "critical_count": critical_count,
                         "high_count": high_count,
                         "protocol_deviations": int(t_res[4] or 0),
+                        "data_quality_findings": {
+                            "missing_visits": int(t_res[5] or 0),
+                            "missing_pages": int(t_res[6] or 0),
+                            "lab_findings": int(t_res[7] or 0),
+                        },
                         "timestamp": datetime.utcnow().isoformat()
                     }
                 else:
@@ -462,14 +513,14 @@ class PostgreSQLDataService:
             
             # Prefer unified_patient_record for the advanced DQI
             table = "unified_patient_record"
-            col = "dqi_score"
+            col = "data_quality_index_8comp"
             
             # Check if table exists
             with PostgreSQLDataService._db_manager.engine.connect() as conn:
                 exists = conn.execute(text("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'unified_patient_record')")).scalar()
                 if not exists:
                     table = "patients"
-                    col = "dqi_score"
+                    col = "dqi_score"  # patients table uses dqi_score
 
             query = f"""
             SELECT 
@@ -532,6 +583,8 @@ class PostgreSQLDataService:
                     SELECT 
                         d.report_id, d.version_id, d.psi_score, d.severity, 
                         d.baseline_accuracy, d.current_accuracy, d.created_at,
+                        d.feature_drift_details, d.retrain_recommended,
+                        d.ks_statistic, d.recommendations,
                         m.model_name, m.version
                     FROM drift_reports d 
                     JOIN ml_model_versions m ON d.version_id = m.version_id
@@ -662,16 +715,18 @@ class PostgreSQLDataService:
             if not PostgreSQLDataService._db_manager or not PostgreSQLDataService._db_manager.engine:
                 return pd.DataFrame()
             with PostgreSQLDataService._db_manager.engine.connect() as conn:
-                q = "SELECT * FROM clinical_sites WHERE 1=1"
                 params = {}
                 if study_id and str(study_id).lower() != 'all':
-                    # Join with patients or study_sites if we want to filter sites by study
+                    # Join with study_sites to filter sites by study
                     q = """
                     SELECT cs.* FROM clinical_sites cs
                     JOIN study_sites ss ON cs.site_id = ss.site_id
                     WHERE ss.study_id = :study_id
                     """
                     params["study_id"] = str(study_id)
+                else:
+                    # Deduplicate: same site_id can appear across multiple studies
+                    q = "SELECT DISTINCT ON (site_id) * FROM clinical_sites ORDER BY site_id"
                 return pd.read_sql(text(q), conn, params=params)
         except Exception as e:
             logger.error(f"get_sites error: {e}"); return pd.DataFrame()
@@ -690,15 +745,24 @@ class PostgreSQLDataService:
                     q = """
                     SELECT 
                         pi.issue_id, pi.site_id, pi.patient_key, pi.issue_type, pi.priority, 
-                        pi.cascade_impact_score, upr.study_id, upr.dqi_score as patient_dqi,
-                        upr.risk_score as patient_risk
+                        pi.cascade_impact_score, pi.category,
+                        COALESCE(upr_avg.avg_dqi, 0) as patient_dqi,
+                        COALESCE(upr_avg.avg_risk, 0) as patient_risk,
+                        COALESCE(upr_avg.study_id, SPLIT_PART(pi.patient_key, '|', 1)) as study_id
                     FROM project_issues pi
-                    JOIN unified_patient_record upr ON pi.patient_key = upr.patient_key
+                    LEFT JOIN (
+                        SELECT site_id, REPLACE(site_id, '_', ' ') as site_id_norm,
+                               AVG(COALESCE(data_quality_index_8comp, 0)) as avg_dqi,
+                               AVG(COALESCE(risk_score, 0)) as avg_risk,
+                               MAX(study_id) as study_id
+                        FROM unified_patient_record GROUP BY site_id
+                    ) upr_avg ON upr_avg.site_id_norm = pi.site_id
                     WHERE LOWER(pi.status) = 'open'
                     """
                     if study_id and str(study_id).lower() != 'all':
-                        q += " AND upr.study_id = :study_id"
+                        q += " AND (upr_avg.study_id = :study_id OR pi.patient_key LIKE :study_prefix)"
                         params["study_id"] = str(study_id)
+                        params["study_prefix"] = str(study_id) + "|%"
                 else:
                     q = """
                     SELECT 
@@ -752,58 +816,126 @@ class PostgreSQLDataService:
             return []
 
     def get_site_benchmarks(self, study_id: Optional[str] = None) -> pd.DataFrame:
-        """Site performance metrics for quality matrix and maps using real data."""
-        session = None
+        """Site performance metrics for quality matrix and maps using real UPR data."""
         try:
             if not PostgreSQLDataService._db_manager: self._initialize()
-            session = self._get_session()
-            sites = session.query(ClinicalSite).all()
-            data = []
-            for s in sites:
-                # Use mapped ID for patient/issue lookups
-                data_site_id = self._map_site_id(s.site_id)
+            if not PostgreSQLDataService._db_manager or not PostgreSQLDataService._db_manager.engine:
+                return pd.DataFrame()
+            
+            with PostgreSQLDataService._db_manager.engine.connect() as conn:
+                # Build study filter for UPR
+                study_filter = ""
+                params: dict = {}
+                if study_id and str(study_id).lower() != 'all':
+                    study_filter = "AND upr.study_id = :study_id"
+                    params["study_id"] = str(study_id)
                 
-                pts_q = session.query(Patient).filter_by(site_id=data_site_id)
-                if study_id and str(study_id).lower() != 'all': pts_q = pts_q.filter_by(study_id=study_id)
+                # Single efficient query: join clinical_sites with UPR for clean rates, 
+                # and with project_issues for issue counts + top issue category
+                q = f"""
+                WITH site_upr AS (
+                    SELECT
+                        upr.site_id,
+                        COUNT(*) as patient_count,
+                        -- Clean rates using actual DB values
+                        ROUND(100.0 * SUM(CASE WHEN patient_clean_status IN ('Clean', 'Minor Issues') THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0), 1) as tier1_clean_rate,
+                        ROUND(100.0 * SUM(CASE WHEN patient_clean_status = 'Clean' THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0), 1) as tier2_clean_rate,
+                        AVG(COALESCE(data_quality_index_8comp, 0)) as avg_dqi
+                    FROM unified_patient_record upr
+                    WHERE 1=1 {study_filter}
+                    GROUP BY upr.site_id
+                ),
+                site_issues AS (
+                    SELECT
+                        site_id,
+                        COUNT(*) as issue_count
+                    FROM project_issues
+                    WHERE LOWER(status) = 'open'
+                    GROUP BY site_id
+                ),
+                site_top_issue AS (
+                    SELECT DISTINCT ON (site_id)
+                        site_id,
+                        category as top_issue_category,
+                        COUNT(*) as top_issue_count
+                    FROM project_issues
+                    WHERE LOWER(status) = 'open'
+                    GROUP BY site_id, category
+                    ORDER BY site_id, COUNT(*) DESC
+                )
+                SELECT
+                    cs.site_id,
+                    cs.name,
+                    cs.region,
+                    COALESCE(cs.dqi_score, su.avg_dqi, 0) as dqi_score,
+                    COALESCE(su.patient_count, 0) as patient_count,
+                    COALESCE(su.tier1_clean_rate, 0) as tier1_clean_rate,
+                    COALESCE(su.tier2_clean_rate, 0) as tier2_clean_rate,
+                    COALESCE(si.issue_count, 0) as issue_count,
+                    COALESCE(sti.top_issue_category, 'None') as top_issue_category,
+                    COALESCE(sti.top_issue_count, 0) as top_issue_count
+                FROM (
+                    SELECT DISTINCT ON (site_id) site_id, name, region, dqi_score
+                    FROM clinical_sites
+                    ORDER BY site_id, dqi_score DESC NULLS LAST
+                ) cs
+                LEFT JOIN site_upr su ON cs.site_id = REPLACE(su.site_id, '_', ' ')
+                LEFT JOIN site_issues si ON cs.site_id = si.site_id
+                LEFT JOIN site_top_issue sti ON cs.site_id = sti.site_id
+                ORDER BY cs.site_id
+                """
                 
-                p_count = pts_q.count()
-                if p_count == 0 and study_id and str(study_id).lower() != 'all': continue
+                df = pd.read_sql(text(q), conn, params=params)
                 
-                if p_count > 0:
-                    tier1_count = pts_q.filter(Patient.clean_status_tier.in_(['tier_1', 'tier_2', 'db_lock_ready'])).count()
-                    tier2_count = pts_q.filter(Patient.clean_status_tier.in_(['tier_2', 'db_lock_ready'])).count()
-                    t1_rate = round(tier1_count / p_count * 100, 1)
-                    t2_rate = round(tier2_count / p_count * 100, 1)
-                else:
-                    t1_rate = 0.0
-                    t2_rate = 0.0
+                if df.empty:
+                    return pd.DataFrame()
+                
+                # Build result with all expected fields
+                data = []
+                for _, row in df.iterrows():
+                    dqi = float(row['dqi_score'] or 0)
+                    p_count = int(row['patient_count'] or 0)
+                    t1_rate = float(row['tier1_clean_rate'] or 0)
+                    t2_rate = float(row['tier2_clean_rate'] or 0)
+                    i_count = int(row['issue_count'] or 0)
+                    top_cat = str(row['top_issue_category'] or 'None')
+                    top_cnt = int(row['top_issue_count'] or 0)
+                    
+                    # Format top_issue string like "Signature (13)"
+                    top_issue = f"{top_cat} ({top_cnt})" if top_cat != 'None' and top_cnt > 0 else 'No Issues'
+                    
+                    # Skip sites with no patients when filtering by study
+                    if p_count == 0 and study_id and str(study_id).lower() != 'all':
+                        continue
+                    
+                    data.append({
+                        "siteId": row['site_id'], "site_id": row['site_id'], "name": row['name'],
+                        "studyId": study_id or "All", "patientCount": p_count, "patient_count": p_count,
+                        "region": row['region'] or "UNKNOWN",
+                        "dqi_score": dqi, "dqi": dqi,
+                        "clean_rate": t2_rate, "cleanRate": t2_rate,
+                        "issue_count": i_count, "issueCount": i_count,
+                        "top_issue": top_issue,
+                        "status": "Good" if dqi > 80 else "Average",
+                        "total_issues": i_count,
+                        "tier1_clean_rate": t1_rate, "tier2_clean_rate": t2_rate,
+                        "quality_tier": "Pristine" if dqi > 95 else "Excellent" if dqi > 85 else "Good",
+                        "patients": p_count
+                    })
+                return pd.DataFrame(data)
+        except Exception as e:
+            logger.error(f"get_site_benchmarks error: {e}")
+            return pd.DataFrame()
 
-                i_count = session.query(ProjectIssue).filter_by(site_id=s.site_id, status='open').count()
-                
-                data.append({
-                    "siteId": s.site_id, "site_id": s.site_id, "name": s.name,
-                    "studyId": study_id or "All", "patientCount": p_count, "patient_count": p_count,
-                    "region": s.region or "UNKNOWN",
-                    "dqi_score": float(s.dqi_score or 0), 
-                    "dqi": float(s.dqi_score or 0),
-                    "clean_rate": t2_rate, "cleanRate": t2_rate,
-                    "issue_count": i_count, "issueCount": i_count,
-                    "status": "Good" if (s.dqi_score or 0) > 80 else "Average",
-                    "total_issues": i_count,
-                    "tier1_clean_rate": t1_rate, "tier2_clean_rate": t2_rate,
-                    "quality_tier": "Pristine" if (s.dqi_score or 0) > 95 else "Excellent" if (s.dqi_score or 0) > 85 else "Good",
-                    "patients": p_count
-                })
-            return pd.DataFrame(data)
-        finally: 
-            if session: session.close()
-
-    def get_studies(self) -> pd.DataFrame:
+    def get_studies(self, limit: Optional[int] = None) -> pd.DataFrame:
         """Fetch all studies with real patient counts using UPR if available."""
         session = None
         try:
             session = self._get_session()
-            studies_list = session.query(Study).all()
+            query = session.query(Study)
+            if limit:
+                query = query.limit(limit)
+            studies_list = query.all()
             
             # Check if unified_patient_record exists
             upr_exists = False
@@ -812,7 +944,7 @@ class PostgreSQLDataService:
                     upr_exists = conn.execute(text("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'unified_patient_record')")).scalar()
             
             p_table = "unified_patient_record" if upr_exists else "patients"
-            dqi_col = "dqi_score"
+            dqi_col = "data_quality_index_8comp"
             
             data = []
             for s in studies_list:
@@ -846,6 +978,130 @@ class PostgreSQLDataService:
             return pd.DataFrame(data)
         finally: 
             if session: session.close()
+
+    def _to_dict(self, obj: Any) -> Dict[str, Any]:
+        """Convert SQLAlchemy model instance to dictionary."""
+        if not obj:
+            return {}
+        return {c.name: getattr(obj, c.name) for c in obj.__table__.columns}
+
+    def get_queries(self, status: Optional[str] = None) -> pd.DataFrame:
+        """Fetch queries with optional status filter."""
+        session = None
+        try:
+            session = self._get_session()
+            query = session.query(DBQuery)
+            if status:
+                query = query.filter(DBQuery.status == status)
+            
+            results = query.all()
+            return pd.DataFrame([self._to_dict(q) for q in results])
+        except Exception as e:
+            logger.error(f"get_queries error: {e}")
+            return pd.DataFrame()
+        finally:
+            if session: session.close()
+
+    def search_patients(self, search_query: str, limit: int = 20) -> pd.DataFrame:
+        """Search patients by key or site."""
+        session = None
+        try:
+            session = self._get_session()
+            results = session.query(Patient).filter(
+                or_(
+                    Patient.patient_key.ilike(f"%{search_query}%"),
+                    Patient.site_id.ilike(f"%{search_query}%")
+                )
+            ).limit(limit).all()
+            return pd.DataFrame([self._to_dict(p) for p in results])
+        except Exception as e:
+            logger.error(f"search_patients error: {e}")
+            return pd.DataFrame()
+        finally:
+            if session: session.close()
+
+
+    def search_patients(self, search_query: str, limit: int = 20) -> pd.DataFrame:
+        """Search patients by key or site."""
+        session = None
+        try:
+            session = self._get_session()
+            results = session.query(Patient).filter(
+                or_(
+                    Patient.patient_key.ilike(f"%{search_query}%"),
+                    Patient.site_id.ilike(f"%{search_query}%")
+                )
+            ).limit(limit).all()
+            return pd.DataFrame([self._to_dict(p) for p in results])
+        except Exception as e:
+            logger.error(f"search_patients error: {e}")
+            return pd.DataFrame()
+        finally:
+            if session: session.close()
+
+    def get_signatures_summary(self, study_id: Optional[str] = None) -> Dict[str, Any]:
+        """Get signature completion summary from patients table."""
+        try:
+            df = self.get_patients(study_id=study_id, upr=True)
+            if df.empty:
+                return {"total": 0, "completed": 0, "pending": 0, "rate": 0}
+            
+            total = len(df)
+            completed = int(df['all_signatures_complete'].sum()) if 'all_signatures_complete' in df.columns else 0
+            
+            return {
+                "total": total,
+                "completed": completed,
+                "pending": total - completed,
+                "rate": round(completed / total * 100, 1) if total > 0 else 0
+            }
+        except Exception as e:
+            logger.error(f"get_signatures_summary error: {e}")
+            return {"total": 0, "completed": 0, "pending": 0, "rate": 0}
+
+    def get_prediction_data(self, study_id: Optional[str] = None, site_id: Optional[str] = None) -> Dict[str, Any]:
+        """Centralized data fetcher for Digital Twin to avoid SELECT * fragility."""
+        try:
+            # 1. Get Patient Data
+            patients_df = self.get_patients(study_id=study_id, site_id=site_id, upr=True)
+            
+            # Use defaults for missing columns to prevent crashes
+            cols = {
+                'dqi_score': 85.0,
+                'is_db_lock_ready': False,
+                'clean_status_tier': 'tier_0',
+                'open_queries_count': 0,
+                'all_signatures_complete': False,
+                'pct_missing_visits': 0.0,
+                'pct_missing_pages': 0.0,
+                'visit_compliance_pct': 100.0,
+                'risk_score': 0.0,
+                'days_since_last_activity': 0
+            }
+            
+            for col, default in cols.items():
+                if col not in patients_df.columns:
+                    patients_df[col] = default
+
+            # 2. Get Site Benchmarks
+            sites_df = self.get_site_benchmarks(study_id=study_id)
+            
+            # 3. Get Issues
+            issues_df = self.get_issues(study_id=study_id, site_id=site_id, status='open')
+            
+            # 4. Get Portfolio Summary
+            summary = self.get_portfolio_summary(study_id=study_id)
+            
+            return {
+                "patients": patients_df,
+                "sites": sites_df,
+                "issues": issues_df,
+                "summary": summary,
+                "timestamp": datetime.now().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"get_prediction_data error: {e}")
+            return {"patients": pd.DataFrame(), "sites": pd.DataFrame(), "issues": pd.DataFrame(), "summary": {}, "error": str(e)}
 
     def get_regional_metrics(self, study_id: Optional[str] = None) -> pd.DataFrame:
         session = None
@@ -1052,21 +1308,22 @@ class PostgreSQLDataService:
             is_all = str(site_id).lower() == 'all'
             
             data_site_id = self._map_site_id(site_id)
+            upr_site_id = self._map_upr_site_id(site_id)
             
             if is_all:
                 s_name = "Global Portfolio"
                 s_id = "all"
                 pi_name = "Various"
                 coord_name = "Various"
-                s_dqi = session.query(func.avg(ClinicalSite.dqi_score)).scalar() or 85.0
+                s_dqi = session.query(func.avg(ClinicalSite.dqi_score)).scalar() or 0.0
             else:
-                s = session.query(ClinicalSite).filter_by(site_id=site_id).first()
+                s = session.query(ClinicalSite).filter(or_(ClinicalSite.site_id == site_id, ClinicalSite.site_id == data_site_id)).first()
                 if not s: return {}
                 s_name = s.name
                 s_id = s.site_id
                 pi_name = s.principal_investigator or "N/A"
                 coord_name = s.coordinator_name or "N/A"
-                s_dqi = s.dqi_score or 85.0
+                s_dqi = s.dqi_score or 0.0
 
             # Check for UPR existence
             upr_exists = False
@@ -1080,39 +1337,62 @@ class PostgreSQLDataService:
             # Fetch patients summary
             if upr_exists and db_manager and db_manager.engine:
                 table = "unified_patient_record"
-                dqi_col = "dqi_score"
+                dqi_col = "data_quality_index_8comp"
                 
-                q = f"SELECT COUNT(*) as total, SUM(CAST(is_db_lock_ready AS INTEGER)) as ready, AVG({dqi_col}) as dqi FROM {table}"
+                # 1. BASE METRICS
+                q_base = f"SELECT COUNT(*) as total, SUM(CAST(is_db_lock_ready AS INTEGER)) as ready, AVG(COALESCE({dqi_col}, 0)) as dqi FROM {table}"
                 params = {}
                 if not is_all:
-                    q += " WHERE site_id = :site_id"
-                    params["site_id"] = data_site_id
+                    q_base += " WHERE site_id = :site_id"
+                    params["site_id"] = upr_site_id
                 
                 with db_manager.engine.connect() as conn:
-                    res = conn.execute(text(q), params).fetchone()
-                    total = int(res[0]) if res and res[0] is not None else 0
-                    db_ready = int(res[1]) if res and res[1] is not None else 0
-                    upr_dqi = float(res[2]) if res and res[2] is not None else None
+                    res = conn.execute(text(q_base), params).fetchone()
+                    total = int(res[0] or 0) if res else 0
+                    db_ready = int(res[1] or 0) if res else 0
+                    upr_dqi = float(res[2] or 0) if res else None
                 
-                # For clean rate, we still need to check tier_2 or better
-                q_clean = f"SELECT COUNT(*) FROM {table} WHERE clean_status_tier IN ('tier_2', 'db_lock_ready')"
+                # 2. CLEAN COUNT
+                q_clean = f"SELECT SUM(CASE WHEN is_clean_clinical::integer = 1 THEN 1 ELSE 0 END) FROM {table} WHERE 1=1"
                 if not is_all:
                     q_clean += " AND site_id = :site_id"
-                    params["site_id"] = data_site_id
                 
                 with db_manager.engine.connect() as conn:
                     clean_count = int(conn.execute(text(q_clean), params).scalar() or 0)
+
+                # 3. CODING METRICS
+                q_coding = f"SELECT COALESCE(SUM(meddra_coding_meddra_coded + whodrug_coding_whodrug_coded), 0), COALESCE(SUM(meddra_coding_meddra_uncoded + whodrug_coding_whodrug_uncoded), 0) FROM {table} WHERE 1=1"
+                if not is_all:
+                    q_coding += " AND site_id = :site_id"
+                
+                with db_manager.engine.connect() as conn:
+                    c_res = conn.execute(text(q_coding), params).fetchone()
+                    coding_coded = float(c_res[0] or 0) if c_res else 0.0
+                    coding_uncoded = float(c_res[1] or 0) if c_res else 0.0
+
+                # 4. SAE METRICS
+                q_sae = f"SELECT AVG(sae_dm_completion_rate), AVG(sae_safety_completion_rate) FROM {table} WHERE 1=1"
+                if not is_all:
+                    q_sae += " AND site_id = :site_id"
+                
+                with db_manager.engine.connect() as conn:
+                    s_res = conn.execute(text(q_sae), params).fetchone()
+                    dm_v = float(s_res[0] or 0) if s_res else 0.0
+                    sf_v = float(s_res[1] or 0) if s_res else 0.0
+                    sae_processing_pct = ((dm_v + sf_v) / 2.0) * 100.0 if (dm_v + sf_v) > 0 else 0.0
             else:
                 pts = session.query(Patient)
                 if not is_all:
                     pts = pts.filter_by(site_id=data_site_id)
                 total = pts.count()
                 db_ready = pts.filter_by(is_db_lock_ready=True).count()
-                clean_count = pts.filter(Patient.clean_status_tier.in_(['tier_2', 'db_lock_ready'])).count()
+                clean_count = pts.filter(Patient.clean_status_tier.in_(['DB Lock Ready', 'Clinical Clean Only'])).count()
                 upr_dqi = None
+                coding_coded = 0.0
+                coding_uncoded = 0.0
+                sae_processing_pct = 0.0
 
             # Fetch real open issues as tasks
-            from sqlalchemy import func
             issues_q = session.query(ProjectIssue).filter(func.lower(ProjectIssue.status) == 'open')
             if not is_all:
                 issues_q = issues_q.filter_by(site_id=data_site_id)
@@ -1149,36 +1429,15 @@ class PostgreSQLDataService:
                     "db_lock_ready": round(db_ready / total * 100, 1) if total > 0 else 0,
                     "open_issues": open_issues_count,
                     "enrolled": total,
-                    "target": max(total, 25)
+                    "target": total
                 },
                 "action_items": tasks,
-                "messages": [
-                    {
-                        "id": "MSG-001",
-                        "from": "Study Lead",
-                        "role": "Lead",
-                        "subject": "DQI Improvement Target",
-                        "body": f"Site {s_id} is currently at {round(float(upr_dqi if upr_dqi is not None else s_dqi), 1)}% DQI. Let's aim for > 90% by next week.",
-                        "date": "1 day ago",
-                        "unread": True,
-                        "starred": False
-                    },
-                    {
-                        "id": "MSG-002",
-                        "from": "CRA",
-                        "role": "CRA",
-                        "subject": "Pending SAE Documentation",
-                        "body": "Please upload the missing lab reports for SAE investigation PT-088.",
-                        "date": "2 hours ago",
-                        "unread": True,
-                        "starred": True
-                    }
-                ],
+                "messages": [],
                 "completion_progress": {
                     "data_entry": round(clean_count / total * 100, 1) if total > 0 else 0,
                     "query_resolution": round(max(0, 100 - (open_issues_count / total * 20)), 1) if total > 0 else 0,
-                    "medical_coding": min(100, 85 + (total % 10)), 
-                    "sae_processing": 100
+                    "medical_coding": round((coding_coded / (coding_coded + coding_uncoded) * 100), 1) if (coding_coded + coding_uncoded) > 0 else 0,
+                    "sae_processing": round(float(sae_processing_pct), 1)
                 }
             }
         except Exception as e:
@@ -1254,23 +1513,37 @@ class PostgreSQLDataService:
         df = self.get_patients(study_id=study_id, upr=True)
         if df.empty: return pd.DataFrame()
         # Return columns needed by DQI tab
-        return df[["patient_key", "site_id", "dqi_score", "status", "open_queries_count"]]
+        cols = [c for c in ["patient_key", "site_id", "data_quality_index_8comp", "subject_status_clean", "total_queries"] if c in df.columns]
+        if not cols: return df
+        return df[cols].rename(columns={"data_quality_index_8comp": "dqi_score", "subject_status_clean": "status", "total_queries": "open_queries_count"})
         
     def get_patient_clean_status(self, study_id=None): 
         df = self.get_patients(study_id=study_id, upr=True)
         if df.empty: return pd.DataFrame()
         # Return columns needed by Clean Status tab
-        # Map is_tier1_clean and is_clean_patient for frontend boolean check
-        res = df[["patient_key", "site_id", "clean_status_tier", "is_tier1_clean", "is_clean_patient"]].copy()
-        res['tier1_clean'] = res['is_tier1_clean']
-        res['tier2_clean'] = res['is_clean_patient']
+        # Map patient_clean_status for frontend boolean check
+        cols = [c for c in ["patient_key", "site_id", "patient_clean_status", "is_clean_clinical", "is_clean_operational"] if c in df.columns]
+        if not cols: return df
+        res = df[cols].copy()
+        if "patient_clean_status" in res.columns:
+            res["clean_status_tier"] = res["patient_clean_status"]
+        if "is_clean_clinical" in res.columns:
+            res['is_tier1_clean'] = res['is_clean_clinical']
+            res['tier1_clean'] = res['is_clean_clinical']
+        if "is_clean_operational" in res.columns:
+            res['is_clean_patient'] = res['is_clean_operational']
+            res['tier2_clean'] = res['is_clean_operational']
         return res
         
     def get_patient_dblock_status(self, study_id=None): 
         df = self.get_patients(study_id=study_id, upr=True)
         if df.empty: return pd.DataFrame()
         # Return columns needed by DB Lock Status tab
-        res = df[["patient_key", "site_id", "is_db_lock_ready", "dqi_score", "open_issues_count"]].copy()
+        cols = [c for c in ["patient_key", "site_id", "is_db_lock_ready", "data_quality_index_8comp", "total_open_issues"] if c in df.columns]
+        if not cols: return df
+        res = df[cols].copy()
+        if "data_quality_index_8comp" in res.columns: res = res.rename(columns={"data_quality_index_8comp": "dqi_score"})
+        if "total_open_issues" in res.columns: res = res.rename(columns={"total_open_issues": "open_issues_count"})
         res['dblock_ready'] = res['is_db_lock_ready'].astype(int) == 1
         res = res.rename(columns={"open_issues_count": "blocking_issues"})
         return res
@@ -1288,9 +1561,9 @@ class PostgreSQLDataService:
                 if upr_exists:
                     q = """
                     SELECT 
-                        upr.patient_key, upr.site_id, upr.dqi_score, upr.risk_score,
+                        upr.patient_key, upr.site_id, COALESCE(upr.data_quality_index_8comp, 0) as dqi_score, upr.risk_score,
                         upr.total_open_issues as blocking_issues,
-                        upr.open_queries_count, upr.cascade_potential_score as cascade_impact_score
+                        COALESCE(upr.total_queries, 0) as open_queries_count, upr.cascade_potential_score as cascade_impact_score
                     FROM unified_patient_record upr
                     WHERE upr.total_open_issues > 0
                     """

@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { graphApi, studiesApi, intelligenceApi } from '@/services/api';
+import SanchalakLoader from '@/components/SanchalakLoader';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -147,7 +148,7 @@ export default function CascadeExplorer() {
   });
 
   // Fetch cascade analysis data
-  const { data: cascadeData, refetch } = useQuery({
+  const { data: cascadeData, isLoading: cascadeLoading, refetch } = useQuery({
     queryKey: ['cascade-analysis', selectedStudy],
     queryFn: () => graphApi.getCascadeAnalysis({ limit: 500, study_id: selectedStudy !== 'all' ? selectedStudy : undefined }),
   });
@@ -165,7 +166,11 @@ export default function CascadeExplorer() {
   });
 
   const studies = studiesData?.studies || [];
-  const analysis = cascadeData?.analysis || [];
+
+  if (cascadeLoading) {
+    return <SanchalakLoader size="lg" label="Loading cascade graph..." fullPage />;
+  }
+
   const issueDependencies = topologyData?.topology || ISSUE_DEPENDENCIES;
   const isLiveGraph = topologyData?.source === 'neo4j';
 
@@ -175,60 +180,49 @@ export default function CascadeExplorer() {
       return cascadeIssueData.issue_counts;
     }
 
-    // Fallback: calculate from analysis data or use reasonable defaults
+    // Fallback: return zeros — real data comes from the API
     const counts: Record<string, number> = {};
     Object.keys(ISSUE_CONFIG).forEach(key => {
-      counts[key] = key === 'db_lock' ? 0 : Math.floor(150 + Math.random() * 200);
+      counts[key] = 0;
     });
-
-    // If we have real analysis data, enhance with it
-    if (analysis.length > 0) {
-      counts.open_queries = analysis.reduce((sum: number, a: any) => sum + (a.open_queries_count || 0), 0);
-      counts.missing_visits = Math.max(counts.missing_visits, Math.floor(analysis.length * 0.3));
-      counts.signature_gaps = Math.max(counts.signature_gaps, Math.floor(analysis.length * 0.25));
-      counts.sdv_incomplete = Math.max(counts.sdv_incomplete, Math.floor(analysis.length * 0.2));
-    }
-
     return counts;
-  }, [cascadeIssueData, analysis]);
+  }, [cascadeIssueData]);
 
-  // Calculate unlock scores using simplified PageRank-like algorithm
+  // Calculate unlock scores — measures what % of downstream issues are blocked
   const unlockScores = useMemo(() => {
     const scores: Record<string, number> = {};
-    const weights = Object.fromEntries(
-      Object.entries(ISSUE_CONFIG).map(([k, v]) => [k, v.weight])
-    );
+    const vals = Object.values(issueCounts) as number[];
+    const totalPatients: number = vals.reduce((sum, c) => sum + (c || 0), 0) || 1;
 
-    // Base score from weight
     Object.keys(ISSUE_CONFIG).forEach(key => {
-      scores[key] = weights[key] || 50;
-    });
-
-    // Boost based on downstream dependencies
-    Object.entries(issueDependencies).forEach(([source, targets]) => {
-      (targets as string[]).forEach(() => {
-        if (scores[source]) {
-          scores[source] += 5;
-        }
-      });
-    });
-
-    // Normalize to 0-100
-    const maxScore = Math.max(...Object.values(scores));
-    Object.keys(scores).forEach(key => {
-      scores[key] = (scores[key] / maxScore) * 100;
-    });
-
-    // Boost by patient count
-    Object.keys(scores).forEach(key => {
-      const count = issueCounts[key] || 0;
-      if (count > 0) {
-        scores[key] = Math.min(100, scores[key] * (1 + Math.log10(count + 1) / 5));
+      // Count downstream patients blocked by this issue type
+      const directTargets = (issueDependencies[key] || []) as string[];
+      let downstreamPatients = 0;
+      const visited = new Set<string>();
+      const queue = [...directTargets];
+      while (queue.length > 0) {
+        const current = queue.shift()!;
+        if (visited.has(current)) continue;
+        visited.add(current);
+        downstreamPatients += (issueCounts[current] as number) || 0;
+        const nextTargets = (issueDependencies[current] || []) as string[];
+        queue.push(...nextTargets);
       }
+
+      // Score = weighted combination of own patients + downstream impact
+      const ownPatients: number = (issueCounts[key] as number) || 0;
+      const weight: number = ISSUE_CONFIG[key]?.weight || 50;
+      const downstreamRatio: number = downstreamPatients / totalPatients;
+      const ownRatio: number = ownPatients / totalPatients;
+
+      // Final score: 0-100 range, weighted by config weight, own patients, and downstream impact
+      scores[key] = Math.min(100, Math.round(
+        (weight * 0.3) + (ownRatio * 100 * 0.3) + (downstreamRatio * 100 * 0.4)
+      ));
     });
 
     return scores;
-  }, [issueCounts]);
+  }, [issueCounts, issueDependencies]);
 
   // Generate nodes with positions
   const nodes: CascadeNode[] = useMemo(() => {
@@ -357,8 +351,8 @@ export default function CascadeExplorer() {
       .sort((a, b) => b.unlockScore - a.unlockScore);
   }, [nodes]);
 
-  // Total issues
-  const totalIssues: number = (Object.values(issueCounts) as number[]).reduce((sum: number, count: number) => sum + count, 0);
+  // Total issues — use the pre-computed total from the API (total_open_issues from UPR)
+  const totalIssues: number = cascadeIssueData?.total_issues ?? (Object.values(issueCounts) as number[]).reduce((sum: number, count: number) => sum + count, 0);
   const criticalIssues: number = (issueCounts.sae_dm_pending || 0) + (issueCounts.sae_safety_pending || 0);
 
   return (

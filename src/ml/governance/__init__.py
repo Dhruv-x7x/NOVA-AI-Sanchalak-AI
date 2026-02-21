@@ -1,7 +1,7 @@
 # src/ml/governance/__init__.py
 
 """
-TRIALPULSE NEXUS 10X - ML Governance Module
+SANCHALAK AI - ML Governance Module
 Model Drift Detection & Compliance System
 
 Layer 8: ML Model Governance

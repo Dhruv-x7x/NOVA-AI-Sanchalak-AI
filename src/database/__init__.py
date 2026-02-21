@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Database Package
+SANCHALAK AI - Database Package
 ====================================
 PostgreSQL database integration for enterprise-grade data management.
 """

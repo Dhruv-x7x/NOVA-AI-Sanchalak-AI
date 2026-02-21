@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - Metrics Engine v2.0 (FIXED)
+SANCHALAK AI - Metrics Engine v2.0 (FIXED)
 Phase 1.5: DQI, Clean Patient, DB Lock Ready, Site Performance
 
 FIXED: Column mappings now match actual UPR columns
@@ -939,7 +939,7 @@ class MetricsEngine:
         """Run all metric calculations"""
         
         logger.info("\n" + "=" * 70)
-        logger.info("TRIALPULSE NEXUS 10X - METRICS ENGINE v2.0")
+        logger.info("SANCHALAK AI - METRICS ENGINE v2.0")
         logger.info("=" * 70)
         
         start_time = datetime.now()

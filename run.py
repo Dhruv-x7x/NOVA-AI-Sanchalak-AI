@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-TrialPulse Nexus - Unified Launcher
+Sanchalak AI - Unified Launcher
 ====================================
 Cross-platform launcher script with Docker support.
 
@@ -33,7 +33,7 @@ DATABASE_DUMP = PROJECT_ROOT / "database" / "reproduction_dump.sql"
 ENV_FILE = PROJECT_ROOT / ".env"
 
 # Docker settings
-DOCKER_CONTAINER_NAME = "trialpulse-postgres"
+DOCKER_CONTAINER_NAME = "sanchalak-postgres"
 DOCKER_IMAGE = "postgres:16"
 
 # Load settings from .env if available
@@ -74,16 +74,16 @@ def print_header(text):
     print('=' * 60)
 
 
-def print_step(emoji, text):
-    print(f"{emoji}  {text}")
+def print_step(icon, text):
+    print(f"[{icon}]  {text}")
 
 
 def print_error(text):
-    print(f"\n❌ ERROR: {text}")
+    print(f"\n[ERROR] {text}")
 
 
 def print_success(text):
-    print(f"\n✅ {text}")
+    print(f"\n[SUCCESS] {text}")
 
 
 def run_cmd(cmd, cwd=None, capture=False, check=True):
@@ -136,7 +136,7 @@ def check_python():
     if version.major < 3 or (version.major == 3 and version.minor < 10):
         print_error(f"Python 3.10+ required, found {version.major}.{version.minor}")
         return False
-    print_step("🐍", f"Python {version.major}.{version.minor}.{version.micro}")
+    print_step("PY", f"Python {version.major}.{version.minor}.{version.micro}")
     return True
 
 
@@ -147,7 +147,7 @@ def check_node():
         return False
     version = run_cmd(["node", "--version"], capture=True)
     if version:
-        print_step("📦", f"Node.js {version}")
+        print_step("JS", f"Node.js {version}")
     return True
 
 
@@ -165,9 +165,11 @@ def check_docker():
         return False
     # Check if Docker daemon is running
     result = run_cmd(["docker", "info"], capture=True, check=False)
-    if result is None or "error" in (result or "").lower():
+    if result is None:
         return False
-    print_step("🐳", "Docker available")
+    if "error" in str(result).lower():
+        return False
+    print_step("DK", "Docker available")
     return True
 
 
@@ -175,7 +177,7 @@ def find_local_psql():
     """Find local PostgreSQL installation."""
     # Check PATH first
     if command_exists("psql"):
-        print_step("🐘", "PostgreSQL found in PATH")
+        print_step("DB", "PostgreSQL found in PATH")
         return "psql"
     
     # Windows-specific paths
@@ -189,19 +191,19 @@ def find_local_psql():
                 for version in ["18", "17", "16", "15", "14", "13", "12"]:
                     psql = base / version / "bin" / "psql.exe"
                     if psql.exists():
-                        print_step("🐘", f"PostgreSQL {version} found")
+                        print_step("DB", f"PostgreSQL {version} found")
                         return str(psql)
     
     # macOS Homebrew
     homebrew_psql = Path("/opt/homebrew/bin/psql")
     if homebrew_psql.exists():
-        print_step("🐘", "PostgreSQL found (Homebrew)")
+        print_step("DB", "PostgreSQL found (Homebrew)")
         return str(homebrew_psql)
     
     # Linux common paths
     linux_psql = Path("/usr/bin/psql")
     if linux_psql.exists():
-        print_step("🐘", "PostgreSQL found")
+        print_step("DB", "PostgreSQL found")
         return str(linux_psql)
     
     return None
@@ -232,13 +234,13 @@ def docker_container_running():
 def docker_remove_container():
     """Remove existing container (fresh start)."""
     if docker_container_exists():
-        print_step("🗑️", f"Removing old container '{DOCKER_CONTAINER_NAME}'...")
+        print_step("RM", f"Removing old container '{DOCKER_CONTAINER_NAME}'...")
         run_cmd(["docker", "rm", "-f", DOCKER_CONTAINER_NAME], check=False)
 
 
 def docker_start_postgres():
     """Start PostgreSQL in Docker."""
-    print_step("🐳", "Starting PostgreSQL in Docker...")
+    print_step("DK", "Starting PostgreSQL in Docker...")
     
     # Always remove old container for fresh start
     docker_remove_container()
@@ -261,14 +263,14 @@ def docker_start_postgres():
         return False
     
     # Wait for PostgreSQL to be ready
-    print_step("⏳", "Waiting for PostgreSQL to start...")
+    print_step("WT", "Waiting for PostgreSQL to start...")
     if not wait_for_postgres(timeout=30):
         print_error("PostgreSQL failed to start in time")
         return False
     
     # Extra wait for initialization
     time.sleep(2)
-    print_step("✓", "PostgreSQL is ready")
+    print_step("OK", "PostgreSQL is ready")
     return True
 
 
@@ -278,10 +280,10 @@ def docker_restore_dump():
         print_error(f"Database dump not found: {DATABASE_DUMP}")
         return False
     
-    print_step("📥", "Restoring database dump (this may take 1-2 minutes)...")
+    print_step("LD", "Restoring database dump (this may take 1-2 minutes)...")
     
     # Read and sanitize the dump to remove incompatible settings
-    print_step("🔧", "Sanitizing dump for compatibility...")
+    print_step("FX", "Sanitizing dump for compatibility...")
     with open(DATABASE_DUMP, 'r', encoding='utf-8', errors='ignore') as f:
         dump_content = f.read()
     
@@ -323,13 +325,13 @@ def docker_restore_dump():
     try:
         run_cmd(cmd)
         duration = time.time() - start
-        print_step("✓", f"Database restored in {duration:.1f}s")
+        print_step("OK", f"Database restored in {duration:.1f}s")
         # Clean up sanitized dump
         if sanitized_dump.exists():
             sanitized_dump.unlink()
         
         # Create indexes for faster queries
-        print_step("🔧", "Creating database indexes for performance...")
+        print_step("IX", "Creating database indexes for performance...")
         index_cmd = [
             "docker", "exec", DOCKER_CONTAINER_NAME,
             "psql", "-U", POSTGRES_USER, "-d", POSTGRES_DB, "-c",
@@ -346,7 +348,7 @@ def docker_restore_dump():
             """
         ]
         run_cmd(index_cmd, check=False)  # Don't fail if indexes already exist
-        print_step("✓", "Database indexes created")
+        print_step("OK", "Database indexes created")
         
         return True
     except subprocess.CalledProcessError as e:
@@ -358,7 +360,7 @@ def docker_restore_dump():
 def docker_cleanup():
     """Stop and remove Docker container."""
     if docker_container_exists():
-        print_step("🛑", "Stopping Docker container...")
+        print_step("ST", "Stopping Docker container...")
         run_cmd(["docker", "rm", "-f", DOCKER_CONTAINER_NAME], check=False)
 
 
@@ -367,42 +369,73 @@ def docker_cleanup():
 # =============================================================================
 
 def local_restore_dump(psql_path):
-    """Restore dump to local PostgreSQL."""
+    """Restore dump to local PostgreSQL — only if database is empty or missing."""
     if not DATABASE_DUMP.exists():
         print_error(f"Database dump not found: {DATABASE_DUMP}")
         return False
     
     env = os.environ.copy()
     env["PGPASSWORD"] = POSTGRES_PASSWORD
-    
     port_str = str(POSTGRES_PORT)
     
-    # Drop existing database
-    print_step("🗑️", f"Dropping existing {POSTGRES_DB}...")
-    subprocess.run(
-        [psql_path, "-h", "127.0.0.1", "-p", port_str, "-U", POSTGRES_USER, "-d", "postgres", 
-         "-c", f"DROP DATABASE IF EXISTS {POSTGRES_DB};"],
-        env=env, capture_output=True
-    )
+    # Check if database already exists and has data
+    try:
+        import psycopg2
+        conn = psycopg2.connect(
+            host="127.0.0.1", port=POSTGRES_PORT,
+            user=POSTGRES_USER, password=POSTGRES_PASSWORD,
+            dbname=POSTGRES_DB
+        )
+        cur = conn.cursor()
+        cur.execute("SELECT COUNT(*) FROM patients")
+        count = cur.fetchone()[0]
+        cur.close()
+        conn.close()
+        
+        if count > 0:
+            print_step("OK", f"Database already has {count:,} patients — skipping restore")
+            return True
+        else:
+            print_step("!!", "Database exists but is empty — will restore")
+    except Exception:
+        print_step("!!", "Database not found or inaccessible — will create and restore")
+    
+    # Force disconnect users and drop existing database
+    print_step("RM", f"Dropping existing {POSTGRES_DB} (forcing disconnects)...")
+    terminate_env = env.copy()
+    terminate_env["PAGER"] = ""
+    terminate_cmd = [
+        psql_path, "-h", "127.0.0.1", "-p", port_str, "-U", POSTGRES_USER, "-d", "postgres", 
+        "-c", f"SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '{POSTGRES_DB}' AND pid <> pg_backend_pid();"
+    ]
+    subprocess.run(terminate_cmd, env=terminate_env, capture_output=True)
+    
+    drop_cmd = [
+        psql_path, "-h", "127.0.0.1", "-p", port_str, "-U", POSTGRES_USER, "-d", "postgres", 
+        "-c", f"DROP DATABASE IF EXISTS {POSTGRES_DB} WITH (FORCE);"
+    ]
+    subprocess.run(drop_cmd, env=terminate_env, capture_output=True)
     
     # Create database
-    print_step("📦", f"Creating {POSTGRES_DB}...")
-    subprocess.run(
-        [psql_path, "-h", "127.0.0.1", "-p", port_str, "-U", POSTGRES_USER, "-d", "postgres",
-         "-c", f"CREATE DATABASE {POSTGRES_DB};"],
-        env=env, check=True
-    )
+    print_step("DB", f"Creating {POSTGRES_DB}...")
+    subprocess.run([psql_path, "-h", "127.0.0.1", "-p", port_str, "-U", POSTGRES_USER, "-d", "postgres",
+          "-c", f"CREATE DATABASE {POSTGRES_DB};"], env=env, check=True)
     
     # Restore dump
-    print_step("📥", "Restoring database dump (this may take 1-2 minutes)...")
+    print_step("LD", "Restoring database dump (this may take 1-2 minutes)...")
     start = time.time()
+    
+    # Fix for Windows PAGER issue where cat is not available
+    restore_env = env.copy()
+    restore_env["PAGER"] = "" # Disable pager
+    
     subprocess.run(
         [psql_path, "-h", "127.0.0.1", "-p", port_str, "-U", POSTGRES_USER, "-d", POSTGRES_DB,
          "-f", str(DATABASE_DUMP), "-q"],
-        env=env, check=True
+        env=restore_env, check=True
     )
     duration = time.time() - start
-    print_step("✓", f"Database restored in {duration:.1f}s")
+    print_step("OK", f"Database restored in {duration:.1f}s")
     return True
 
 
@@ -412,18 +445,37 @@ def local_restore_dump(psql_path):
 
 def get_venv_python():
     """Get path to venv Python executable."""
+    # Check root .venv first (preferred), then backend/venv
+    root_venv = PROJECT_ROOT / ".venv"
+    backend_venv = BACKEND_DIR / "venv"
+    
     if is_windows():
-        return BACKEND_DIR / "venv" / "Scripts" / "python.exe"
+        root_path = root_venv / "Scripts" / "python.exe"
+        backend_path = backend_venv / "Scripts" / "python.exe"
     else:
-        return BACKEND_DIR / "venv" / "bin" / "python"
+        root_path = root_venv / "bin" / "python"
+        backend_path = backend_venv / "bin" / "python"
+    
+    if root_path.exists():
+        return root_path
+    return backend_path
 
 
 def get_venv_pip():
     """Get path to venv pip executable."""
+    root_venv = PROJECT_ROOT / ".venv"
+    backend_venv = BACKEND_DIR / "venv"
+    
     if is_windows():
-        return BACKEND_DIR / "venv" / "Scripts" / "pip.exe"
+        root_path = root_venv / "Scripts" / "pip.exe"
+        backend_path = backend_venv / "Scripts" / "pip.exe"
     else:
-        return BACKEND_DIR / "venv" / "bin" / "pip"
+        root_path = root_venv / "bin" / "pip"
+        backend_path = backend_venv / "bin" / "pip"
+    
+    if root_path.exists():
+        return root_path
+    return backend_path
 
 
 def setup_backend_venv():
@@ -431,13 +483,13 @@ def setup_backend_venv():
     venv_python = get_venv_python()
     
     if not venv_python.exists():
-        print_step("🔧", "Creating Python virtual environment...")
+        print_step("VN", "Creating Python virtual environment...")
         subprocess.run([sys.executable, "-m", "venv", str(BACKEND_DIR / "venv")], check=True)
     
     # Check if dependencies are installed
     requirements = BACKEND_DIR / "requirements.txt"
     if requirements.exists():
-        print_step("📦", "Installing backend dependencies...")
+        print_step("PK", "Installing backend dependencies...")
         subprocess.run([str(get_venv_pip()), "install", "-r", str(requirements), "-q"], check=True)
     
     return True
@@ -448,7 +500,7 @@ def setup_frontend():
     node_modules = FRONTEND_DIR / "node_modules"
     
     if not node_modules.exists():
-        print_step("📦", "Installing frontend dependencies...")
+        print_step("PK", "Installing frontend dependencies...")
         try:
             subprocess.run(
                 ["npm", "install"], 
@@ -461,7 +513,7 @@ def setup_frontend():
             print("   After installing, restart your terminal and run again.")
             return False
     else:
-        print_step("✓", "Frontend dependencies already installed")
+        print_step("OK", "Frontend dependencies already installed")
     
     return True
 
@@ -472,7 +524,7 @@ def setup_frontend():
 
 def start_backend():
     """Start the backend server."""
-    print_step("🚀", f"Starting backend on http://127.0.0.1:{BACKEND_PORT}")
+    print_step("RK", f"Starting backend on http://127.0.0.1:{BACKEND_PORT}")
     
     venv_python = get_venv_python()
     cmd = [
@@ -480,7 +532,10 @@ def start_backend():
         "app.main:app", 
         "--host", "127.0.0.1", 
         "--port", str(BACKEND_PORT),
-        "--reload"
+        "--reload",
+        "--reload-dir", str(BACKEND_DIR),
+        "--reload-dir", str(PROJECT_ROOT / "src"),
+        "--reload-dir", str(PROJECT_ROOT / "config"),
     ]
     
     # Start in background (logs stream to console)
@@ -494,7 +549,7 @@ def start_backend():
 
 def start_frontend():
     """Start the frontend dev server."""
-    print_step("🚀", f"Starting frontend on http://localhost:{FRONTEND_PORT}")
+    print_step("RK", f"Starting frontend on http://localhost:{FRONTEND_PORT}")
     
     cmd = ["npm", "run", "dev"]
     
@@ -511,11 +566,11 @@ def start_frontend():
 def cleanup_processes(signum=None, frame=None):
     """Clean up running processes on exit."""
     print("\n")
-    print_step("🛑", "Shutting down...")
+    print_step("ST", "Shutting down...")
     
     for name, proc in running_processes:
         if proc.poll() is None:
-            print_step("•", f"Stopping {name}...")
+            print_step("..", f"Stopping {name}...")
             proc.terminate()
             try:
                 proc.wait(timeout=5)
@@ -530,9 +585,43 @@ def cleanup_processes(signum=None, frame=None):
     sys.exit(0)
 
 
+def validate_db_data():
+    """Verify that the database actually contains trial data."""
+    try:
+        import psycopg2
+        conn = psycopg2.connect(
+            host="127.0.0.1",
+            port=POSTGRES_PORT,
+            user=POSTGRES_USER,
+            password=POSTGRES_PASSWORD,
+            dbname=POSTGRES_DB
+        )
+        cur = conn.cursor()
+        cur.execute("SELECT COUNT(*) FROM patients")
+        count = cur.fetchone()[0]
+        cur.close()
+        conn.close()
+        
+        if count == 0:
+            print_error("Database is EMPTY! Clinical reports will use MOCK data.")
+            print("   Please run without --skip-db to restore the data dump.")
+            return False
+        
+        print_step("OK", f"Database validated: {count:,} patients found")
+        return True
+    except Exception as e:
+        print_error(f"Database validation failed: {e}")
+        return False
+
+
 def monitor_processes():
     """Monitor running processes and display output."""
     print_success("All services started!")
+    
+    # Run data validation in background
+    time.sleep(2)
+    validate_db_data()
+    
     print(f"\n   Backend:  http://127.0.0.1:{BACKEND_PORT}")
     print(f"   Frontend: http://localhost:{FRONTEND_PORT}")
     print(f"\n   Press Ctrl+C to stop all services\n")
@@ -621,7 +710,7 @@ def run_frontend_only():
     """Run just the frontend."""
     print_header("Frontend Only Mode")
     
-    print_step("⚠️", "Backend not running - API calls will fail")
+    print_step("!!", "Backend not running - API calls will fail")
     
     if not setup_frontend():
         return False
@@ -635,7 +724,7 @@ def run_skip_db():
     """Run backend and frontend, skip database setup."""
     print_header("Skip Database Mode")
     
-    print_step("⚠️", "Skipping database setup - using existing data")
+    print_step("!!", "Skipping database setup - using existing data")
     
     if not setup_backend_venv():
         return False
@@ -660,13 +749,13 @@ def auto_detect_mode():
     has_local_psql = find_local_psql() is not None
     
     if has_local_psql:
-        print_step("→", "Using local PostgreSQL")
+        print_step("->", "Using local PostgreSQL")
         return run_full_local()
     elif has_docker:
-        print_step("→", "Using Docker PostgreSQL")
+        print_step("->", "Using Docker PostgreSQL")
         return run_full_docker()
     else:
-        print_step("⚠️", "No database available - running frontend only")
+        print_step("!!", "No database available - running frontend only")
         return run_frontend_only()
 
 
@@ -675,8 +764,13 @@ def auto_detect_mode():
 # =============================================================================
 
 def main():
+    # Only run if it's the main process
+    if os.environ.get("RUN_PY_STARTED") == "1":
+        return
+    os.environ["RUN_PY_STARTED"] = "1"
+    
     parser = argparse.ArgumentParser(
-        description="TrialPulse Nexus - Unified Launcher",
+        description="Sanchalak AI - Unified Launcher",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -700,14 +794,14 @@ Examples:
     signal.signal(signal.SIGINT, cleanup_processes)
     signal.signal(signal.SIGTERM, cleanup_processes)
     
-    print("""
-╔════════════════════════════════════════════════════════════╗
-║           TrialPulse Nexus - Unified Launcher              ║
-╚════════════════════════════════════════════════════════════╝
-    """)
+    # Use ASCII for robustness against encoding issues
+    print("\n" + "="*62)
+    print("           Sanchalak AI - Unified Launcher              ")
+    print("="*62 + "\n")
     
     # Check basic dependencies
     print_header("Checking Dependencies")
+    
     if not check_python():
         sys.exit(1)
     if not check_node():
@@ -715,8 +809,8 @@ Examples:
     if not check_npm():
         sys.exit(1)
 
-    print("\n⚠️  IMPORTANT: Ensure your .env file has the correct DB_PASSWORD!")
-    print("   If you see 500 errors, check your database credentials.\n")
+    print("\n[!!] IMPORTANT: Ensure your .env file has the correct DB_PASSWORD!")
+    print("     If you see 500 errors, check your database credentials.\n")
     
     # Run appropriate mode
     try:

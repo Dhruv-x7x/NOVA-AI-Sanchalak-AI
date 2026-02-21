@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { analyticsApi, issuesApi, studiesApi } from '@/services/api';
 import { useAppStore } from '@/stores/appStore';
+import SanchalakLoader from '@/components/SanchalakLoader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -132,45 +133,41 @@ function KPICard({
   };
 
   return (
-    <Card className={cn('bg-nexus-card border-nexus-border', colorClasses[color])}>
-      <CardContent className="p-5">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-sm font-medium text-nexus-text-muted">{title}</p>
-            <p className="mt-2 text-3xl font-bold text-nexus-text">{value}</p>
+    <Card className={cn('bg-nexus-card border-nexus-border overflow-hidden', colorClasses[color])}>
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-medium text-nexus-text-muted truncate">{title}</p>
+            <p className="mt-1 text-2xl font-bold text-nexus-text truncate">{value}</p>
             {subtitle && (
-              <p className="mt-1 text-sm text-nexus-text-muted">{subtitle}</p>
+              <p className="mt-0.5 text-xs text-nexus-text-muted truncate">{subtitle}</p>
             )}
             {trend && (
-              <div className="mt-2 flex items-center gap-1 text-sm">
+              <div className="mt-1.5 flex items-center gap-1 text-xs min-w-0">
                 {trend.direction === 'up' ? (
-                  <TrendingUp className="w-4 h-4 text-emerald-400" />
+                  <TrendingUp className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
                 ) : (
-                  <TrendingDown className="w-4 h-4 text-red-400" />
+                  <TrendingDown className="w-3.5 h-3.5 shrink-0 text-red-400" />
                 )}
-                <span className={trend.direction === 'up' ? 'text-emerald-400' : 'text-red-400'}>
-                  {trend.direction === 'up' ? '+' : ''}{trend.value}
-                </span>
-                {trendLabel && <span className="text-nexus-text-muted">{trendLabel}</span>}
+                {trendLabel && <span className="text-nexus-text-muted truncate">{trendLabel}</span>}
               </div>
             )}
             {badge && (
               <Badge
                 variant={badge.variant}
                 className={cn(
-                  'mt-2',
+                  'mt-1.5 text-xs',
                   badge.variant === 'success' && 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
                   badge.variant === 'warning' && 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
                   badge.variant === 'error' && 'bg-red-500/20 text-red-400 border-red-500/30'
                 )}
               >
-                {trend?.direction === 'up' ? <TrendingUp className="w-3 h-3 mr-1" /> : null}
                 {badge.text}
               </Badge>
             )}
           </div>
-          <div className={cn('p-3 rounded-lg', colorClasses[color])}>
-            <Icon className={cn('w-6 h-6', iconColors[color])} />
+          <div className={cn('p-2 rounded-lg shrink-0', colorClasses[color])}>
+            <Icon className={cn('w-5 h-5', iconColors[color])} />
           </div>
         </div>
       </CardContent>
@@ -462,7 +459,7 @@ export default function ExecutiveOverview() {
           </div>
           <p className="text-nexus-text-muted font-mono text-sm">// PORTFOLIO_INTELLIGENCE_v10.0</p>
         </div>
-        <LoadingSkeleton />
+        <SanchalakLoader size="lg" label="Loading portfolio intelligence..." fullPage />
       </div>
     );
   }

@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Database Models
+SANCHALAK AI - Database Models
 ===================================
 Complete production-grade SQLAlchemy ORM models for clinical trial data.
 

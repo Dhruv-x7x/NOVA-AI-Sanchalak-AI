@@ -1,6 +1,6 @@
 # src/agents/diagnostic_enhanced.py
 """
-TRIALPULSE NEXUS 10X - Enhanced DIAGNOSTIC Agent v1.1
+SANCHALAK AI - Enhanced DIAGNOSTIC Agent v1.1
 
 Purpose: Investigate data quality issues, generate hypotheses with evidence chains,
          and provide root cause analysis with confidence scoring.

@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Audit Logger
+SANCHALAK AI - Audit Logger
 ================================
 21 CFR Part 11 compliant audit logging with electronic signatures.
 """

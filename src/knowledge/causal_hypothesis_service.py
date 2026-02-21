@@ -1,5 +1,5 @@
 """
-Causal Hypothesis Engine Service for TRIALPULSE NEXUS 10X
+Causal Hypothesis Engine Service for SANCHALAK AI
 Provides a singleton interface to the Causal Hypothesis Engine for dashboard and agents.
 
 Version: 1.0 - Initial Integration
@@ -45,7 +45,7 @@ class CausalHypothesisService:
         
         try:
             from src.knowledge.causal_hypothesis_engine import CausalHypothesisEngine
-            self._engine = CausalHypothesisEngine(data_dir=self.data_dir)
+            self._engine = CausalHypothesisEngine()
             if self._engine.load_data():
                 logger.info("Causal Hypothesis Engine initialized successfully")
                 self._initialized = True

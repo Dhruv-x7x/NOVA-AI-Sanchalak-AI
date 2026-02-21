@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - Cascade Impact Engine v1.0
+SANCHALAK AI - Cascade Impact Engine v1.0
 Phase 2.4: Issue Dependency Graph and Cascade Analysis
 
 Features:
@@ -634,7 +634,7 @@ class CascadeImpactEngine:
         Run complete cascade analysis
         """
         logger.info("\n" + "=" * 70)
-        logger.info("TRIALPULSE NEXUS 10X - CASCADE IMPACT ENGINE v1.0")
+        logger.info("SANCHALAK AI - CASCADE IMPACT ENGINE v1.0")
         logger.info("=" * 70)
         logger.info(f"Patients: {len(df):,}")
         

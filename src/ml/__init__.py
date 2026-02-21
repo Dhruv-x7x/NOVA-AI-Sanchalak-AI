@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - ML Module
+SANCHALAK AI - ML Module
 Phase 3: Intelligence Engines
 
 Components:

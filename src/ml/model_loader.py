@@ -1,5 +1,5 @@
 """
-ML Model Loader for TRIALPULSE NEXUS 10X
+ML Model Loader for SANCHALAK AI
 Loads trained models for real-time predictions.
 
 Models:
@@ -282,6 +282,8 @@ class ModelLoader:
     # RESOLUTION TIME PREDICTOR
     # ==========================================
 
+    def _load_resolution_models(self):
+        """Load resolution time prediction models."""
         if not self._resolution_models or self._resolution_models == {}:
             try:
                 predictor = ResolutionTimePredictor()

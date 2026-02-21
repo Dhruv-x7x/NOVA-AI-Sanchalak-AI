@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - Monte Carlo Simulation Engine
+SANCHALAK AI - Monte Carlo Simulation Engine
 =====================================================
 Implements 10,000+ run Monte Carlo simulations with statistical distributions
 for timeline prediction, risk quantification, and scenario analysis.

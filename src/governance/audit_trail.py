@@ -6,7 +6,7 @@
 
 
 """
-TRIALPULSE NEXUS - Audit Trail System v1.0
+SANCHALAK AI - Audit Trail System v1.0
 21 CFR Part 11 Compliant Audit Logging
 
 Features:
@@ -1098,7 +1098,7 @@ class AuditLogger:
         actor = Actor(
             actor_id="system",
             actor_type="system",
-            name="TRIALPULSE NEXUS",
+            name="SANCHALAK AI",
             role="System"
         )
         
@@ -1188,7 +1188,7 @@ def get_audit_logger(db_path: str = "data/audit/audit_trail.db") -> AuditLogger:
 def test_audit_trail():
     """Test the audit trail system"""
     print("=" * 60)
-    print("TRIALPULSE NEXUS - AUDIT TRAIL TEST")
+    print("SANCHALAK AI - AUDIT TRAIL TEST")
     print("=" * 60)
     
     # Use test database

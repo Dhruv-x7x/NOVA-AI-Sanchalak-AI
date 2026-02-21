@@ -10,7 +10,7 @@ from datetime import datetime
 from pydantic import BaseModel
 import sys
 import os
-import random
+import pandas as pd
 
 # Add project root to path for imports
 import os
@@ -79,21 +79,28 @@ async def get_ai_insights(
         data_service = get_data_service()
         # Fetch real data for insights
         portfolio = data_service.get_portfolio_summary(study_id=study_id)
-        
+        sites_df = data_service.get_site_benchmarks(study_id=study_id)
+
+        low_dqi_sites = sites_df[sites_df['dqi_score'] < 80] if not sites_df.empty else pd.DataFrame()
+        low_dqi_count = len(low_dqi_sites)
+        critical_dqi_sites = sites_df[sites_df['dqi_score'] < 70] if not sites_df.empty else pd.DataFrame()
+        critical_dqi_count = len(critical_dqi_sites)
+        critical_issues = portfolio.get('critical_issues', 0)
+
         insights = [
             {
                 "id": "insight-1",
                 "title": "DB-Lock Readiness Trend",
-                "content": f"Portfolio is {portfolio.get('dblock_ready_rate', 0):.1f}% ready for DB lock. Top 3 sites are ahead of schedule.",
+                "content": f"Portfolio is {portfolio.get('dblock_ready_rate', 0):.1f}% ready for DB lock. {len(sites_df) if not sites_df.empty else 0} sites tracked across portfolio.",
                 "severity": "info",
                 "impact": "high"
             },
             {
                 "id": "insight-2",
                 "title": "Data Quality Alert",
-                "content": f"Mean DQI is {portfolio.get('mean_dqi', 0):.1f}%. Detected 5 sites with significant DQI drop in last 7 days.",
-                "severity": "warning",
-                "impact": "medium"
+                "content": f"Mean DQI is {portfolio.get('mean_dqi', 0):.1f}%. {low_dqi_count} sites are below 80% DQI target.",
+                "severity": "warning" if low_dqi_count > 0 else "info",
+                "impact": "high" if low_dqi_count > 3 else "medium"
             },
             {
                 "id": "insight-3",
@@ -101,6 +108,13 @@ async def get_ai_insights(
                 "content": f"Target enrollment reached for {portfolio.get('total_studies', 0)} studies. Focus shifting to data cleaning phase.",
                 "severity": "success",
                 "impact": "low"
+            },
+            {
+                "id": "insight-4",
+                "title": "Critical Issues Summary",
+                "content": f"{critical_issues} critical issues across portfolio. {critical_dqi_count} sites below 70% DQI require immediate attention.",
+                "severity": "critical" if critical_dqi_count > 0 else ("warning" if critical_issues > 0 else "info"),
+                "impact": "high" if critical_issues > 3 or critical_dqi_count > 0 else "low"
             }
         ]
         
@@ -203,11 +217,10 @@ async def assistant_query(
 
 @router.get("/health")
 async def ai_health_check(current_user: dict = Depends(get_current_user)):
-    """Check health of AI/LLM providers (matches Streamlit troubleshooting behavior)."""
+    """Check health of AI/LLM providers — vLLM on Colab."""
     health = {
         "orchestrator": {"available": False, "error": None},
-        "groq": {"available": False, "error": None, "api_key_set": False},
-        "ollama": {"available": False, "error": None},
+        "vllm": {"available": False, "error": None, "base_url": None, "model": None, "available_models": []},
         "timestamp": datetime.utcnow().isoformat()
     }
     
@@ -218,25 +231,18 @@ async def ai_health_check(current_user: dict = Depends(get_current_user)):
     else:
         health["orchestrator"]["error"] = orch_error
     
-    # Check LLM wrapper directly
+    # Check vLLM wrapper directly
     try:
-        from src.agents.llm_wrapper import LLMWrapper, get_llm
+        from src.agents.llm_wrapper import get_llm
         llm = get_llm()
         llm_health = llm.health_check()
         
-        health["groq"]["available"] = llm_health.get("groq", {}).get("available", False)
-        health["groq"]["error"] = llm_health.get("groq", {}).get("error")
-        health["ollama"]["available"] = llm_health.get("ollama", {}).get("available", False) 
-        health["ollama"]["error"] = llm_health.get("ollama", {}).get("error")
-        health["ollama"]["models"] = llm_health.get("ollama", {}).get("models", [])
-        
-        # Check if Groq API key is set
-        from config.llm_config import get_config
-        config = get_config()
-        health["groq"]["api_key_set"] = bool(config.groq.api_key)
-        health["groq"]["model"] = config.groq.model
-        health["ollama"]["host"] = config.ollama.host
-        health["ollama"]["model"] = config.ollama.model
+        vllm_info = llm_health.get("vllm", {})
+        health["vllm"]["available"] = vllm_info.get("available", False)
+        health["vllm"]["error"] = vllm_info.get("error")
+        health["vllm"]["base_url"] = vllm_info.get("base_url")
+        health["vllm"]["model"] = vllm_info.get("model")
+        health["vllm"]["available_models"] = vllm_info.get("available_models", [])
         
     except Exception as e:
         health["llm_error"] = str(e)
@@ -244,16 +250,16 @@ async def ai_health_check(current_user: dict = Depends(get_current_user)):
     # Summary
     if health["orchestrator"]["available"]:
         health["status"] = "operational"
-        health["message"] = "AI Agent System is fully operational"
-    elif health["groq"]["available"] or health["ollama"]["available"]:
+        health["message"] = "AI Agent System is fully operational with TrialPulse-8B (vLLM)"
+    elif health["vllm"]["available"]:
         health["status"] = "degraded"
-        health["message"] = "LLM providers available but orchestrator not initialized"
+        health["message"] = "vLLM available but orchestrator not initialized"
     else:
         health["status"] = "unavailable"
-        health["message"] = "No LLM providers available. Check GROQ_API_KEY or start Ollama."
+        health["message"] = "vLLM server not reachable. Ensure Colab notebook is running."
         health["troubleshooting"] = [
-            "Set GROQ_API_KEY in .env file for Groq cloud inference",
-            "Or run 'ollama serve' for local Ollama inference",
+            "Start the Colab notebook with vLLM + ngrok",
+            "Update VLLM_BASE_URL in .env with the new ngrok URL",
             "Restart the FastAPI server after configuration changes"
         ]
     

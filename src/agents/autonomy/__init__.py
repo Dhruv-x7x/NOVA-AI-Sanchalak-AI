@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Agent Autonomy Package
+SANCHALAK AI - Agent Autonomy Package
 ==========================================
 Risk-based autonomy and auto-execution for agents.
 """

@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     )
     
     # App
-    APP_NAME: str = "TrialPulse Nexus API"
+    APP_NAME: str = "Sanchalak AI API"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = True
     

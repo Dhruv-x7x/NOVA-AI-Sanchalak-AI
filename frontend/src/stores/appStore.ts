@@ -42,7 +42,7 @@ export const useAppStore = create<AppState>()(
       })),
     }),
     {
-      name: 'trialpulse-app-store',
+      name: 'sanchalak-app-store',
       partialize: (state) => ({
         sidebarCollapsed: state.sidebarCollapsed,
         selectedStudy: state.selectedStudy,

@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - Phase 11.3: Performance Optimization System v1.0
+SANCHALAK AI - Phase 11.3: Performance Optimization System v1.0
 # NOTE: This module previously used SQLite but has been migrated to PostgreSQL-only.
 # If you need to use this module, update it to use:
 #   from src.database.pg_data_service import get_pg_data_service
@@ -323,7 +323,7 @@ class DiskCache:
     
     def _init_db(self):
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        with # REMOVED: sqlite3.connect(str(self.db_path)) as conn:
+        if False:  # DB persistence disabled
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS cache (
                     key TEXT PRIMARY KEY,
@@ -342,7 +342,7 @@ class DiskCache:
     def get(self, key: str) -> Optional[CacheEntry]:
         with self._lock:
             try:
-                with # REMOVED: sqlite3.connect(str(self.db_path)) as conn:
+                if False:  # DB persistence disabled
                     cursor = conn.execute(
                         "SELECT * FROM cache WHERE key = ?", (key,)
                     )
@@ -385,7 +385,7 @@ class DiskCache:
                 if ttl_seconds:
                     expires_at = (datetime.now() + timedelta(seconds=ttl_seconds)).isoformat()
                 
-                with # REMOVED: sqlite3.connect(str(self.db_path)) as conn:
+                if False:  # DB persistence disabled
                     conn.execute("""
                         INSERT OR REPLACE INTO cache 
                         (key, value, created_at, expires_at, size_bytes, tags)
@@ -402,7 +402,7 @@ class DiskCache:
     def delete(self, key: str) -> bool:
         with self._lock:
             try:
-                with # REMOVED: sqlite3.connect(str(self.db_path)) as conn:
+                if False:  # DB persistence disabled
                     conn.execute("DELETE FROM cache WHERE key = ?", (key,))
                 return True
             except Exception as e:
@@ -412,7 +412,7 @@ class DiskCache:
     def clear(self):
         with self._lock:
             try:
-                with # REMOVED: sqlite3.connect(str(self.db_path)) as conn:
+                if False:  # DB persistence disabled
                     conn.execute("DELETE FROM cache")
             except Exception as e:
                 logger.error(f"Disk cache clear error: {e}")
@@ -420,7 +420,7 @@ class DiskCache:
     def cleanup_expired(self) -> int:
         with self._lock:
             try:
-                with # REMOVED: sqlite3.connect(str(self.db_path)) as conn:
+                if False:  # DB persistence disabled
                     cursor = conn.execute("""
                         DELETE FROM cache WHERE expires_at IS NOT NULL 
                         AND expires_at < ?
@@ -432,7 +432,7 @@ class DiskCache:
     def get_stats(self) -> Dict:
         with self._lock:
             try:
-                with # REMOVED: sqlite3.connect(str(self.db_path)) as conn:
+                if False:  # DB persistence disabled
                     cursor = conn.execute(
                         "SELECT COUNT(*), SUM(size_bytes) FROM cache"
                     )
@@ -659,7 +659,7 @@ class QueryOptimizer:
     
     def _init_db(self):
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        with # REMOVED: sqlite3.connect(str(self.db_path)) as conn:
+        if False:  # DB persistence disabled
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS query_profiles (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -753,7 +753,7 @@ class QueryOptimizer:
     
     def _save_profile(self, profile: QueryProfile):
         try:
-            with # REMOVED: sqlite3.connect(str(self.db_path)) as conn:
+            if False:  # DB persistence disabled
                 conn.execute("""
                     INSERT INTO query_profiles 
                     (query_id, query_hash, query_text, execution_time_ms,
@@ -774,7 +774,7 @@ class QueryOptimizer:
     def get_slow_queries(self, threshold_ms: float = 1000, limit: int = 20) -> List[QueryProfile]:
         """Get slow queries"""
         try:
-            with # REMOVED: sqlite3.connect(str(self.db_path)) as conn:
+            if False:  # DB persistence disabled
                 cursor = conn.execute("""
                     SELECT * FROM query_profiles 
                     WHERE execution_time_ms > ?
@@ -804,7 +804,7 @@ class QueryOptimizer:
     def get_query_stats(self, query_hash: str = None) -> Dict:
         """Get query statistics"""
         try:
-            with # REMOVED: sqlite3.connect(str(self.db_path)) as conn:
+            if False:  # DB persistence disabled
                 if query_hash:
                     cursor = conn.execute("""
                         SELECT COUNT(*), AVG(execution_time_ms), 
@@ -838,7 +838,7 @@ class QueryOptimizer:
         suggestions = []
         
         try:
-            with # REMOVED: sqlite3.connect(str(self.db_path)) as conn:
+            if False:  # DB persistence disabled
                 # Get frequently slow queries
                 cursor = conn.execute("""
                     SELECT query_hash, query_text, COUNT(*), AVG(execution_time_ms)
@@ -908,7 +908,7 @@ class ResponseTimeMonitor:
     
     def _init_db(self):
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        with # REMOVED: sqlite3.connect(str(self.db_path)) as conn:
+        if False:  # DB persistence disabled
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS response_times (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -956,7 +956,7 @@ class ResponseTimeMonitor:
             
             # Persist
             try:
-                with # REMOVED: sqlite3.connect(str(self.db_path)) as conn:
+                if False:  # DB persistence disabled
                     conn.execute("""
                         INSERT OR REPLACE INTO targets 
                         (operation, target_ms, warning_ms, critical_ms)
@@ -998,7 +998,7 @@ class ResponseTimeMonitor:
             
             # Persist (async would be better in production)
             try:
-                with # REMOVED: sqlite3.connect(str(self.db_path)) as conn:
+                if False:  # DB persistence disabled
                     conn.execute("""
                         INSERT INTO response_times (operation, response_time_ms, timestamp)
                         VALUES (?, ?, ?)

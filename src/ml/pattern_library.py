@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - Phase 3.6: Pattern Library v1.2 (FIXED)
+SANCHALAK AI - Phase 3.6: Pattern Library v1.2 (FIXED)
 =======================================================
 
 FIXES:
@@ -9,7 +9,7 @@ FIXES:
 4. Relaxed detection thresholds
 5. Better logging for debugging
 
-Author: TrialPulse Team
+Author: Sanchalak AI Team
 Version: 1.2
 """
 
@@ -883,7 +883,7 @@ class PatternLibrary:
 def main():
     """Main execution function"""
     print("=" * 70)
-    print("TRIALPULSE NEXUS 10X - PHASE 3.6: PATTERN LIBRARY v1.2")
+    print("SANCHALAK AI - PHASE 3.6: PATTERN LIBRARY v1.2")
     print("=" * 70)
     
     start_time = datetime.now()

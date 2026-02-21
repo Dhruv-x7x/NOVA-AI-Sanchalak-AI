@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - Hybrid RAG Search Engine
+SANCHALAK AI - Hybrid RAG Search Engine
 ================================================
 Implements Reciprocal Rank Fusion (RRF) of:
 - Qdrant/ChromaDB vector search (semantic similarity)

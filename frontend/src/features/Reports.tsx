@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { reportsApi, sitesApi } from '@/services/api';
+import { reportsApi, sitesApi, studiesApi } from '@/services/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -46,15 +46,15 @@ export default function Reports() {
   const [selectedReport, setSelectedReport] = useState<string | null>(null);
   const [generatedReport, setGeneratedReport] = useState<string | null>(null);
   const [selectedSiteId, setSelectedSiteId] = useState<string>('all');
-  const [selectedStudyId] = useState<string>('all');
+  const [selectedStudyId, setSelectedStudyId] = useState<string>('all');
+  const [isDownloading, setIsDownloading] = useState(false);
   const [reportConfig, setReportConfig] = useState({
     craName: '',
     reportPeriod: '30',
-    outputFormat: 'html',
+    outputFormat: 'xlsx',
     includeCharts: true,
   });
 
-  // Fetch report types from the API
   // Fetch report types from the API
   const { data: reportTypes, isLoading: typesLoading } = useQuery({
     queryKey: ['report-types'],
@@ -67,12 +67,19 @@ export default function Reports() {
     queryFn: () => sitesApi.list(),
   });
 
+  // Fetch studies for the dropdown
+  const { data: studiesData } = useQuery({
+    queryKey: ['studies-list'],
+    queryFn: () => studiesApi.list(),
+  });
+
   const sites = sitesData?.sites || [];
+  const studies = studiesData?.studies || [];
 
   const generateMutation = useMutation({
     mutationFn: (reportType: string) => reportsApi.generate({
       report_type: reportType,
-      format: reportConfig.outputFormat,
+      format: 'html',  // Always preview as HTML; Download button uses actual format
       site_id: selectedSiteId === 'all' ? undefined : selectedSiteId,
       study_id: selectedStudyId === 'all' ? undefined : selectedStudyId,
     }),
@@ -87,27 +94,41 @@ export default function Reports() {
     }
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (!selectedReport) return;
-    
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api/v1';
-    const siteParam = selectedSiteId !== 'all' ? `&site_id=${selectedSiteId}` : '';
-    const format = reportConfig.outputFormat;
-    
-    // Construct direct download URL
-    const url = `${baseUrl}/reports/download/${selectedReport}?format=${format}${siteParam}`;
-    
-    // For PDF, we open in a new window to trigger the print dialog
-    if (format === 'pdf') {
-      window.open(url, '_blank');
-    } else {
-      // For binary files (Excel/CSV), we create a hidden link to force download
+    setIsDownloading(true);
+
+    try {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api/v1';
+      const siteParam = selectedSiteId !== 'all' ? `&site_id=${selectedSiteId}` : '';
+      const studyParam = selectedStudyId !== 'all' ? `&study_id=${selectedStudyId}` : '';
+      const format = reportConfig.outputFormat;
+
+      const token = localStorage.getItem('auth_token') || ''; // Assuming token is here, or use store
+      const url = `${baseUrl}/reports/download/${selectedReport}?format=${format}${siteParam}${studyParam}`;
+
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) throw new Error('Download failed');
+
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `${selectedReport}_report.${format === 'excel' ? 'xlsx' : format}`);
+      link.href = downloadUrl;
+      const extension = format === 'excel' || format === 'xlsx' ? 'xlsx' : format;
+      link.setAttribute('download', `${selectedReport}_${new Date().toISOString().split('T')[0]}.${extension}`);
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      console.error('Download error:', error);
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -214,18 +235,16 @@ export default function Reports() {
                               <div
                                 key={report.id}
                                 onClick={() => setSelectedReport(report.id)}
-                                className={`p-4 rounded-lg border cursor-pointer transition-all ${
-                                  selectedReport === report.id 
-                                    ? 'bg-emerald-500/10 border-emerald-500/50 ring-1 ring-emerald-500/30' 
+                                className={`p-4 rounded-lg border cursor-pointer transition-all ${selectedReport === report.id
+                                    ? 'bg-emerald-500/10 border-emerald-500/50 ring-1 ring-emerald-500/30'
                                     : 'bg-nexus-card border-nexus-border hover:border-emerald-500/30'
-                                }`}
+                                  }`}
                               >
                                 <div className="flex items-start gap-3">
-                                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                                    selectedReport === report.id 
-                                      ? 'bg-emerald-500/20 text-emerald-400' 
+                                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${selectedReport === report.id
+                                      ? 'bg-emerald-500/20 text-emerald-400'
                                       : 'bg-nexus-card text-nexus-text-secondary'
-                                  }`}>
+                                    }`}>
                                     {getReportIcon(report.icon)}
                                   </div>
                                   <div className="flex-1">
@@ -265,6 +284,24 @@ export default function Reports() {
                     />
                   </div>
 
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-white">Filter by Study</Label>
+                      <Select value={selectedStudyId} onValueChange={setSelectedStudyId}>
+                        <SelectTrigger className="bg-nexus-card border-nexus-border text-white">
+                          <SelectValue placeholder="All Studies" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-nexus-card border-nexus-border text-white">
+                          <SelectItem value="all">All Studies</SelectItem>
+                          {studies.map((study: any) => (
+                            <SelectItem key={study.study_id} value={study.study_id}>
+                              {study.study_id}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
                     <div className="space-y-2">
                       <Label className="text-white">Filter by Site</Label>
                       <Select value={selectedSiteId} onValueChange={setSelectedSiteId}>
@@ -275,17 +312,18 @@ export default function Reports() {
                           <SelectItem value="all">All Sites</SelectItem>
                           {sites.map((site: any) => (
                             <SelectItem key={site.site_id} value={site.site_id}>
-                              {site.site_id} - {site.name}
+                              {site.site_id}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </div>
+                  </div>
 
                   <div className="space-y-2">
                     <Label className="text-white">Report Period</Label>
-                    <Select 
-                      value={reportConfig.reportPeriod} 
+                    <Select
+                      value={reportConfig.reportPeriod}
                       onValueChange={(value) => setReportConfig({ ...reportConfig, reportPeriod: value })}
                     >
                       <SelectTrigger className="bg-nexus-card border-nexus-border text-white">
@@ -314,8 +352,8 @@ export default function Reports() {
                           variant={reportConfig.outputFormat === format.id ? 'default' : 'outline'}
                           size="sm"
                           onClick={() => setReportConfig({ ...reportConfig, outputFormat: format.id })}
-                          className={reportConfig.outputFormat === format.id 
-                            ? 'bg-emerald-600 hover:bg-emerald-700' 
+                          className={reportConfig.outputFormat === format.id
+                            ? 'bg-emerald-600 hover:bg-emerald-700'
                             : 'border-nexus-border text-nexus-text-secondary hover:text-white'
                           }
                         >
@@ -342,7 +380,7 @@ export default function Reports() {
                       </div>
                     </div>
                     <p className="text-sm text-nexus-text-secondary mb-4">{selectedReportDetails.description}</p>
-                    
+
                     <div className="space-y-2">
                       <Button
                         onClick={handleGenerateReport}
@@ -375,28 +413,33 @@ export default function Reports() {
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-white">Report Preview</CardTitle>
                   <div className="flex items-center gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={handlePrint}
                       className="border-nexus-border text-nexus-text-secondary hover:text-white"
                     >
                       <Printer className="w-4 h-4 mr-2" />
                       Print
                     </Button>
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       onClick={handleDownload}
+                      disabled={isDownloading}
                       className="bg-emerald-600 hover:bg-emerald-700"
                     >
-                      <Download className="w-4 h-4 mr-2" />
+                      {isDownloading ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <Download className="w-4 h-4 mr-2" />
+                      )}
                       Download {reportConfig.outputFormat.toUpperCase()}
                     </Button>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
-                <div 
+                <div
                   className="prose prose-invert max-w-none p-6 bg-nexus-card rounded-lg border border-nexus-border overflow-auto max-h-[600px]"
                   dangerouslySetInnerHTML={{ __html: generatedReport }}
                 />
@@ -424,7 +467,7 @@ export default function Reports() {
               {recentReports.length > 0 ? (
                 <div className="space-y-3">
                   {recentReports.map((report) => (
-                    <div 
+                    <div
                       key={report.id}
                       className="flex items-center justify-between p-4 bg-nexus-card rounded-lg border border-nexus-border hover:border-emerald-500/30 transition-colors"
                     >

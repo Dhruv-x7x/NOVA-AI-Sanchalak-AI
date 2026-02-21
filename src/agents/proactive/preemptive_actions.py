@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Preemptive Actions v1.0
+SANCHALAK AI - Preemptive Actions v1.0
 ===========================================
 Take preemptive actions before issues escalate.
 """

@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Training Data Preparation
+SANCHALAK AI - Training Data Preparation
 ==============================================
 Generate fine-tuning training data from your clinical trial database.
 """

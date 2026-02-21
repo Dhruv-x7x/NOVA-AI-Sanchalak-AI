@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Notification Service
+SANCHALAK AI - Notification Service
 ========================================
 PostgreSQL-backed notification queue system.
 

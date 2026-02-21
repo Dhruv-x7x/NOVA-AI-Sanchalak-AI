@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - Phase 4.5: Cross-Study Pattern Matcher v1.0
+SANCHALAK AI - Phase 4.5: Cross-Study Pattern Matcher v1.0
 
 Purpose:
 - Pattern embedding index across studies
@@ -8,7 +8,7 @@ Purpose:
 - Pattern transfer recommendations
 - Study-specific adaptations
 
-Author: TrialPulse Team
+Author: Sanchalak AI Team
 Version: 1.0
 """
 
@@ -88,7 +88,7 @@ class PatternValidation:
 
 class CrossStudyPatternMatcher:
     """
-    Cross-Study Pattern Matcher for TRIALPULSE NEXUS.
+    Cross-Study Pattern Matcher for SANCHALAK AI.
     
     Capabilities:
     1. Pattern embedding index across all studies
@@ -1135,7 +1135,7 @@ class CrossStudyPatternMatcher:
 def main():
     """Main execution function."""
     print("=" * 70)
-    print("TRIALPULSE NEXUS 10X - Phase 4.5: Cross-Study Pattern Matcher")
+    print("SANCHALAK AI - Phase 4.5: Cross-Study Pattern Matcher")
     print("=" * 70)
     
     start_time = datetime.now()

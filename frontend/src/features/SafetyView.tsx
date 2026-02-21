@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { safetyApi } from '@/services/api';
+import SanchalakLoader from '@/components/SanchalakLoader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -210,12 +211,12 @@ export default function SafetyView() {
   const [selectedStudy] = useState('all');
 
   // Fetch safety data
-  const { data: overview } = useQuery({
+  const { data: overview, isLoading: overviewLoading } = useQuery({
     queryKey: ['safety-overview', selectedStudy],
     queryFn: () => safetyApi.getOverview(selectedStudy === 'all' ? undefined : selectedStudy),
   });
 
-  const { data: saeCases } = useQuery({
+  const { data: saeCases, isLoading: casesLoading } = useQuery({
     queryKey: ['sae-cases'],
     queryFn: () => safetyApi.getSAECases({ limit: 20 }),
   });
@@ -234,6 +235,8 @@ export default function SafetyView() {
     queryKey: ['pattern-alerts'],
     queryFn: () => safetyApi.getPatternAlerts(undefined, 20),
   });
+
+  const isPageLoading = overviewLoading && casesLoading;
 
   // Transform timeline data for chart
   const timelineData = timeline?.timeline?.map((t: any) => ({
@@ -257,6 +260,10 @@ export default function SafetyView() {
   const highAlerts = alerts.filter((a: any) => a.severity === 'High').length;
   const mediumAlerts = alerts.filter((a: any) => a.severity === 'Medium').length;
   const lowAlerts = alerts.filter((a: any) => a.severity === 'Low').length;
+
+  if (isPageLoading) {
+    return <SanchalakLoader size="lg" label="Loading safety surveillance..." fullPage />;
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">

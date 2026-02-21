@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - Enhanced Clean Patient Calculator v2.0
+SANCHALAK AI - Enhanced Clean Patient Calculator v2.0
 Phase 2.2: Two-Tier Clean Patient with Effort Scoring
 
 Features:
@@ -692,7 +692,7 @@ class EnhancedCleanPatientCalculator:
         Run complete enhanced clean patient calculation
         """
         logger.info("\n" + "=" * 70)
-        logger.info("TRIALPULSE NEXUS 10X - ENHANCED CLEAN PATIENT v2.0")
+        logger.info("SANCHALAK AI - ENHANCED CLEAN PATIENT v2.0")
         logger.info("=" * 70)
         logger.info(f"Patients: {len(df):,}")
         

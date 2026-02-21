@@ -18,7 +18,7 @@ from pathlib import Path
 api_logger = logging.getLogger("uvicorn.error")
 
 # Add project root to path for ML imports
-# backend/app/api/v1/routes/patients.py -> parents[5] is trialpulse_nexus
+# backend/app/api/v1/routes/patients.py -> parents[5] is sanchalak_ai
 PROJECT_ROOT = Path(__file__).resolve().parents[5]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))

@@ -1,6 +1,6 @@
 # src/agents/resolver_enhanced.py
 """
-TRIALPULSE NEXUS 10X - Enhanced RESOLVER Agent v1.0
+SANCHALAK AI - Enhanced RESOLVER Agent v1.0
 
 Purpose: Generate prioritized action plans, integrate resolution genome,
          calculate cascade impact, and provide role-based task assignments.

@@ -1,6 +1,6 @@
 # src/generation/nl_interface.py
 """
-TRIALPULSE NEXUS 10X - Natural Language Interface v1.0
+SANCHALAK AI - Natural Language Interface v1.0
 Phase 6.4: Query Understanding, Text-to-SQL, Response Formatting
 
 Features:
@@ -1291,7 +1291,7 @@ Comparing by **{}**:
     
     def _format_help(self) -> Tuple[str, str, List[Dict]]:
         response = """
-**TrialPulse Nexus - Natural Language Interface**
+**Sanchalak AI - Natural Language Interface**
 
 I can help you query clinical trial data using natural language. Here are some examples:
 
@@ -1711,7 +1711,7 @@ def ask(query: str) -> QueryResponse:
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("TRIALPULSE NEXUS 10X - Natural Language Interface v1.0")
+    print("SANCHALAK AI - Natural Language Interface v1.0")
     print("=" * 60)
     
     nl = get_nl_interface()

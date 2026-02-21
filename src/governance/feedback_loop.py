@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - Phase 10.5: Feedback Loop System v1.0
+SANCHALAK AI - Phase 10.5: Feedback Loop System v1.0
 # NOTE: This module previously used SQLite but has been migrated to PostgreSQL-only.
 # If you need to use this module, update it to use:
 #   from src.database.pg_data_service import get_pg_data_service
@@ -12,7 +12,7 @@ Continuous learning system that captures user feedback and improves AI:
 - Model update triggers
 - Pattern promotion workflow
 
-Author: TrialPulse Team
+Author: Sanchalak AI Team
 Date: 2026-01-02
 """
 

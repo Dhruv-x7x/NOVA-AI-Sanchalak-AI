@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - 21 CFR Part 11 Electronic Signature Service
+SANCHALAK AI - 21 CFR Part 11 Electronic Signature Service
 ===================================================================
 Implements legally binding electronic signatures per 21 CFR Part 11:
 - User identity verification (password + MFA)
@@ -120,7 +120,7 @@ class ElectronicSignatureService:
     
     def __init__(self, secret_key: str = None):
         """Initialize signature service with secret key for hashing."""
-        self._secret_key = (secret_key or "trialpulse_nexus_21cfr_secret").encode()
+        self._secret_key = (secret_key or "sanchalak_ai_21cfr_secret").encode()
         self._signatures: Dict[str, SignatureRecord] = {}
         self._signature_chain: List[str] = []  # Ordered list of signature IDs
         self._last_hash: Optional[str] = None

@@ -1,5 +1,5 @@
 """
-Cross-Study Pattern Matcher Service for TRIALPULSE NEXUS 10X
+Cross-Study Pattern Matcher Service for SANCHALAK AI
 Provides a singleton interface to the Pattern Matcher for dashboard and agents.
 
 Version: 1.0 - Initial Integration

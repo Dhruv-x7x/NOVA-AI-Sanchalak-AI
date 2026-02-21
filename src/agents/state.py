@@ -1,5 +1,5 @@
 """
-Agent State Schema for TRIALPULSE NEXUS 10X
+Agent State Schema for SANCHALAK AI
 Phase 5.2: LangGraph Agent Framework
 
 Defines the shared state that flows between all agents in the orchestration graph.

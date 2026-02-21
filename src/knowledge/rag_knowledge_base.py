@@ -1,6 +1,6 @@
 # File: src/knowledge/rag_knowledge_base.py
 """
-RAG Knowledge Base for TRIALPULSE NEXUS 10X
+RAG Knowledge Base for SANCHALAK AI
 Phase 4.3: Complete RAG system with document chunking, embedding, and retrieval.
 Version: 1.1 - Fixed chunking issues
 """
@@ -927,7 +927,7 @@ class RetrievalChain:
             Dictionary with system and user prompts
         """
         if system_prompt is None:
-            system_prompt = """You are a clinical trial operations expert assistant for TRIALPULSE NEXUS 10X.
+            system_prompt = """You are a clinical trial operations expert assistant for SANCHALAK AI.
 Your role is to provide accurate, helpful information about clinical trial operations, data management, 
 regulatory compliance, and best practices.
 
@@ -1132,7 +1132,7 @@ def build_rag_knowledge_base(
         Initialized RAGKnowledgeBase
     """
     print("=" * 60)
-    print("TRIALPULSE NEXUS 10X - RAG Knowledge Base Builder v1.1")
+    print("SANCHALAK AI - RAG Knowledge Base Builder v1.1")
     print("=" * 60)
     
     # Initialize knowledge base with improved chunking parameters

@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Action Persistence Layer
+SANCHALAK AI - Action Persistence Layer
 ============================================
 PostgreSQL-backed service for persisting all user actions.
 

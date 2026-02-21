@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - Phase 9.4: Timeline Projector v1.0
+SANCHALAK AI - Phase 9.4: Timeline Projector v1.0
 
 Projects trial timelines with trajectory analysis, best/worst case
 scenarios, critical path identification, and milestone tracking.
@@ -12,7 +12,7 @@ Features:
 - DB Lock date projection
 - Gantt-style timeline visualization data
 
-Author: TrialPulse Team
+Author: Sanchalak AI Team
 Date: 2026-01-02
 """
 
@@ -1278,7 +1278,7 @@ def get_critical_path(study_id: Optional[str] = None) -> Optional[CriticalPath]:
 def test_timeline_projector():
     """Test the Timeline Projector."""
     print("=" * 70)
-    print("TRIALPULSE NEXUS 10X - TIMELINE PROJECTOR TEST")
+    print("SANCHALAK AI - TIMELINE PROJECTOR TEST")
     print("=" * 70)
     
     tests_passed = 0

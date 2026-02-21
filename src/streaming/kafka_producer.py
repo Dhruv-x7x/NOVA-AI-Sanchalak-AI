@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Kafka Event Producer
+SANCHALAK AI - Kafka Event Producer
 ========================================
 Publish events to Kafka topics for real-time processing.
 """
@@ -61,7 +61,7 @@ class MockKafkaProducer:
 
 class EventProducer:
     """
-    Kafka event producer for publishing TrialPulse events.
+    Kafka event producer for publishing Sanchalak AI events.
     
     Usage:
         producer = get_event_producer()

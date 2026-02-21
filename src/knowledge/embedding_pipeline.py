@@ -1,6 +1,6 @@
 # src/knowledge/embedding_pipeline.py
 """
-TRIALPULSE NEXUS 10X - Embedding Pipeline v1.3
+SANCHALAK AI - Embedding Pipeline v1.3
 Phase 4.1: Generate and manage embeddings for all knowledge artifacts
 
 FIXED v1.3: Fixed duplicate ID issue in issue_descriptions
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 class EmbeddingPipeline:
-    """Manages embedding generation for all TRIALPULSE knowledge artifacts."""
+    """Manages embedding generation for all SANCHALAK AI knowledge artifacts."""
     
     DEFAULT_MODEL = "all-MiniLM-L6-v2"
     
@@ -463,7 +463,7 @@ class EmbeddingPipeline:
         start_time = datetime.now()
         
         logger.info("=" * 70)
-        logger.info("TRIALPULSE NEXUS 10X - EMBEDDING PIPELINE v1.3")
+        logger.info("SANCHALAK AI - EMBEDDING PIPELINE v1.3")
         logger.info("=" * 70)
         
         self.embed_resolution_templates()
@@ -522,7 +522,7 @@ class EmbeddingPipeline:
 
 def main():
     print("=" * 70)
-    print("TRIALPULSE NEXUS 10X - PHASE 4.1: EMBEDDING PIPELINE v1.3")
+    print("SANCHALAK AI - PHASE 4.1: EMBEDDING PIPELINE v1.3")
     print("=" * 70)
     
     pipeline = EmbeddingPipeline()

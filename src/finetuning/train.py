@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Fine-Tuning Training Script
+SANCHALAK AI - Fine-Tuning Training Script
 ================================================
 Train a custom model on your clinical trial data.
 
@@ -69,7 +69,7 @@ def generate_colab_notebook(data_file: Path):
         "cells": [
             {
                 "cell_type": "markdown",
-                "source": ["# TrialPulse Nexus - Fine-Tuning\n", 
+                "source": ["# Sanchalak AI - Fine-Tuning\n", 
                           "Train your custom clinical trial AI model.\n",
                           "**Runtime > Change runtime type > GPU (T4)**"]
             },
@@ -130,7 +130,7 @@ def generate_colab_notebook(data_file: Path):
                 "source": ["# Save and download the model\n",
                           f"model.save_pretrained('{config.output_model_name}')\n",
                           f"tokenizer.save_pretrained('{config.output_model_name}')\n",
-                          "!zip -r model.zip trialpulse-nexus-v1/"]
+                          "!zip -r model.zip sanchalak-ai-v1/"]
             }
         ]
     }

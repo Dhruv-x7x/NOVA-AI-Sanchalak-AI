@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Temporal Snapshot Worker
+SANCHALAK AI - Temporal Snapshot Worker
 ==========================================
 Background worker to capture hourly snapshots and detect deltas.
 """

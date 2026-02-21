@@ -1,5 +1,5 @@
 """
-Resolution Genome Service for TRIALPULSE NEXUS 10X
+Resolution Genome Service for SANCHALAK AI
 Provides a singleton interface to the Resolution Genome for dashboard and agents.
 # NOTE: This module previously used SQLite but has been migrated to PostgreSQL-only.
 # If you need to use this module, update it to use:

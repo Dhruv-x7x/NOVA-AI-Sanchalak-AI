@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-TRIALPULSE NEXUS 10X - Enhanced SUPERVISOR Agent v2.1
+SANCHALAK AI - Enhanced SUPERVISOR Agent v2.1
 
 Features:
 1. Advanced task decomposition (complex → subtasks)

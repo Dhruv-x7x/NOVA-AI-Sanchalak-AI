@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Extended Database Models
+SANCHALAK AI - Extended Database Models
 ============================================
 Additional models for migrated functionality from Parquet/SQLite.
 

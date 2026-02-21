@@ -1,6 +1,6 @@
 # src/collaboration/issue_registry.py
 """
-TRIALPULSE NEXUS 10X - Issue Registry v1.0
+SANCHALAK AI - Issue Registry v1.0
 Phase 8.1: SQLite-based Issue Tracking System
 # NOTE: This module previously used SQLite but has been migrated to PostgreSQL-only.
 # If you need to use this module, update it to use:
@@ -1198,7 +1198,7 @@ def get_issue_registry(db_path: Optional[str] = None) -> IssueRegistry:
 def test_issue_registry():
     """Test the Issue Registry"""
     print("=" * 60)
-    print("TRIALPULSE NEXUS 10X - ISSUE REGISTRY TEST")
+    print("SANCHALAK AI - ISSUE REGISTRY TEST")
     print("=" * 60)
     
     # Use test database

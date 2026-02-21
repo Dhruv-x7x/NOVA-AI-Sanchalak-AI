@@ -181,11 +181,12 @@ class DigitalTwinEngine:
             with db.engine.connect() as conn:
                 # Count patients not yet clean
                 remaining_query = "SELECT COUNT(*) FROM unified_patient_record WHERE NOT clinical_clean"
-                remaining_patients = conn.execute(pd.io.sql.text(remaining_query)).scalar() or 0
+                from sqlalchemy import text as sa_text
+                remaining_patients = conn.execute(sa_text(remaining_query)).scalar() or 0
                 
                 # Get current CRA count (simulated from sites if not in a dedicated table)
                 cra_count_query = "SELECT COUNT(DISTINCT cra_id) FROM site_benchmarks"
-                current_cras = conn.execute(pd.io.sql.text(cra_count_query)).scalar() or 45 # Default to 45 if empty
+                current_cras = conn.execute(sa_text(cra_count_query)).scalar() or 45  # Default to 45 if empty
         except Exception as e:
             logger.warning(f"Headcount calc DB error: {e}")
             remaining_patients = 15000 # Fallback

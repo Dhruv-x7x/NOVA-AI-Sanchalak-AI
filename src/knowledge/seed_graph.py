@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Knowledge Graph Seeding Script
+SANCHALAK AI - Knowledge Graph Seeding Script
 =================================================
 Seeds the Neo4j graph with data from PostgreSQL and analytics.
 """

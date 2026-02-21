@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - ML Model A/B Testing Framework
+SANCHALAK AI - ML Model A/B Testing Framework
 ======================================================
 Implements A/B testing for ML models with traffic splitting,
 performance tracking, and experiment evaluation.

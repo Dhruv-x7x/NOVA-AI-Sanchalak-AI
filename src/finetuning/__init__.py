@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS - Fine-Tuning Package
+SANCHALAK AI - Fine-Tuning Package
 =======================================
 Train custom models on clinical trial data.
 """

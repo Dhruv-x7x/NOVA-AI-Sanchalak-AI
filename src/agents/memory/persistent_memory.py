@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - Persistent Agent Memory
+SANCHALAK AI - Persistent Agent Memory
 ===============================================
 Store and retrieve agent learnings in PostgreSQL for cross-session memory.
 

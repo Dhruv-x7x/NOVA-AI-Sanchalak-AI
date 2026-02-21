@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - Compliance Module Initialization
+SANCHALAK AI - Compliance Module Initialization
 """
 
 from .electronic_signature import (

@@ -1,6 +1,6 @@
 # src/generation/__init__.py
 """
-TRIALPULSE NEXUS 10X - Generation Module
+SANCHALAK AI - Generation Module
 Phase 6: Generative AI Document Engine
 
 Components:

@@ -1,5 +1,5 @@
 """
-TRIALPULSE NEXUS 10X - Data Validation Pipeline
+SANCHALAK AI - Data Validation Pipeline
 ================================================
 Validates patient records against schema with comprehensive error reporting.
 

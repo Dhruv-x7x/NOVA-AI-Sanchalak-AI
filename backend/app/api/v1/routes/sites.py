@@ -9,6 +9,8 @@ from typing import Optional, List
 from pydantic import BaseModel
 from datetime import datetime
 import logging
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 import pandas as pd
 
 from app.models.schemas import SiteListResponse
@@ -70,7 +72,13 @@ async def list_sites(
     """Get all clinical sites with optional filters."""
     try:
         data_service = get_data_service()
-        df = data_service.get_sites()
+
+        # Normalize study_id (frontend uses "all" for All Studies)
+        norm_study_id = None
+        if study_id and str(study_id).strip() and str(study_id).lower() not in ("all", "all studies") and "{" not in str(study_id):
+            norm_study_id = str(study_id)
+
+        df = data_service.get_sites(study_id=norm_study_id)
         
         if df.empty:
             return SiteListResponse(sites=[], items=[], total=0)
@@ -82,10 +90,7 @@ async def list_sites(
             df = df[df["region"] == region]
         if status:
             df = df[df["status"] == status]
-        if study_id:
-             # Some sites might not have study_id in the DF if it's missing from the base table
-             if "study_id" in df.columns:
-                 df = df[df["study_id"] == study_id]
+        # study_id filter is applied via data_service.get_sites(study_id=...)
         
         # Convert to list of dicts and add 'id' and 'location' fields for test compatibility
         from .patients import sanitize_for_json
@@ -95,8 +100,8 @@ async def list_sites(
             if "site_id" in site and "id" not in site:
                 site["id"] = site["site_id"]
             
-            # Ensure 'study_id' and 'name' are present for test compatibility
-            site["study_id"] = study_id or site.get("study_id") or "Study_1"
+            # Ensure 'study_id' and 'name' are present for frontend/test compatibility
+            site["study_id"] = site.get("study_id") or norm_study_id or "Study_1"
             if not site.get("name"):
                 site["name"] = f"Site {site['site_id']}"
                 
@@ -197,12 +202,13 @@ async def get_smart_queue(
         
     try:
         data_service = get_data_service()
+        loop = asyncio.get_event_loop()
+        _executor = ThreadPoolExecutor(max_workers=2)
         
-        # Get the limited queue for display
-        queue = data_service.get_smart_queue(study_id=study_id, limit=limit)
-        
-        # Get actual totals for the summary dashboard (Pending/Critical)
-        stats = data_service.get_issue_summary_stats(study_id=study_id)
+        # Run both queries in parallel — they are independent
+        queue_future = loop.run_in_executor(_executor, lambda: data_service.get_smart_queue(study_id=study_id, limit=limit))
+        stats_future = loop.run_in_executor(_executor, lambda: data_service.get_issue_summary_stats(study_id=study_id))
+        queue, stats = await asyncio.gather(queue_future, stats_future)
         
         from .patients import sanitize_for_json
         return sanitize_for_json({
@@ -370,8 +376,13 @@ async def get_site_dqi_issues(
     try:
         data_service = get_data_service()
         
-        # Get issues for this site grouped by type
-        issues_df = data_service.get_issues(status="open", site_id=site_id)
+        is_all = str(site_id).lower() == 'all'
+        
+        # Get issues for this site (or all sites) grouped by type
+        if is_all:
+            issues_df = data_service.get_issues(status="open")
+        else:
+            issues_df = data_service.get_issues(status="open", site_id=site_id)
         
         if issues_df.empty:
             # Return empty list, frontend will handle no-data state
@@ -381,9 +392,12 @@ async def get_site_dqi_issues(
         site_df = data_service.get_sites()
         current_dqi = 0.0
         if not site_df.empty:
-            site_row = site_df[site_df["site_id"] == site_id]
-            if not site_row.empty:
-                current_dqi = float(site_row["dqi_score"].iloc[0]) if "dqi_score" in site_row.columns else 0
+            if is_all:
+                current_dqi = float(site_df["dqi_score"].mean()) if "dqi_score" in site_df.columns else 0
+            else:
+                site_row = site_df[site_df["site_id"] == site_id]
+                if not site_row.empty:
+                    current_dqi = float(site_row["dqi_score"].iloc[0]) if "dqi_score" in site_row.columns else 0
         
         # Aggregate issues by type
         issue_aggregates = {}
@@ -391,7 +405,7 @@ async def get_site_dqi_issues(
         for _, row in issues_df.iterrows():
             # Better normalization
             raw_type = str(row.get("issue_type", "unknown")).lower()
-            if "query" in raw_type: issue_type = "open_query"
+            if "query" in raw_type: issue_type = "open_queries"
             elif "signature" in raw_type: issue_type = "signature_gap"
             elif "visit" in raw_type: issue_type = "missing_visit"
             elif "lab" in raw_type: issue_type = "missing_labs"
@@ -412,7 +426,7 @@ async def get_site_dqi_issues(
             
             # Estimate effort based on issue type
             effort_map = {
-                "missing_ae": 15, "missing_labs": 20, "open_query": 10,
+                "missing_ae": 15, "missing_labs": 20, "open_queries": 10,
                 "query_response": 10, "protocol_dev": 30, "coding_pending": 8,
                 "missing_visit": 25, "signature_gap": 10, "sdv_incomplete": 20,
                 "sae_pending": 45, "lab_issue": 15
@@ -423,14 +437,14 @@ async def get_site_dqi_issues(
         component_map = {
             "missing_ae": "Safety Score", "sae_pending": "Safety Score",
             "missing_labs": "Lab Score", "lab_issue": "Lab Score",
-            "open_query": "Query Score", "query_response": "Query Score",
+            "open_queries": "Query Score", "query_response": "Query Score",
             "protocol_dev": "Completeness", "missing_visit": "Completeness",
             "coding_pending": "Coding Score", "signature_gap": "Completeness",
             "sdv_incomplete": "SDV Score"
         }
         
         priority_map = {
-            "sae_pending": "High", "missing_ae": "High", "open_query": "High",
+            "sae_pending": "High", "missing_ae": "High", "open_queries": "High",
             "missing_labs": "Medium", "protocol_dev": "Medium", "signature_gap": "Medium",
             "coding_pending": "Low", "missing_visit": "Medium", "sdv_incomplete": "Medium"
         }
@@ -499,9 +513,7 @@ async def create_action_plan(
             selected_issues = issues_df[issues_df["normalized_type"].isin(selected_issue_ids)]
         
         if selected_issues.empty:
-            available_types = issues_df["normalized_type"].unique().tolist() if not issues_df.empty else []
-            logger.warning(f"Action Play 400 Error: Request IDs {selected_issue_ids} not found in available types {available_types}")
-            raise HTTPException(status_code=400, detail=f"No matching issues found for selected IDs. Available: {available_types}")
+            raise HTTPException(status_code=400, detail="No matching issues found for selected IDs")
         
         # Generate action plan
         actions = []
@@ -512,7 +524,7 @@ async def create_action_plan(
         role_map = {
             "missing_ae": "Data Manager", "sae_pending": "Safety Associate",
             "missing_labs": "Data Manager", "lab_issue": "Lab Coordinator",
-            "open_query": "CRA", "query_response": "Site Coordinator",
+            "open_queries": "CRA", "query_response": "Site Coordinator",
             "protocol_dev": "Study Manager", "missing_visit": "Site Coordinator",
             "coding_pending": "Medical Coder", "signature_gap": "Site Coordinator",
             "sdv_incomplete": "CRA"
@@ -530,7 +542,7 @@ async def create_action_plan(
             # Calculate effort based on issue type
             effort_per_issue = {
                 "missing_ae": 15, "sae_pending": 45, "missing_labs": 20,
-                "lab_issue": 15, "open_query": 10, "query_response": 10,
+                "lab_issue": 15, "open_queries": 10, "query_response": 10,
                 "protocol_dev": 30, "missing_visit": 25, "coding_pending": 8,
                 "signature_gap": 10, "sdv_incomplete": 20
             }
@@ -543,7 +555,7 @@ async def create_action_plan(
             total_dqi_impact += dqi_gain
             
             # Priority based on issue type
-            priority = "High" if issue_type in ["sae_pending", "missing_ae", "open_query"] else "Medium"
+            priority = "High" if issue_type in ["sae_pending", "missing_ae", "open_queries"] else "Medium"
             
             actions.append({
                 "id": f"ACT-{site_id}-{issue_type[:8].upper()}",

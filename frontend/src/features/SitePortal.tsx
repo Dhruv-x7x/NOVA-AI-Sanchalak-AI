@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { sitesApi, studiesApi } from '@/services/api';
+import SanchalakLoader from '@/components/SanchalakLoader';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -107,11 +108,11 @@ export default function SitePortal() {
   const [selectedIssues, setSelectedIssues] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const { selectedStudy } = useAppStore();
-  const [selectedSiteId, setSelectedSiteId] = useState<string>('');
+  const [selectedSiteId, setSelectedSiteId] = useState<string>('all');
   const [completedTaskIds, setCompletedTaskIds] = useState<string[]>([]);
   const queryClient = useQueryClient();
 
-  const { data: sitesResponse } = useQuery({
+  const { data: sitesResponse, isLoading: sitesLoading } = useQuery({
     queryKey: ['sites', selectedStudy],
     queryFn: () => sitesApi.list({ study_id: selectedStudy }),
   });
@@ -124,15 +125,13 @@ export default function SitePortal() {
 
   // Set initial selected site if empty
   useEffect(() => {
-    if (!selectedSiteId && sites.length > 0) {
-      setSelectedSiteId(sites[0].site_id);
-    }
+    if (!selectedSiteId) setSelectedSiteId('all');
   }, [sites, selectedSiteId]);
 
   const { data: siteDetails } = useQuery({
     queryKey: ['site-details', selectedSiteId],
     queryFn: () => sitesApi.get(selectedSiteId),
-    enabled: !!selectedSiteId,
+    enabled: !!selectedSiteId && selectedSiteId !== 'all',
   });
 
   const { data: portalData } = useQuery({
@@ -172,15 +171,15 @@ export default function SitePortal() {
     name: sitePortal.name || siteDetails?.name || selectedSiteId,
     pi_name: sitePortal.pi_name || siteDetails?.principal_investigator || 'N/A',
     coordinator_name: sitePortal.coordinator_name || siteDetails?.coordinator_name || 'N/A',
-    cra_name: 'Sarah Johnson',
-    cra_email: 'sarah.johnson@pharma.com',
-    cra_phone: '+1 555-0123',
-    dqi_score: metrics.dqi_score ?? 85.0,
+    cra_name: sitePortal.coordinator_name || siteDetails?.coordinator_name || 'N/A',
+    cra_email: siteDetails?.coordinator_email || siteDetails?.pi_email || '',
+    cra_phone: '',
+    dqi_score: metrics.dqi_score ?? 0.0,
     clean_rate: metrics.clean_rate ?? 0.0,
     db_lock_ready: metrics.db_lock_ready ?? 0.0,
     open_issues: metrics.open_issues ?? 0,
     patients_enrolled: metrics.enrolled ?? 0,
-    target_enrollment: metrics.target ?? 25,
+    target_enrollment: metrics.target ?? 0,
   };
 
   // Action items derived from API
@@ -217,12 +216,6 @@ export default function SitePortal() {
         unread: m.unread ?? false,
         starred: m.starred ?? false,
       })));
-    } else if (messages.length === 0 && !portalData) {
-      // Default messages only if API failed or returned nothing
-      setMessages([
-        { id: '1', from: 'Sarah Johnson (CRA)', role: 'CRA', subject: 'Upcoming monitoring visit', body: 'Please ensure all source documents are available for the next monitoring visit.', date: 'Today', unread: true, starred: true },
-        { id: '2', from: 'Study Team', role: 'Global', subject: 'Protocol Amendment v3.2', body: 'Please review the updated inclusion criteria.', date: '1 day ago', unread: true, starred: false },
-      ]);
     }
   }, [portalData]);
 
@@ -285,8 +278,12 @@ export default function SitePortal() {
     if (studyDetails?.end_date) {
       return new Date(studyDetails.end_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     }
-    return 'March 15, 2024'; // Fallback
+    return null;
   }, [studyDetails]);
+
+  if (sitesLoading) {
+    return <SanchalakLoader size="lg" label="Loading site portal..." fullPage />;
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -305,9 +302,12 @@ export default function SitePortal() {
               <SelectValue placeholder="Select Site" />
             </SelectTrigger>
             <SelectContent className="bg-nexus-card border-nexus-border text-white">
+              <SelectItem key="all" value="all">
+                Global Portfolio
+              </SelectItem>
               {sites.map((site: any) => (
                 <SelectItem key={site.site_id} value={site.site_id}>
-                  {site.site_id} - {site.name}
+                  {site.site_id !== site.name ? `${site.site_id} - ${site.name}` : site.site_id}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -373,7 +373,7 @@ export default function SitePortal() {
             <Calendar className="w-4 h-4 mr-2" />
             Schedule Visit
           </Button>
-          <Button variant="outline" className="border-nexus-border text-white hover:bg-nexus-card" onClick={() => alert('Contacting Sarah Johnson (CRA)...')}>
+          <Button variant="outline" className="border-nexus-border text-white hover:bg-nexus-card" onClick={() => alert('Contacting CRA...')}>
             <MessageSquare className="w-4 h-4 mr-2" />
             Contact CRA
           </Button>
@@ -460,9 +460,11 @@ export default function SitePortal() {
               <h3 className="text-lg font-semibold text-white">Overall Completion Progress</h3>
               <p className="text-sm text-nexus-text-secondary">Tracking towards database lock</p>
             </div>
-            <Badge variant="info" className="text-sm">
-              Target: {targetDate}
-            </Badge>
+            {targetDate && (
+              <Badge variant="info" className="text-sm">
+                Target: {targetDate}
+              </Badge>
+            )}
           </div>
           <div className="space-y-4">
             <div>
@@ -691,40 +693,49 @@ export default function SitePortal() {
               <CardContent className="pt-4">
                 <div className="flex items-center gap-5 p-4 rounded-xl bg-nexus-card-hover border border-nexus-border">
                   <div className="w-16 h-16 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center shadow-lg shadow-teal-500/20">
-                    <span className="text-2xl font-bold text-white">SJ</span>
+                    <span className="text-2xl font-bold text-white">
+                      {(
+                        (currentSite.cra_name || '')
+                          .split(' ')
+                          .filter(Boolean)
+                          .slice(0, 2)
+                          .map(s => s[0])
+                          .join('')
+                          .toUpperCase() || 'NA'
+                      )}
+                    </span>
                   </div>
                   <div>
                     <p className="text-xl font-bold text-white">{currentSite.cra_name}</p>
                     <p className="text-sm text-teal-400 font-medium">Assigned CRA</p>
-                    <div className="flex items-center gap-3 mt-2">
-                      <Badge className="bg-success-500/10 text-success-400 border-success-500/20 text-[10px]">ONLINE</Badge>
-                      <span className="text-xs text-nexus-text-muted">Response time: ~2h</span>
-                    </div>
                   </div>
                 </div>
                 <div className="mt-6 space-y-3">
                   <Button
                     variant="outline"
                     className="w-full justify-between h-12 border-nexus-border bg-nexus-card/50 hover:bg-nexus-card text-white group"
-                    onClick={() => window.location.href = `mailto:${currentSite.cra_email}`}
+                    disabled={!currentSite.cra_email}
+                    onClick={() => currentSite.cra_email && (window.location.href = `mailto:${currentSite.cra_email}`)}
                   >
                     <div className="flex items-center">
                       <Mail className="w-4 h-4 mr-3 text-teal-400" />
-                      <span className="text-sm font-medium">{currentSite.cra_email}</span>
+                      <span className="text-sm font-medium">{currentSite.cra_email || 'No email on file'}</span>
                     </div>
                     <ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-all" />
                   </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-between h-12 border-nexus-border bg-nexus-card/50 hover:bg-nexus-card text-white group"
-                    onClick={() => window.location.href = `tel:${currentSite.cra_phone}`}
-                  >
-                    <div className="flex items-center">
-                      <Phone className="w-4 h-4 mr-3 text-success-400" />
-                      <span className="text-sm font-medium">{currentSite.cra_phone}</span>
-                    </div>
-                    <ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-all" />
-                  </Button>
+                  {currentSite.cra_phone && (
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between h-12 border-nexus-border bg-nexus-card/50 hover:bg-nexus-card text-white group"
+                      onClick={() => window.location.href = `tel:${currentSite.cra_phone}`}
+                    >
+                      <div className="flex items-center">
+                        <Phone className="w-4 h-4 mr-3 text-success-400" />
+                        <span className="text-sm font-medium">{currentSite.cra_phone}</span>
+                      </div>
+                      <ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-all" />
+                    </Button>
+                  )}
                 </div>
                 <Button className="w-full mt-6 bg-teal-600 hover:bg-teal-700 text-white h-11 font-bold shadow-lg shadow-teal-600/20">
                   <MessageSquare className="w-4 h-4 mr-2" />
