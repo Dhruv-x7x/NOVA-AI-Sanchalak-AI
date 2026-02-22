@@ -1,5 +1,5 @@
 """
-Agent State Schema for SANCHALAK AI
+Agent State Schema for a6on-i
 Phase 5.2: LangGraph Agent Framework
 
 Defines the shared state that flows between all agents in the orchestration graph.

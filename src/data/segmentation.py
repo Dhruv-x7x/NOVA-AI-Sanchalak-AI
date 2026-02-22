@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Population Segmentation Engine v1.0
+a6on-i - Population Segmentation Engine v1.0
 Phase 1.4: Patient Segmentation & Cohort Creation
 
 Features:
@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 
 class PopulationSegmenter:
     """
-    Population Segmentation Engine for SANCHALAK AI
+    Population Segmentation Engine for a6on-i
     
     Segments:
     1. By Subject Status (Ongoing, Completed, Discontinued, etc.)
@@ -598,7 +598,7 @@ class PopulationSegmenter:
         Run complete segmentation pipeline
         """
         logger.info("\n" + "=" * 70)
-        logger.info("SANCHALAK AI - POPULATION SEGMENTATION ENGINE v1.0")
+        logger.info("a6on-i - POPULATION SEGMENTATION ENGINE v1.0")
         logger.info("=" * 70)
         
         start_time = datetime.now()

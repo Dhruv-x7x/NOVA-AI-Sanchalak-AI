@@ -38,7 +38,7 @@ export default function AIAssistant() {
     const saved = localStorage.getItem('nexus_ai_chat');
     return saved ? JSON.parse(saved) : [
       {
-        content: 'Hello! I\'m your Sanchalak AI Assistant. I use a swarm of 6 specialized agents to analyze your clinical trial data in real-time.\n\nHow can I help you today?',
+        content: 'Hello! I\'m your a6on-i Assistant. I use a swarm of 6 specialized agents to analyze your clinical trial data in real-time.\n\nHow can I help you today?',
       },
     ];
   });
@@ -112,7 +112,7 @@ export default function AIAssistant() {
           <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
             <Bot className="w-5 h-5 text-indigo-400" />
           </div>
-          Sanchalak AI Assistant
+          a6on-i Assistant
         </h1>
         <Button variant="outline" size="sm" onClick={handleClear} className="border-nexus-border hover:bg-error-500/10 hover:text-error-400 h-9">
           <Eraser className="w-4 h-4 mr-2" /> New Conversation
@@ -215,7 +215,7 @@ export default function AIAssistant() {
             <div className="p-4 bg-nexus-card border-t border-nexus-border/50">
               <div className="flex gap-2 bg-nexus-bg/50 border border-nexus-border p-1.5 rounded-full focus-within:border-indigo-500/40 focus-within:ring-1 focus-within:ring-indigo-500/20 transition-all">
                 <Input
-                  placeholder="Ask Sanchalak AI Assistant..."
+                  placeholder="Ask a6on-i Assistant..."
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSend()}

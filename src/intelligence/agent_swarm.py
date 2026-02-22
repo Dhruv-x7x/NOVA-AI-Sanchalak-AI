@@ -44,7 +44,7 @@ class AgentSwarm:
         
         # Default if site not found
         dqi = metrics.get('avg_dqi', 0) if metrics else 0
-        queries = metrics.get('total_queries', 0)
+        queries = metrics.get('total_queries', 0) if metrics else 0
         
         trace.append(AgentStep(
             "Diagnostic",

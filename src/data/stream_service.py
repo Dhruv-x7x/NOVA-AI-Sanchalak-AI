@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Real-Time Data Streaming Service
+a6on-i - Real-Time Data Streaming Service
 Integrates with Kafka for live event ingestion using standardized internal framework.
 """
 

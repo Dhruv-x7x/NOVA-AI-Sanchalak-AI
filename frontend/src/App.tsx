@@ -4,10 +4,10 @@ import { useAuthStore } from '@/stores/authStore';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import Layout from '@/components/Layout';
 import LoginPage from '@/features/LoginPage';
-import SanchalakLoader from '@/components/SanchalakLoader';
+import A6onLoader from '@/components/a6on_iLoader';
 
-class ErrorBoundary extends Component<{children: ReactNode}, {hasError: boolean}> {
-  constructor(props: {children: ReactNode}) {
+class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode }) {
     super(props);
     this.state = { hasError: false };
   }
@@ -19,11 +19,11 @@ class ErrorBoundary extends Component<{children: ReactNode}, {hasError: boolean}
           <div className="text-center">
             <h2 className="text-2xl font-bold mb-4">Module Loading Error</h2>
             <p className="text-nexus-text-secondary mb-6">Failed to load the requested intelligence module. This may be due to a network issue or a system update.</p>
-            <button 
-              onClick={() => window.location.reload()} 
+            <button
+              onClick={() => window.location.reload()}
               className="px-6 py-2 bg-indigo-600 rounded-lg hover:bg-indigo-500 font-bold"
             >
-              Reload Sanchalak AI
+              Reload a6on-i
             </button>
           </div>
         </div>
@@ -51,7 +51,7 @@ const SettingsPage = lazy(() => import('@/features/SettingsPage'));
 const DigitalTwin = lazy(() => import('@/features/DigitalTwin'));
 
 function PageLoader() {
-  return <SanchalakLoader size="lg" label="Loading module..." fullPage />;
+  return <A6onLoader size="lg" label="Loading module..." fullPage />;
 }
 
 // Prefetch common route chunks immediately after authentication
@@ -70,7 +70,7 @@ function prefetchRoutes() {
     () => import('@/features/AIAssistant'),
   ];
   setTimeout(() => {
-    routes.forEach((importFn) => importFn().catch(() => {}));
+    routes.forEach((importFn) => importFn().catch(() => { }));
   }, 100);
 }
 
@@ -87,7 +87,7 @@ function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode;
   if (isLoading) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-[#0a0a0c]">
-        <SanchalakLoader size="xl" label="Initializing Sanchalak AI..." />
+        <A6onLoader size="xl" label="Initializing a6on-i..." />
       </div>
     );
   }
@@ -135,188 +135,188 @@ export default function App() {
         <Routes>
           <Route
             path="/login"
-          element={
-            isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />
-          }
-        />
+            element={
+              isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />
+            }
+          />
 
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <RoleBasedRedirect />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <RoleBasedRedirect />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/executive"
-          element={
-            <ProtectedRoute allowedRoles={['executive', 'lead']}>
-              <Suspense fallback={<PageLoader />}>
-                <ExecutiveOverview />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/executive"
+            element={
+              <ProtectedRoute allowedRoles={['executive', 'lead']}>
+                <Suspense fallback={<PageLoader />}>
+                  <ExecutiveOverview />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/study-lead"
-          element={
-            <ProtectedRoute allowedRoles={['lead']}>
-              <Suspense fallback={<PageLoader />}>
-                <StudyLead />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/study-lead"
+            element={
+              <ProtectedRoute allowedRoles={['lead']}>
+                <Suspense fallback={<PageLoader />}>
+                  <StudyLead />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/dm-hub"
-          element={
-            <ProtectedRoute allowedRoles={['dm', 'lead']}>
-              <Suspense fallback={<PageLoader />}>
-                <DMHub />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/dm-hub"
+            element={
+              <ProtectedRoute allowedRoles={['dm', 'lead']}>
+                <Suspense fallback={<PageLoader />}>
+                  <DMHub />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/cra-view"
-          element={
-            <ProtectedRoute allowedRoles={['cra', 'lead']}>
-              <Suspense fallback={<PageLoader />}>
-                <CRAView />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/cra-view"
+            element={
+              <ProtectedRoute allowedRoles={['cra', 'lead']}>
+                <Suspense fallback={<PageLoader />}>
+                  <CRAView />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/coder-view"
-          element={
-            <ProtectedRoute allowedRoles={['coder', 'dm', 'lead']}>
-              <Suspense fallback={<PageLoader />}>
-                <CoderView />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/coder-view"
+            element={
+              <ProtectedRoute allowedRoles={['coder', 'dm', 'lead']}>
+                <Suspense fallback={<PageLoader />}>
+                  <CoderView />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/safety-view"
-          element={
-            <ProtectedRoute allowedRoles={['safety', 'lead']}>
-              <Suspense fallback={<PageLoader />}>
-                <SafetyView />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/safety-view"
+            element={
+              <ProtectedRoute allowedRoles={['safety', 'lead']}>
+                <Suspense fallback={<PageLoader />}>
+                  <SafetyView />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/site-portal"
-          element={
-            <ProtectedRoute allowedRoles={['cra', 'lead', 'executive']}>
-              <Suspense fallback={<PageLoader />}>
-                <SitePortal />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/site-portal"
+            element={
+              <ProtectedRoute allowedRoles={['cra', 'lead', 'executive']}>
+                <Suspense fallback={<PageLoader />}>
+                  <SitePortal />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/reports"
-          element={
-            <ProtectedRoute allowedRoles={['lead', 'executive', 'dm', 'coder', 'safety']}>
-              <Suspense fallback={<PageLoader />}>
-                <Reports />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/reports"
+            element={
+              <ProtectedRoute allowedRoles={['lead', 'executive', 'dm', 'coder', 'safety']}>
+                <Suspense fallback={<PageLoader />}>
+                  <Reports />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/ml-governance"
-          element={
-            <ProtectedRoute allowedRoles={['lead', 'executive']}>
-              <Suspense fallback={<PageLoader />}>
-                <MLGovernance />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/ml-governance"
+            element={
+              <ProtectedRoute allowedRoles={['lead', 'executive']}>
+                <Suspense fallback={<PageLoader />}>
+                  <MLGovernance />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/cascade-explorer"
-          element={
-            <ProtectedRoute allowedRoles={['lead', 'executive', 'dm']}>
-              <Suspense fallback={<PageLoader />}>
-                <CascadeExplorer />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/cascade-explorer"
+            element={
+              <ProtectedRoute allowedRoles={['lead', 'executive', 'dm']}>
+                <Suspense fallback={<PageLoader />}>
+                  <CascadeExplorer />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/digital-twin"
-          element={
-            <ProtectedRoute allowedRoles={['lead', 'executive']}>
-              <Suspense fallback={<PageLoader />}>
-                <DigitalTwin />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/digital-twin"
+            element={
+              <ProtectedRoute allowedRoles={['lead', 'executive']}>
+                <Suspense fallback={<PageLoader />}>
+                  <DigitalTwin />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/hypothesis-explorer"
-          element={
-            <ProtectedRoute>
-              <Suspense fallback={<PageLoader />}>
-                <HypothesisExplorer />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/hypothesis-explorer"
+            element={
+              <ProtectedRoute>
+                <Suspense fallback={<PageLoader />}>
+                  <HypothesisExplorer />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/collaboration-hub"
-          element={
-            <ProtectedRoute>
-              <Suspense fallback={<PageLoader />}>
-                <CollaborationHub />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/collaboration-hub"
+            element={
+              <ProtectedRoute>
+                <Suspense fallback={<PageLoader />}>
+                  <CollaborationHub />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/ai-assistant"
-          element={
-            <ProtectedRoute>
-              <Suspense fallback={<PageLoader />}>
-                <AIAssistant />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/ai-assistant"
+            element={
+              <ProtectedRoute>
+                <Suspense fallback={<PageLoader />}>
+                  <AIAssistant />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/settings"
-          element={
-            <ProtectedRoute>
-              <Suspense fallback={<PageLoader />}>
-                <SettingsPage />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <Suspense fallback={<PageLoader />}>
+                  <SettingsPage />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
 
-        {/* Catch all - redirect to home */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+          {/* Catch all - redirect to home */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </ErrorBoundary>
     </TooltipProvider>
   );

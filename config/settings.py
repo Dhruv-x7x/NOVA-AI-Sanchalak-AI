@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Configuration Settings
+A6ON-I - Configuration Settings
 ==============================================
 """
 

@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - UPR Real-time Updater
+a6on-i - UPR Real-time Updater
 =========================================
 Apply streaming events to PostgreSQL database in real-time.
 """

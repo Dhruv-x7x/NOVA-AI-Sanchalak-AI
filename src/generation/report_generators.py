@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Report Generators v1.9
+a6on-i - Report Generators v1.9
 Generates PDF, Word, and PowerPoint reports from templates.
 RECALIBRATED: Absolute synchronization with PostgreSQL UPR ground truth.
 """

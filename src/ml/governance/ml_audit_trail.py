@@ -6,7 +6,7 @@
 
 
 """
-SANCHALAK AI - ML Audit Trail v1.0
+a6on-i - ML Audit Trail v1.0
 21 CFR Part 11 Compliant Audit Logging for ML Systems
 
 FDA 21 CFR Part 11 Requirements Addressed:
@@ -142,7 +142,7 @@ class MLActor:
         return cls(
             actor_id="SYSTEM",
             actor_type=ActorType.SYSTEM,
-            name="Sanchalak AI System"
+            name="a6on-i System"
         )
 
 

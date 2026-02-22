@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { analyticsApi } from '@/services/api';
-import SanchalakLoader from '@/components/SanchalakLoader';
+import A6onLoader from '@/components/a6on_iLoader';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,7 +19,7 @@ export default function HypothesisExplorer() {
   });
 
   if (patternsLoading) {
-    return <SanchalakLoader size="lg" label="Loading hypothesis patterns..." fullPage />;
+    return <A6onLoader size="lg" label="Loading hypotheses..." fullPage />;
   }
 
   return (
@@ -97,14 +97,12 @@ export default function HypothesisExplorer() {
               <div key={alert.pattern_id} className="p-4 border rounded-lg">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
-                    <div className={`p-2 rounded-lg ${
-                      alert.severity === 'high' ? 'bg-error-50' : 
-                      alert.severity === 'medium' ? 'bg-warning-50' : 'bg-primary-50'
-                    }`}>
-                      <AlertCircle className={`w-5 h-5 ${
-                        alert.severity === 'high' ? 'text-error-600' : 
-                        alert.severity === 'medium' ? 'text-warning-600' : 'text-primary'
-                      }`} />
+                    <div className={`p-2 rounded-lg ${alert.severity === 'high' ? 'bg-error-50' :
+                        alert.severity === 'medium' ? 'bg-warning-50' : 'bg-primary-50'
+                      }`}>
+                      <AlertCircle className={`w-5 h-5 ${alert.severity === 'high' ? 'text-error-600' :
+                          alert.severity === 'medium' ? 'text-warning-600' : 'text-primary'
+                        }`} />
                     </div>
                     <div>
                       <h4 className="font-medium text-gray-100">{alert.pattern_name}</h4>
@@ -117,8 +115,8 @@ export default function HypothesisExplorer() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge variant={
-                      alert.severity === 'high' ? 'error' : 
-                      alert.severity === 'medium' ? 'warning' : 'info'
+                      alert.severity === 'high' ? 'error' :
+                        alert.severity === 'medium' ? 'warning' : 'info'
                     }>
                       {alert.severity}
                     </Badge>

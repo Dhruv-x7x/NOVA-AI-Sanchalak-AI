@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { analyticsApi, issuesApi, studiesApi } from '@/services/api';
 import { useAppStore } from '@/stores/appStore';
-import SanchalakLoader from '@/components/SanchalakLoader';
+import A6onLoader from '@/components/a6on_iLoader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -459,7 +459,7 @@ export default function ExecutiveOverview() {
           </div>
           <p className="text-nexus-text-muted font-mono text-sm">// PORTFOLIO_INTELLIGENCE_v10.0</p>
         </div>
-        <SanchalakLoader size="lg" label="Loading portfolio intelligence..." fullPage />
+        <A6onLoader size="lg" label="Loading portfolio intelligence..." fullPage />
       </div>
     );
   }
@@ -551,7 +551,7 @@ export default function ExecutiveOverview() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 fade-in">
       {/* Header */}
       <div>
         <div className="flex items-center gap-3 mb-2">

@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Training Data Preparation
+a6on-i - Training Data Preparation
 ==============================================
 Generate fine-tuning training data from your clinical trial database.
 """

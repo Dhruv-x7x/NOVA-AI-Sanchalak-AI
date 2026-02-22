@@ -1,14 +1,14 @@
-# Product Requirement Document (PRD) - NOVA-AI Sanchalak
+# Product Requirement Document (PRD) - NOVA-AI a6on-i
 
 ## 1. Product Overview
-**NOVA-AI Sanchalak** is an advanced AI-driven Clinical Trial Management and Orchestration platform. It leverages a sophisticated multi-agent architecture to automate complex workflows, detect anomalies in clinical data, and predict trial outcomes with high precision. The "Sanchalak" (Sanskrit for "Conductor" or "Controller") launcher provides a unified, cross-platform interface for managing the entire ecosystem, including database orchestration and service lifecycle.
+**NOVA-AI a6on-i** is an advanced AI-driven Clinical Trial Management and Orchestration platform. It leverages a sophisticated multi-agent architecture to automate complex workflows, detect anomalies in clinical data, and predict trial outcomes with high precision. The "a6on-i" (Sanskrit for "Conductor" or "Controller") launcher provides a unified, cross-platform interface for managing the entire ecosystem, including database orchestration and service lifecycle.
 
 ## 2. Problem Statement
 Clinical trials suffer from data Silos, manual oversight bottlenecks, and delayed risk identification. Coordinating between sites, patients, and regulatory requirements involves immense manual labor and high error rates.
 
 ## 3. Core Features
 
-### 3.1 Sanchalak Launcher (Unified Command Center)
+### 3.1 a6on-i Launcher (Unified Command Center)
 - **Multi-Mode Operation**: Supports both local PostgreSQL and Docker-based containerized database environments.
 - **Auto-Detect Technology**: Automatically identifies system capabilities (Node.js, Python, Docker) and configures the environment accordingly.
 - **Service Orchestration**: Manages the synchronized startup of the FastAPI backend and Vite frontend.
@@ -55,7 +55,7 @@ Integrated ML modules located in `src/ml` provide deep intelligence:
 1. **Clinical Trial Manager**: Uses the Forecaster and Supervisor to oversee multi-site trial progress.
 2. **Site Operations Lead**: Monitors Site Risk and DQI scores via the dashboard.
 3. **Data Scientist**: Refines ML models and monitors Anomaly Detector performance.
-4. **IT Administrator**: Uses Sanchalak launcher for deployment and infrastructure management.
+4. **IT Administrator**: Uses a6on-i launcher for deployment and infrastructure management.
 
 ## 6. Future Roadmap
 - **Real-time Streaming**: Enhanced site telemetry via the `streaming` module.

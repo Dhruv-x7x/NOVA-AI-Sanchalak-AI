@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Digital Twin Service Layer
+a6on-i - Digital Twin Service Layer
 
 Provides unified access to all Digital Twin capabilities for
 dashboard integration and agent tools.

@@ -1,4 +1,4 @@
-﻿import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useState, Fragment, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAppStore } from '@/stores/appStore';
@@ -147,7 +147,7 @@ function DigitalTwinTeaser({ patients }: { patients?: { items?: Patient[] } }) {
                         {dbLockStats.lockDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                      </h3>
                      <p className="text-xs text-nexus-text-secondary">
-                        Estimated lock date • <span className="text-emerald-400 font-bold">{dbLockStats.daysToLock} days</span> remaining
+                        Estimated lock date � <span className="text-emerald-400 font-bold">{dbLockStats.daysToLock} days</span> remaining
                      </p>
                   </div>
 

@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Phase 9.3: Resource Optimizer v1.0
+a6on-i - Phase 9.3: Resource Optimizer v1.0
 
 Optimal resource allocation for clinical trial operations using
 linear programming and constraint optimization.
@@ -11,7 +11,7 @@ Features:
 - Impact projection with uncertainty
 - Actionable recommendations
 
-Author: Sanchalak AI Team
+Author: a6on-i Team
 Date: 2026-01-02
 """
 
@@ -1379,7 +1379,7 @@ def get_resource_stats() -> Dict[str, Any]:
 def test_resource_optimizer():
     """Test the Resource Optimizer."""
     print("=" * 70)
-    print("SANCHALAK AI - RESOURCE OPTIMIZER TEST")
+    print("a6on-i - RESOURCE OPTIMIZER TEST")
     print("=" * 70)
     
     tests_passed = 0

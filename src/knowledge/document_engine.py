@@ -192,6 +192,9 @@ class GenerativeDocumentEngine:
 
     def _normalize_sections(self, report_data: dict, metrics: dict) -> dict:
         """Guarantee all required sections exist with minimum viable content."""
+        if not isinstance(metrics, dict):
+            metrics = {}
+            
         dqi = float(metrics.get('mean_dqi', metrics.get('dqi', 85)) or 85)
         clean = float(metrics.get('clean_rate', 0) or 0)
         tp = int(metrics.get('total_patients', 0) or 0)
@@ -289,7 +292,7 @@ class GenerativeDocumentEngine:
         study_table_text = _build_study_table_text(study_breakdown)
         
         # 3. Build professional DeepAnalyze prompt
-        system_prompt = f"""You are the Sanchalak AI Generative Document Engine — an expert Clinical Data Manager, Medical Monitor, and Regulatory Affairs specialist.
+        system_prompt = f"""You are the a6on-i Generative Document Engine — an expert Clinical Data Manager, Medical Monitor, and Regulatory Affairs specialist.
 
 Your task: produce a publication-quality Clinical Data Management report following the DeepAnalyze Protocol.
 
@@ -403,6 +406,9 @@ Return ONLY the JSON object."""
     def _generate_fallback_narrative(self, report_type: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Comprehensive rule-based fallback for when AI fails or is unavailable."""
         metrics = context.get('metrics', context)
+        if not isinstance(metrics, dict):
+            metrics = {}
+            
         raw_data = context.get('raw_data', {})
         study_breakdown = raw_data.get('study_breakdown', context.get('study_breakdown', []))
         

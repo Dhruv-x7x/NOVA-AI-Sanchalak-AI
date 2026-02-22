@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - ML Module
+a6on-i - ML Module
 Phase 3: Intelligence Engines
 
 Components:

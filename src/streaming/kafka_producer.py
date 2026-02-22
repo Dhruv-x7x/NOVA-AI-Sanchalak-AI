@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Kafka Event Producer
+a6on-i - Kafka Event Producer
 ========================================
 Publish events to Kafka topics for real-time processing.
 """
@@ -61,7 +61,7 @@ class MockKafkaProducer:
 
 class EventProducer:
     """
-    Kafka event producer for publishing Sanchalak AI events.
+    Kafka event producer for publishing a6on-i events.
     
     Usage:
         producer = get_event_producer()

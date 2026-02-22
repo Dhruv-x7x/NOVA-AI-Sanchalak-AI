@@ -30,7 +30,7 @@ export default function StartupLoader({ children }: StartupLoaderProps) {
           const data: StartupStatus = await res.json();
           setStatus(data);
           setError(null);
-          
+
           if (data.ready) {
             // Start fade out animation
             setFadeOut(true);
@@ -70,36 +70,56 @@ export default function StartupLoader({ children }: StartupLoaderProps) {
   const details = status?.details ?? 'Connecting to server...';
 
   return (
-    <div 
+    <div
       className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#0a0a0c] transition-opacity duration-500 ${fadeOut ? 'opacity-0' : 'opacity-100'}`}
     >
+      {/* Background Video */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover opacity-20 z-0"
+      >
+        <source src="/clinical_trail.mp4" type="video/mp4" />
+      </video>
+
       {/* Logo/Title */}
-      <div className="mb-8 text-center">
-        <img
-          src="/loading.gif"
-          alt="Loading"
-          className="w-20 h-20 object-contain mx-auto mb-4"
-        />
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-          Sanchalak AI
+      <div className="relative z-10 mb-8 text-center">
+        <div className="relative w-20 h-20 mx-auto mb-4">
+          {/* CSS Spinner Fallback */}
+          <div className="absolute inset-0 rounded-full border-2 border-indigo-500/20 border-t-indigo-500 animate-spin" />
+
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="relative z-10 w-20 h-20 object-cover rounded-full"
+          >
+            <source src="/clinical_trail.mp4" type="video/mp4" />
+          </video>
+        </div>
+        <h1 className="relative z-10 text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+          a6on-i
         </h1>
-        <p className="text-xs text-gray-500 mt-1 font-mono uppercase tracking-widest">
+        <p className="relative z-10 text-xs text-gray-500 mt-1 font-mono uppercase tracking-widest">
           Clinical Intelligence Platform
         </p>
       </div>
 
       {/* Progress Container */}
-      <div className="w-80 space-y-4">
+      <div className="relative z-10 w-80 space-y-4">
         {/* Progress Bar */}
         <div className="relative h-2 bg-gray-800 rounded-full overflow-hidden">
-          <div 
+          <div
             className="absolute inset-y-0 left-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full transition-all duration-300 ease-out"
             style={{ width: `${percent}%` }}
           />
           {/* Shimmer effect */}
-          <div 
+          <div
             className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"
-            style={{ 
+            style={{
               width: `${percent}%`,
               animation: 'shimmer 1.5s infinite'
             }}
@@ -125,9 +145,9 @@ export default function StartupLoader({ children }: StartupLoaderProps) {
       </div>
 
       {/* Animated dots */}
-      <div className="mt-12 flex gap-2">
+      <div className="relative z-10 mt-12 flex gap-2">
         {[0, 1, 2].map((i) => (
-          <div 
+          <div
             key={i}
             className="w-2 h-2 rounded-full bg-indigo-500/50"
             style={{

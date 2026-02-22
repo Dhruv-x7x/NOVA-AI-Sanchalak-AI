@@ -6,7 +6,7 @@
 
 
 """
-SANCHALAK AI - ML Model Registry v1.0
+a6on-i - ML Model Registry v1.0
 Version Control and Artifact Management for ML Models
 
 Features:

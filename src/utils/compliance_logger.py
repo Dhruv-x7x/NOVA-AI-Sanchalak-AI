@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Compliance & Audit Engine (21 CFR Part 11)
+a6on-i - Compliance & Audit Engine (21 CFR Part 11)
 ============================================================
 Ensures all data modifications are logged with non-repudiation hashing.
 """

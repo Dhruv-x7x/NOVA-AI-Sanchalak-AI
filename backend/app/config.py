@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     )
     
     # App
-    APP_NAME: str = "Sanchalak AI API"
+    APP_NAME: str = "a6on-i API"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = True
     
@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     ALLOW_ANONYMOUS_ACCESS: bool = False  # Allow requests without auth in test mode
     
     # Security
-    SECRET_KEY: str = "prod-sanchalak-ai-secure-key-2024-v1"
+    SECRET_KEY: str = "prod-a6on-i-ai-secure-key-2024-v1"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7

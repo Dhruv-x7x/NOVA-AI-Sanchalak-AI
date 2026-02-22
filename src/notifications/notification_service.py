@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Notification Service
+a6on-i - Notification Service
 ========================================
 PostgreSQL-backed notification queue system.
 

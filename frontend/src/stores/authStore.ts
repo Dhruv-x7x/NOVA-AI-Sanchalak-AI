@@ -71,7 +71,7 @@ export const useAuthStore = create<AuthState>()(
       },
     }),
     {
-      name: 'sanchalak-auth',
+      name: 'a6on-i-auth',
       onRehydrateStorage: () => (state) => {
         state?.setLoading(false);
       },

@@ -1,6 +1,6 @@
 # src/orchestration/__init__.py
 """
-SANCHALAK AI - Orchestration Module
+a6on-i - Orchestration Module
 
 Phase 11: End-to-End Integration
 - 11.1 Pipeline Orchestration

@@ -1,5 +1,5 @@
 """
-Tool Registry for SANCHALAK AI
+Tool Registry for a6on-i
 Phase 5.2: LangGraph Agent Framework - FIXED
 
 Defines the tools that agents can use to interact with data and systems.

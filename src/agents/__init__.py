@@ -1,6 +1,6 @@
 # src/agents/__init__.py
 """
-SANCHALAK AI - Agents Module
+a6on-i - Agents Module
 
 Contains:
 - LLMWrapper: Unified LLM interface (Ollama/Groq)

@@ -1,5 +1,5 @@
 """
-Cross-Study Pattern Matcher Service for SANCHALAK AI
+Cross-Study Pattern Matcher Service for a6on-i
 Provides a singleton interface to the Pattern Matcher for dashboard and agents.
 
 Version: 1.0 - Initial Integration

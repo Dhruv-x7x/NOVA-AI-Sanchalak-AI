@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - RBAC Authorization
+a6on-i - RBAC Authorization
 ======================================
 Role-based access control with permission checking.
 """

@@ -26,7 +26,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 def get_password_hash(password: str) -> str:
     """Generate password hash using SHA256"""
     # Simple hash for demo - in production use bcrypt with proper version
-    salt = "sanchalak_ai_salt_2024"
+    salt = "a6on-i_ai_salt_2024"
     return hashlib.sha256(f"{salt}{password}".encode()).hexdigest()
 
 

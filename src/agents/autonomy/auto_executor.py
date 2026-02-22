@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Auto Executor v2.0
+a6on-i - Auto Executor v2.0
 ======================================
 Automatically execute safe, low-risk agent actions with real database operations.
 """

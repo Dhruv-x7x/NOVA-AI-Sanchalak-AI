@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { codingApi } from '@/services/api';
 import { useAppStore } from '@/stores/appStore';
-import SanchalakLoader from '@/components/SanchalakLoader';
+import A6onLoader from '@/components/a6on_iLoader';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -111,7 +111,7 @@ export default function CoderView() {
 
   // Mutations
   const approveMutation = useMutation({
-    mutationFn: ({ itemId, codedTerm, codedCode }: { itemId: string, codedTerm: string, codedCode: string }) => 
+    mutationFn: ({ itemId, codedTerm, codedCode }: { itemId: string, codedTerm: string, codedCode: string }) =>
       codingApi.approve(itemId, codedTerm, codedCode),
     onSuccess: (_, variables) => {
       hideItem(variables.itemId);
@@ -120,7 +120,7 @@ export default function CoderView() {
   });
 
   const escalateMutation = useMutation({
-    mutationFn: ({ itemId, reason }: { itemId: string, reason: string }) => 
+    mutationFn: ({ itemId, reason }: { itemId: string, reason: string }) =>
       codingApi.escalate(itemId, reason),
     onSuccess: (_, variables) => {
       hideItem(variables.itemId);
@@ -171,8 +171,8 @@ export default function CoderView() {
 
   // Toggle item selection
   const toggleItemSelection = (itemId: string) => {
-    setSelectedItems(prev => 
-      prev.includes(itemId) 
+    setSelectedItems(prev =>
+      prev.includes(itemId)
         ? prev.filter(id => id !== itemId)
         : [...prev, itemId]
     );
@@ -332,7 +332,7 @@ export default function CoderView() {
                   <CardDescription className="text-nexus-text-secondary">Items requiring medical coding review</CardDescription>
                 </div>
                 {highConfItems.length > 0 && (
-                  <Button 
+                  <Button
                     onClick={handleBatchApprove}
                     className="bg-gradient-to-r from-success-600 to-success-700 hover:from-success-700 hover:to-success-800"
                     disabled={approveMutation.isPending}
@@ -349,7 +349,7 @@ export default function CoderView() {
             </CardHeader>
             <CardContent>
               {(isQueueLoading || isStatsLoading) ? (
-                <SanchalakLoader size="md" label="Loading coding queue..." className="py-8" />
+                <A6onLoader size="lg" label="Loading coding repository..." fullPage className="py-8" />
               ) : pendingItems.length > 0 ? (
                 <Table>
                   <TableHeader>
@@ -395,22 +395,21 @@ export default function CoderView() {
                         <TableCell className="text-nexus-text-secondary">{item.patient_key}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <Progress 
-                              value={item.confidence_score * 100} 
+                            <Progress
+                              value={item.confidence_score * 100}
                               className="w-16 h-2"
                             />
-                            <span className={`text-xs font-medium ${
-                              item.confidence_score >= 0.9 ? 'text-success-400' :
-                              item.confidence_score >= 0.7 ? 'text-warning-400' :
-                              'text-error-400'
-                            }`}>
+                            <span className={`text-xs font-medium ${item.confidence_score >= 0.9 ? 'text-success-400' :
+                                item.confidence_score >= 0.7 ? 'text-warning-400' :
+                                  'text-error-400'
+                              }`}>
                               {(item.confidence_score * 100).toFixed(0)}%
                             </span>
                           </div>
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
-                            <Button 
+                            <Button
                               size="sm"
                               variant="outline"
                               className="h-8 px-3 border-success-500/50 text-success-400 hover:bg-success-500/10 hover:text-success-300"
@@ -424,7 +423,7 @@ export default function CoderView() {
                               <ThumbsUp className="w-4 h-4 mr-1" />
                               Approve
                             </Button>
-                            <Button 
+                            <Button
                               size="sm"
                               variant="outline"
                               className="h-8 px-3 border-error-500/50 text-error-400 hover:bg-error-500/10 hover:text-error-300"
@@ -514,26 +513,26 @@ export default function CoderView() {
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={productivityData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#2d3548" />
-                      <XAxis 
-                        dataKey="date" 
-                        tickFormatter={(v) => v.slice(5)} 
+                      <XAxis
+                        dataKey="date"
+                        tickFormatter={(v) => v.slice(5)}
                         stroke="#64748b"
                         tick={{ fill: '#94a3b8', fontSize: 12 }}
                       />
                       <YAxis stroke="#64748b" tick={{ fill: '#94a3b8' }} />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: '#1a1f2e', 
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#1a1f2e',
                           border: '1px solid #2d3548',
                           borderRadius: '8px',
                           color: '#fff'
                         }}
                       />
-                      <Area 
-                        type="monotone" 
-                        dataKey="coded" 
-                        name="Items Coded" 
-                        stroke="#8b5cf6" 
+                      <Area
+                        type="monotone"
+                        dataKey="coded"
+                        name="Items Coded"
+                        stroke="#8b5cf6"
                         fill="#8b5cf6"
                         fillOpacity={0.3}
                       />
@@ -557,7 +556,7 @@ export default function CoderView() {
                     </div>
                     <Progress value={75} className="h-2" />
                   </div>
-                  
+
                   <div className="p-4 bg-nexus-card rounded-lg border border-nexus-border">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm text-nexus-text-secondary">Today's Progress</span>

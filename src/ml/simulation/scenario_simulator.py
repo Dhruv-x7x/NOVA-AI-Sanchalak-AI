@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Phase 9.2: Scenario Simulator v1.0
+a6on-i - Phase 9.2: Scenario Simulator v1.0
 # NOTE: This module previously used SQLite but has been migrated to PostgreSQL-only.
 # If you need to use this module, update it to use:
 #   from src.database.pg_data_service import get_pg_data_service
@@ -13,7 +13,7 @@ What-if scenario simulation with Monte Carlo analysis for:
 - Process changes
 - Enrollment scenarios
 
-Author: Sanchalak AI Team
+Author: a6on-i Team
 Date: 2026-01-02
 """
 
@@ -1423,7 +1423,7 @@ def simulate_process_change(process_name: str, expected_improvement: float = 0.1
 def test_scenario_simulator():
     """Test the Scenario Simulator."""
     print("=" * 70)
-    print("SANCHALAK AI - SCENARIO SIMULATOR TEST")
+    print("a6on-i - SCENARIO SIMULATOR TEST")
     print("=" * 70)
     
     tests_passed = 0

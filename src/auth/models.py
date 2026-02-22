@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - User & Role Models
+a6on-i - User & Role Models
 ======================================
 Database models for authentication with 21 CFR Part 11 compliance.
 """

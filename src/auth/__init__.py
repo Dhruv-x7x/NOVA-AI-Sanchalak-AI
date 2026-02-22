@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Authentication Module
+a6on-i - Authentication Module
 =========================================
 21 CFR Part 11 compliant authentication with JWT and RBAC.
 """

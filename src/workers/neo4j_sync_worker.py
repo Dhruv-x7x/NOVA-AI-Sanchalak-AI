@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Knowledge Graph Sync Worker
+a6on-i - Knowledge Graph Sync Worker
 ==============================================
 Background worker to synchronize 9 heterogeneous data sources from PostgreSQL 
 into the Neo4j Knowledge Graph in real-time.

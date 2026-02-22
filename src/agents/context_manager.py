@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - LLM Context Manager
+a6on-i - LLM Context Manager
 =======================================
 Build rich context for LLM interactions including:
 - User role and permissions

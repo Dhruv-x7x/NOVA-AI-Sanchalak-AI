@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Governance Module
+a6on-i - Governance Module
 
 Phase 10: Governance & Compliance
 

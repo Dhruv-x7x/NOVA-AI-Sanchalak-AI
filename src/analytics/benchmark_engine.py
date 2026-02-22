@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Benchmark Engine v1.2 (FIXED)
+a6on-i - Benchmark Engine v1.2 (FIXED)
 Phase 2.5: Comparative Analytics and Peer Benchmarking
 
 FIXES v1.2:
@@ -518,7 +518,7 @@ class BenchmarkEngine:
     def calculate_full_benchmarks(self, df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, List[Dict]]:
         """Run complete benchmark analysis"""
         logger.info("\n" + "=" * 70)
-        logger.info("SANCHALAK AI - BENCHMARK ENGINE v1.2")
+        logger.info("a6on-i - BENCHMARK ENGINE v1.2")
         logger.info("=" * 70)
         logger.info(f"Patients: {len(df):,}")
         

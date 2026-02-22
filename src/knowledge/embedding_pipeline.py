@@ -1,6 +1,6 @@
 # src/knowledge/embedding_pipeline.py
 """
-SANCHALAK AI - Embedding Pipeline v1.3
+a6on-i - Embedding Pipeline v1.3
 Phase 4.1: Generate and manage embeddings for all knowledge artifacts
 
 FIXED v1.3: Fixed duplicate ID issue in issue_descriptions
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 class EmbeddingPipeline:
-    """Manages embedding generation for all SANCHALAK AI knowledge artifacts."""
+    """Manages embedding generation for all a6on-i knowledge artifacts."""
     
     DEFAULT_MODEL = "all-MiniLM-L6-v2"
     
@@ -463,7 +463,7 @@ class EmbeddingPipeline:
         start_time = datetime.now()
         
         logger.info("=" * 70)
-        logger.info("SANCHALAK AI - EMBEDDING PIPELINE v1.3")
+        logger.info("a6on-i - EMBEDDING PIPELINE v1.3")
         logger.info("=" * 70)
         
         self.embed_resolution_templates()
@@ -522,7 +522,7 @@ class EmbeddingPipeline:
 
 def main():
     print("=" * 70)
-    print("SANCHALAK AI - PHASE 4.1: EMBEDDING PIPELINE v1.3")
+    print("a6on-i - PHASE 4.1: EMBEDDING PIPELINE v1.3")
     print("=" * 70)
     
     pipeline = EmbeddingPipeline()

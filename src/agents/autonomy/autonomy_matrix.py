@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Autonomy Matrix v1.0
+a6on-i - Autonomy Matrix v1.0
 Risk-based action classification for agent autonomy.
 
 Implements the Autonomy Matrix:

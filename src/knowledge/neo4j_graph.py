@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Neo4j Knowledge Graph Service
+a6on-i - Neo4j Knowledge Graph Service
 =================================================
 Entity graph for Cascade Intelligence and relationship queries.
 

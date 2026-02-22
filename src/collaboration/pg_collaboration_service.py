@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - PostgreSQL Collaboration Service
+a6on-i - PostgreSQL Collaboration Service
 Provides direct PostgreSQL access for collaboration data,
 replacing SQLite-based collaboration modules for production use.
 """

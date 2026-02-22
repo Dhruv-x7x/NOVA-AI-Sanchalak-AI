@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Monte Carlo Simulation Engine
+a6on-i - Monte Carlo Simulation Engine
 =====================================================
 Implements 10,000+ run Monte Carlo simulations with statistical distributions
 for timeline prediction, risk quantification, and scenario analysis.
@@ -12,6 +12,7 @@ As specified in SOLUTION.md L357-360:
 
 import numpy as np
 from scipy import stats
+from sqlalchemy import text
 from dataclasses import dataclass, field
 from typing import Dict, List, Any, Optional, Tuple
 from datetime import datetime, timedelta
@@ -118,7 +119,7 @@ class TrialState:
                     WHERE study_id = :study_id OR :study_id IS NULL
                 """
                 import pandas as pd
-                result = pd.read_sql(query, conn, params={'study_id': self.study_id if self.study_id != 'unknown' else None})
+                result = pd.read_sql(text(query), conn, params={'study_id': self.study_id if self.study_id != 'unknown' else None})
                 
                 if not result.empty:
                     row = result.iloc[0]

@@ -316,7 +316,7 @@ async def generate_report_api(
                     </div>
                     <p style="color:#0f172a !important; font-size:15px !important; line-height:1.8 !important; white-space:pre-line; margin:0 !important; font-weight:500;">{sections.get('executive_summary', 'Analysis pending.')}</p>
                     <div style="margin-top:20px; padding-top:15px; border-top:1px solid #cbd5e1; font-size:11px; color:#475569; display:flex; gap:20px; font-weight:600;">
-                        <span>SOURCE: SANCHALAK AI ENGINE</span>
+                        <span>SOURCE: a6on-i ENGINE</span>
                         <span>STATUS: {'RAG ACTIVE' if not is_fallback else 'OFFLINE FALLBACK'}</span>
                         <span>MODEL: {ai_res.get('metadata', {}).get('model', 'N/A')}</span>
                     </div>
@@ -435,22 +435,22 @@ async def generate_report_api(
                         prio_bg = '#fef2f2' if prio == 'Critical' else '#fffbeb' if prio == 'High' else '#f0fdf4'
                         prio_color = '#dc2626' if prio == 'Critical' else '#ea580c' if prio == 'High' else '#16a34a'
                         recs_rows += f"""<tr>
-                            <td style='color:#64748b !important; padding:12px 10px; border-bottom:1px solid #e2e8f0; font-style:italic; font-weight:600;'>{r.get('area', r.get('category', ''))}</td>
-                            <td style='color:#0f172a !important; padding:12px 10px; border-bottom:1px solid #e2e8f0;'><strong>{r.get('action', r.get('recommendation', r.get('description', '')))}</strong></td>
-                            <td style='color:#0f172a !important; padding:12px 10px; border-bottom:1px solid #e2e8f0;'>{r.get('owner', r.get('responsible', ''))}</td>
+                            <td style='color:#000000 !important; padding:12px 10px; border-bottom:1px solid #e2e8f0; font-style:italic; font-weight:600;'>{r.get('area', r.get('category', ''))}</td>
+                            <td style='color:#000000 !important; padding:12px 10px; border-bottom:1px solid #e2e8f0;'><strong>{r.get('action', r.get('recommendation', r.get('description', '')))}</strong></td>
+                            <td style='color:#000000 !important; padding:12px 10px; border-bottom:1px solid #e2e8f0;'>{r.get('owner', r.get('responsible', ''))}</td>
                             <td style='background:{prio_bg} !important; color:{prio_color} !important; padding:12px 10px; border-bottom:1px solid #e2e8f0; font-weight:700; text-align:center; text-transform:uppercase; font-size:10px;'>{prio}</td>
-                            <td style='color:#0f172a !important; padding:12px 10px; border-bottom:1px solid #e2e8f0;'>{r.get('target', r.get('timeline', ''))}</td>
+                            <td style='color:#000000 !important; padding:12px 10px; border-bottom:1px solid #e2e8f0;'>{r.get('target', r.get('timeline', ''))}</td>
                         </tr>"""
                 ai_recs_html = f"""
                 <div class="section" id="ai-recommendations" style="margin-top:45px; border-top:2px solid #e2e8f0; padding-top:35px; text-align:left; width:100%;">
-                    <h2 style="color:#0f172a !important; font-size:22px !important; margin:0 0 20px 0 !important; font-weight:800 !important; text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid #e2e8f0; padding-bottom:8px;">Strategic Recommendations (DeepAnalyze)</h2>
+                    <h2 style="color:#000000 !important; font-size:22px !important; margin:0 0 20px 0 !important; font-weight:800 !important; text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid #e2e8f0; padding-bottom:8px;">Strategic Recommendations (DeepAnalyze)</h2>
                     <table style="width:100%; border-collapse:collapse; background:white !important; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden; table-layout:auto;">
                         <thead style="background:#f8fafc !important;"><tr>
-                            <th style="padding:12px 10px; text-align:left; color:#475569 !important; font-size:11px; text-transform:uppercase; font-weight:700;">Area</th>
-                            <th style="padding:12px 10px; text-align:left; color:#475569 !important; font-size:11px; text-transform:uppercase; font-weight:700;">Action Item</th>
-                            <th style="padding:12px 10px; text-align:left; color:#475569 !important; font-size:11px; text-transform:uppercase; font-weight:700;">Owner</th>
-                            <th style="padding:12px 10px; text-align:left; color:#475569 !important; font-size:11px; text-transform:uppercase; font-weight:700;">Priority</th>
-                            <th style="padding:12px 10px; text-align:left; color:#475569 !important; font-size:11px; text-transform:uppercase; font-weight:700;">Target</th>
+                            <th style="padding:12px 10px; text-align:left; color:#000000 !important; font-size:11px; text-transform:uppercase; font-weight:700;">Area</th>
+                            <th style="padding:12px 10px; text-align:left; color:#000000 !important; font-size:11px; text-transform:uppercase; font-weight:700;">Action Item</th>
+                            <th style="padding:12px 10px; text-align:left; color:#000000 !important; font-size:11px; text-transform:uppercase; font-weight:700;">Owner</th>
+                            <th style="padding:12px 10px; text-align:left; color:#000000 !important; font-size:11px; text-transform:uppercase; font-weight:700;">Priority</th>
+                            <th style="padding:12px 10px; text-align:left; color:#000000 !important; font-size:11px; text-transform:uppercase; font-weight:700;">Target</th>
                         </tr></thead>
                         <tbody style="background:white !important;">{recs_rows}</tbody>
                     </table>
@@ -468,22 +468,22 @@ async def generate_report_api(
                         prio_bg = '#fef2f2' if prio == 'Critical' else '#fffbeb' if prio == 'High' else '#f0fdf4'
                         prio_color = '#dc2626' if prio == 'Critical' else '#ea580c' if prio == 'High' else '#16a34a'
                         recs_rows += f"""<tr>
-                            <td style='color:#64748b !important; padding:12px 10px; border-bottom:1px solid #e2e8f0; font-style:italic; font-weight:600;'>{r.get('area', r.get('category', ''))}</td>
-                            <td style='color:#0f172a !important; padding:12px 10px; border-bottom:1px solid #e2e8f0;'><strong>{r.get('action', r.get('recommendation', r.get('description', '')))}</strong></td>
-                            <td style='color:#0f172a !important; padding:12px 10px; border-bottom:1px solid #e2e8f0;'>{r.get('owner', r.get('responsible', ''))}</td>
+                            <td style='color:#000000 !important; padding:12px 10px; border-bottom:1px solid #e2e8f0; font-style:italic; font-weight:600;'>{r.get('area', r.get('category', ''))}</td>
+                            <td style='color:#000000 !important; padding:12px 10px; border-bottom:1px solid #e2e8f0;'><strong>{r.get('action', r.get('recommendation', r.get('description', '')))}</strong></td>
+                            <td style='color:#000000 !important; padding:12px 10px; border-bottom:1px solid #e2e8f0;'>{r.get('owner', r.get('responsible', ''))}</td>
                             <td style='background:{prio_bg} !important; color:{prio_color} !important; padding:12px 10px; border-bottom:1px solid #e2e8f0; font-weight:700; text-align:center; text-transform:uppercase; font-size:10px;'>{prio}</td>
-                            <td style='color:#0f172a !important; padding:12px 10px; border-bottom:1px solid #e2e8f0;'>{r.get('target', r.get('timeline', ''))}</td>
+                            <td style='color:#000000 !important; padding:12px 10px; border-bottom:1px solid #e2e8f0;'>{r.get('target', r.get('timeline', ''))}</td>
                         </tr>"""
                 ai_recs_html = f"""
                 <div class="section" id="ai-recommendations" style="margin-top:45px; border-top:2px solid #e2e8f0; padding-top:35px; text-align:left; width:100%;">
-                    <h2 style="color:#0f172a !important; font-size:22px !important; margin:0 0 20px 0 !important; font-weight:800 !important; text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid #e2e8f0; padding-bottom:8px;">Strategic Recommendations (DeepAnalyze)</h2>
+                    <h2 style="color:#000000 !important; font-size:22px !important; margin:0 0 20px 0 !important; font-weight:800 !important; text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid #e2e8f0; padding-bottom:8px;">Strategic Recommendations (DeepAnalyze)</h2>
                     <table style="width:100%; border-collapse:collapse; background:white !important; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden; table-layout:auto;">
                         <thead style="background:#f8fafc !important;"><tr>
-                            <th style="padding:12px 10px; text-align:left; color:#475569 !important; font-size:11px; text-transform:uppercase; font-weight:700;">Area</th>
-                            <th style="padding:12px 10px; text-align:left; color:#475569 !important; font-size:11px; text-transform:uppercase; font-weight:700;">Action Item</th>
-                            <th style="padding:12px 10px; text-align:left; color:#475569 !important; font-size:11px; text-transform:uppercase; font-weight:700;">Owner</th>
-                            <th style="padding:12px 10px; text-align:left; color:#475569 !important; font-size:11px; text-transform:uppercase; font-weight:700;">Priority</th>
-                            <th style="padding:12px 10px; text-align:left; color:#475569 !important; font-size:11px; text-transform:uppercase; font-weight:700;">Target</th>
+                            <th style="padding:12px 10px; text-align:left; color:#000000 !important; font-size:11px; text-transform:uppercase; font-weight:700;">Area</th>
+                            <th style="padding:12px 10px; text-align:left; color:#000000 !important; font-size:11px; text-transform:uppercase; font-weight:700;">Action Item</th>
+                            <th style="padding:12px 10px; text-align:left; color:#000000 !important; font-size:11px; text-transform:uppercase; font-weight:700;">Owner</th>
+                            <th style="padding:12px 10px; text-align:left; color:#000000 !important; font-size:11px; text-transform:uppercase; font-weight:700;">Priority</th>
+                            <th style="padding:12px 10px; text-align:left; color:#000000 !important; font-size:11px; text-transform:uppercase; font-weight:700;">Target</th>
                         </tr></thead>
                         <tbody style="background:white !important;">{recs_rows}</tbody>
                     </table>

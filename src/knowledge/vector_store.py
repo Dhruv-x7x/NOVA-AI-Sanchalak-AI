@@ -1,6 +1,6 @@
 # src/knowledge/vector_store.py
 """
-SANCHALAK AI - ChromaDB Vector Store v1.0
+a6on-i - ChromaDB Vector Store v1.0
 Phase 4.2: Persistent vector database with collections and filtered search
 
 Features:
@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 class VectorStore:
     """
-    ChromaDB-based vector store for SANCHALAK AI knowledge artifacts.
+    ChromaDB-based vector store for a6on-i knowledge artifacts.
     
     Collections:
     1. resolution_templates - Resolution patterns for issues
@@ -603,7 +603,7 @@ class VectorStore:
 def main():
     """Run the vector store indexing pipeline."""
     print("=" * 70)
-    print("SANCHALAK AI - PHASE 4.2: CHROMADB VECTOR STORE")
+    print("a6on-i - PHASE 4.2: CHROMADB VECTOR STORE")
     print("=" * 70)
     
     # Initialize vector store

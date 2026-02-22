@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Database Models
+a6on-i - Database Models
 ===================================
 Complete production-grade SQLAlchemy ORM models for clinical trial data.
 

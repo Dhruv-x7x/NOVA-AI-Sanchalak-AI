@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Report Scheduler
+a6on-i - Report Scheduler
 ========================================
 Cron-based scheduled report generation with multi-channel delivery.
 

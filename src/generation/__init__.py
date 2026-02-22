@@ -1,6 +1,6 @@
 # src/generation/__init__.py
 """
-SANCHALAK AI - Generation Module
+a6on-i - Generation Module
 Phase 6: Generative AI Document Engine
 
 Components:

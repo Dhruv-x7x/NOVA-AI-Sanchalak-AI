@@ -699,7 +699,7 @@ class AgentOrchestrator:
 
     def _build_synthesis_prompt(self, query: str, data_context: str, role_ctx: str) -> Tuple[str, str]:
         """Build the DeepAnalyze system + user prompts for the final synthesis step."""
-        system_prompt = f"""You are the Sanchalak AI Assistant (Zenith V3), a highly specialized Clinical Data Analyst.
+        system_prompt = f"""You are the a6on-i Assistant (Zenith V3), a highly specialized Clinical Data Analyst.
 
 TASK (DeepAnalyze): Answer the user's query clearly and naturally using ONLY the provided database context.
 
@@ -764,7 +764,7 @@ LIVE DATABASE CONTEXT (Ground Truth):
         if q in greetings or len(q) < 3:
             return {
                 "summary": (
-                    "Hello! I am the Sanchalak AI Assistant, your dedicated clinical intelligence partner. "
+                    "Hello! I am the a6on-i Assistant, your dedicated clinical intelligence partner. "
                     "I can help you analyze site performance, track patient risks, and query your clinical database. "
                     "How can I assist you with your trial data today?"
                 ),
@@ -798,7 +798,41 @@ LIVE DATABASE CONTEXT (Ground Truth):
             "observation": grounding_obs,
         })
 
-        # ── Step 3: RESOLVER — DeepAnalyze synthesis ───────────
+        # ── Step 3: FORECASTER — predictive enrichment ──────────
+        forecast_insight = ""
+        try:
+            forecast_sys = (
+                "You are the FORECASTER agent in a clinical trial AI system. "
+                "Given the database context below, generate a brief predictive analysis (3-5 lines max):\n"
+                "- Trend direction (improving/declining/stable)\n"
+                "- Risk projection (low/medium/high) with one-line reasoning\n"
+                "- Estimated timeline if a completion metric is present\n\n"
+                "If the data is insufficient for prediction, say 'Insufficient data for forecasting.' "
+                "Be concise. Do NOT invent numbers not in the data.\n\n"
+                f"DATABASE CONTEXT:\n{data_context}"
+            )
+            forecast_res = self.llm.generate(
+                prompt=f"Generate predictive enrichment for: {query}",
+                system_prompt=forecast_sys,
+            )
+            forecast_insight = forecast_res.content.strip()
+        except Exception as e:
+            logger.warning(f"FORECASTER step failed (non-fatal): {e}")
+            forecast_insight = "Forecaster: Unable to generate predictions for this query."
+
+        forecast_obs = "Predictive enrichment complete" if forecast_insight else "Skipped"
+        steps.append({
+            "agent": "FORECASTER",
+            "thought": "Generating trend analysis, risk projections, and timeline estimates.",
+            "action": "predictive_enrichment",
+            "observation": forecast_obs,
+        })
+
+        # Enrich data_context with forecast for downstream agents
+        if forecast_insight and "Insufficient" not in forecast_insight:
+            data_context += f"\n\n--- FORECASTER PREDICTIONS ---\n{forecast_insight}"
+
+        # ── Step 4: RESOLVER — DeepAnalyze synthesis ───────────
         steps.append({
             "agent": "RESOLVER",
             "thought": "Synthesizing clinical evidence using DeepAnalyze protocol.",
@@ -831,8 +865,48 @@ LIVE DATABASE CONTEXT (Ground Truth):
         llm_res = self.llm.generate(prompt=usr_prompt, system_prompt=sys_prompt)
         summary = self._clean_summary(llm_res.content)
 
+        # ── Step 5: EXECUTOR — action validation ────────────────
+        executor_note = ""
+        try:
+            executor_sys = (
+                "You are the EXECUTOR agent in a clinical trial AI system. "
+                "Review the AI-generated response below and provide a brief validation (2-3 lines):\n"
+                "- Feasibility check: Are the recommendations actionable?\n"
+                "- Risk assessment: Any potential issues with proposed actions?\n"
+                "- Priority: What should be done first?\n\n"
+                "Be concise. Output ONLY the validation note, nothing else.\n\n"
+                f"RESPONSE TO VALIDATE:\n{summary[:1500]}"
+            )
+            executor_res = self.llm.generate(
+                prompt=f"Validate actions for: {query}",
+                system_prompt=executor_sys,
+            )
+            executor_note = executor_res.content.strip()
+        except Exception as e:
+            logger.warning(f"EXECUTOR step failed (non-fatal): {e}")
+
+        exec_obs = "Action validation complete" if executor_note else "Skipped"
+        steps.append({
+            "agent": "EXECUTOR",
+            "thought": "Validating feasibility and risk of proposed actions.",
+            "action": "validate_actions",
+            "observation": exec_obs,
+        })
+
+        # Append executor validation to summary if meaningful
+        if executor_note and len(executor_note) > 10:
+            summary += f"\n\n## Action Validation\n{executor_note}"
+
         # Append confidence
         summary += f"\n\nConfidence: {confidence:.0%}."
+
+        # ── Step 6: COMMUNICATOR — final response ───────────────
+        steps.append({
+            "agent": "COMMUNICATOR",
+            "thought": "Finalizing response with confidence scoring and role-specific formatting.",
+            "action": "finalize_response",
+            "observation": "Response delivered.",
+        })
 
         # ── Build dynamic recommendations ───────────────────────
         recommendations = []
@@ -845,13 +919,13 @@ LIVE DATABASE CONTEXT (Ground Truth):
         if not recommendations:
             recommendations.append({"action": "Review site-specific risk assessments for actionable follow-ups", "impact": "Medium"})
 
-        tools_used = ["sql_bridge", "clinical_reasoning"]
+        tools_used = ["sql_bridge", "predictive_engine", "clinical_reasoning", "action_validator"]
         if template_used:
             tools_used.insert(1, "template_library")
 
         return {
             "summary": summary,
-            "agent_chain": ["SUPERVISOR", "DIAGNOSTIC", "RESOLVER", "COMMUNICATOR"],
+            "agent_chain": ["SUPERVISOR", "DIAGNOSTIC", "FORECASTER", "RESOLVER", "EXECUTOR", "COMMUNICATOR"],
             "steps": steps,
             "tools_used": tools_used,
             "confidence": confidence,

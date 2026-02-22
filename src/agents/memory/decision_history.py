@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Decision History Tracker v1.0
+a6on-i - Decision History Tracker v1.0
 =================================================
 Track all agent decisions and their outcomes for audit and learning.
 """

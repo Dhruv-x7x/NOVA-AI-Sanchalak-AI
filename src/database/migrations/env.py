@@ -1,5 +1,5 @@
 """
-Alembic Environment Configuration for Sanchalak AI
+Alembic Environment Configuration for a6on-i
 """
 
 from logging.config import fileConfig

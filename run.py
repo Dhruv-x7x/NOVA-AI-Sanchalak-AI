@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Sanchalak AI - Unified Launcher
+a6on-i - Unified Launcher
 ====================================
 Cross-platform launcher script with Docker support.
 
@@ -33,7 +33,7 @@ DATABASE_DUMP = PROJECT_ROOT / "database" / "reproduction_dump.sql"
 ENV_FILE = PROJECT_ROOT / ".env"
 
 # Docker settings
-DOCKER_CONTAINER_NAME = "sanchalak-postgres"
+DOCKER_CONTAINER_NAME = "a6on-i-postgres"
 DOCKER_IMAGE = "postgres:16"
 
 # Load settings from .env if available
@@ -770,7 +770,7 @@ def main():
     os.environ["RUN_PY_STARTED"] = "1"
     
     parser = argparse.ArgumentParser(
-        description="Sanchalak AI - Unified Launcher",
+        description="a6on-i - Unified Launcher",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -796,7 +796,7 @@ Examples:
     
     # Use ASCII for robustness against encoding issues
     print("\n" + "="*62)
-    print("           Sanchalak AI - Unified Launcher              ")
+    print("           a6on-i - Unified Launcher              ")
     print("="*62 + "\n")
     
     # Check basic dependencies

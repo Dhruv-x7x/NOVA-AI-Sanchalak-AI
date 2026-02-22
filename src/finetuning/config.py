@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Fine-Tuning Configuration
+a6on-i - Fine-Tuning Configuration
 ==============================================
 Configuration for training custom clinical trial AI models.
 """
@@ -55,7 +55,7 @@ class FineTuningConfig:
     
     # Model
     base_model: str = "unsloth/llama-3.1-8b-bnb-4bit"  # 4-bit quantized for efficiency
-    output_model_name: str = "sanchalak-ai-v1"
+    output_model_name: str = "a6on-i-ai-v1"
     
     # Paths
     base_dir: Path = field(default_factory=lambda: Path(__file__).parent)

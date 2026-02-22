@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Phase 3.6: Pattern Library v1.2 (FIXED)
+a6on-i - Phase 3.6: Pattern Library v1.2 (FIXED)
 =======================================================
 
 FIXES:
@@ -9,7 +9,7 @@ FIXES:
 4. Relaxed detection thresholds
 5. Better logging for debugging
 
-Author: Sanchalak AI Team
+Author: a6on-i Team
 Version: 1.2
 """
 
@@ -883,7 +883,7 @@ class PatternLibrary:
 def main():
     """Main execution function"""
     print("=" * 70)
-    print("SANCHALAK AI - PHASE 3.6: PATTERN LIBRARY v1.2")
+    print("a6on-i - PHASE 3.6: PATTERN LIBRARY v1.2")
     print("=" * 70)
     
     start_time = datetime.now()

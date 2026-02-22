@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Proactive Package
+a6on-i - Proactive Package
 =====================================
 Proactive monitoring and preemptive action capabilities.
 """

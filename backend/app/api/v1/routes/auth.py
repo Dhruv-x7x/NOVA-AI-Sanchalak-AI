@@ -23,7 +23,7 @@ USERS_DB: Dict[str, Dict[str, Any]] = {
         "user_id": "1",
         "username": "lead",
         "password_hash": get_password_hash("lead123"),
-        "email": "lead@sanchalak.com",
+        "email": "lead@a6on-i.com",
         "full_name": "Study Lead",
         "role": "lead",
         "permissions": ["view_all", "edit_all", "approve", "reports", "ml_governance"]
@@ -32,7 +32,7 @@ USERS_DB: Dict[str, Dict[str, Any]] = {
         "user_id": "2",
         "username": "dm",
         "password_hash": get_password_hash("dm123"),
-        "email": "dm@sanchalak.com",
+        "email": "dm@a6on-i.com",
         "full_name": "Data Manager",
         "role": "dm",
         "permissions": ["view_all", "edit_data", "queries", "reports"]
@@ -41,7 +41,7 @@ USERS_DB: Dict[str, Dict[str, Any]] = {
         "user_id": "3",
         "username": "cra",
         "password_hash": get_password_hash("cra123"),
-        "email": "cra@sanchalak.com",
+        "email": "cra@a6on-i.com",
         "full_name": "Clinical Research Associate",
         "role": "cra",
         "permissions": ["view_sites", "monitoring", "reports"]
@@ -50,7 +50,7 @@ USERS_DB: Dict[str, Dict[str, Any]] = {
         "user_id": "4",
         "username": "coder",
         "password_hash": get_password_hash("coder123"),
-        "email": "coder@sanchalak.com",
+        "email": "coder@a6on-i.com",
         "full_name": "Medical Coder",
         "role": "coder",
         "permissions": ["view_coding", "edit_coding", "reports"]
@@ -59,7 +59,7 @@ USERS_DB: Dict[str, Dict[str, Any]] = {
         "user_id": "5",
         "username": "safety",
         "password_hash": get_password_hash("safety123"),
-        "email": "safety@sanchalak.com",
+        "email": "safety@a6on-i.com",
         "full_name": "Safety Officer",
         "role": "safety",
         "permissions": ["view_safety", "edit_safety", "reports", "narratives"]
@@ -68,7 +68,7 @@ USERS_DB: Dict[str, Dict[str, Any]] = {
         "user_id": "6",
         "username": "exec",
         "password_hash": get_password_hash("exec123"),
-        "email": "exec@sanchalak.com",
+        "email": "exec@a6on-i.com",
         "full_name": "Executive",
         "role": "executive",
         "permissions": ["view_all", "reports", "dashboards"]
@@ -77,7 +77,7 @@ USERS_DB: Dict[str, Dict[str, Any]] = {
         "user_id": "8",
         "username": "admin",
         "password_hash": get_password_hash("admin123"),
-        "email": "admin@sanchalak.com",
+        "email": "admin@a6on-i.com",
         "full_name": "Administrator",
         "role": "lead",
         "permissions": ["view_all", "edit_all", "approve", "reports", "ml_governance", "admin"]

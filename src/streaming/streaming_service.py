@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Unified Streaming Service
+a6on-i - Unified Streaming Service
 =============================================
 Provides unified access to Kafka streaming for the dashboard.
 """
@@ -26,7 +26,7 @@ class StreamStatus:
 
 class StreamingService:
     """
-    Unified streaming service for Sanchalak AI.
+    Unified streaming service for a6on-i.
     
     Provides:
     - Event publishing (producer)

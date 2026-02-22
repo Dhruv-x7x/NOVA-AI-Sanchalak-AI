@@ -93,12 +93,12 @@ function Sidebar({ collapsed, onToggle }: SidebarProps) {
       <div className="flex items-center h-16 px-4 border-b border-nexus-border">
         <div className="flex items-center gap-2">
           <img
-            src="/logo_without_text.png"
-            alt="Sanchalak AI"
-            className="w-8 h-8 object-contain flex-shrink-0"
+            src="/logo.jpeg"
+            alt="a6on-i"
+            className="w-8 h-8 object-contain flex-shrink-0 rounded-md"
           />
           {!collapsed && (
-            <span className="text-lg font-bold text-white">Sanchalak AI</span>
+            <span className="text-lg font-bold text-white">a6on-i</span>
           )}
         </div>
       </div>
@@ -483,7 +483,7 @@ export default function Layout({ children }: LayoutProps) {
         {/* Footer */}
         <footer className="border-t border-nexus-border px-4 lg:px-6 py-4 mt-auto">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-nexus-text-muted">
-            <span>&copy; 2026 Sanchalak AI 10X &nbsp;&nbsp; v10.0.0</span>
+            <span>&copy; 2026 a6on-i 10X &nbsp;&nbsp; v10.0.0</span>
             <div className="flex items-center gap-4">
               <span className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />

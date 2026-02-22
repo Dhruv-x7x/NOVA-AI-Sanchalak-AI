@@ -1,4 +1,4 @@
-# Sanchalak AI
+# a6on-i
 
 <img width="1683" height="800" alt="executive1" src="https://github.com/user-attachments/assets/c6e61270-bfe7-489a-8bb5-e4ce99137b12" />
 
@@ -134,7 +134,7 @@ npm run dev
 
 All ML model weights (including fine-tuned models), research notebooks, and result plots are available at:
 
-🔗 **[Sanchalak AI Models Repository](https://github.com/PARZIVALPRIME/sanchalak_ai)**
+🔗 **[a6on-i Models Repository](https://github.com/PARZIVALPRIME/a6on-i_ai)**
 
 ## 📚 Documentation
 
@@ -152,4 +152,4 @@ python scripts/seed_neo4j_cascade.py
 ```
 
 ---
-**Sanchalak AI**
+**a6on-i**

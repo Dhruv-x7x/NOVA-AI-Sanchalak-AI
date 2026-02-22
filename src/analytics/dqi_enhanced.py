@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Enhanced DQI Calculator v3.1 (FIXED)
+a6on-i - Enhanced DQI Calculator v3.1 (FIXED)
 Phase 2.1: 8-Component DQI with Age, Trend, and Criticality Multipliers
 
 FIXES:
@@ -602,7 +602,7 @@ class EnhancedDQICalculator:
         """Run complete enhanced DQI calculation"""
         
         logger.info("\n" + "=" * 70)
-        logger.info("SANCHALAK AI - ENHANCED DQI CALCULATOR v3.1")
+        logger.info("a6on-i - ENHANCED DQI CALCULATOR v3.1")
         logger.info("=" * 70)
         logger.info(f"Patients: {len(df):,}")
         logger.info(f"Formula: DQI = 100 - Σ(Penalty × Weight × Age × Criticality)")

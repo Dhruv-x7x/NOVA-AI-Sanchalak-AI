@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Qdrant Vector Store
+a6on-i - Qdrant Vector Store
 ==========================================
 Production-grade vector database for semantic search and RAG.
 
@@ -11,7 +11,7 @@ Features:
 - Persistent storage
 - Batch indexing with async support
 
-Author: Sanchalak AI Team
+Author: a6on-i Team
 Date: 2026-01-24
 """
 
@@ -246,7 +246,7 @@ class MockQdrantClient:
 
 class QdrantVectorStore:
     """
-    Production Qdrant vector store for SANCHALAK AI.
+    Production Qdrant vector store for a6on-i.
     
     Collections:
     1. resolution_templates - Issue resolution patterns
@@ -819,7 +819,7 @@ def reset_qdrant_store():
 def main():
     """Demo the Qdrant vector store."""
     print("=" * 70)
-    print("SANCHALAK AI - QDRANT VECTOR STORE DEMO")
+    print("a6on-i - QDRANT VECTOR STORE DEMO")
     print("=" * 70)
     
     # Initialize store

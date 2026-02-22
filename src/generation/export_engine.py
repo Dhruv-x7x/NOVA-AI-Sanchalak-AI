@@ -1,6 +1,6 @@
 # src/generation/export_engine.py
 """
-SANCHALAK AI - Export Engine v2.0
+a6on-i - Export Engine v2.0
 Enterprise XLSX + PDF/Word/PPT Export with Professional Styling
 """
 
@@ -685,7 +685,7 @@ class StyleConfig:
     header_height_inches: float = 0.5
     footer_height_inches: float = 0.5
     logo_path: Optional[str] = None
-    company_name: str = "Sanchalak AI"
+    company_name: str = "a6on-i"
 
 @dataclass
 class ExportResult:

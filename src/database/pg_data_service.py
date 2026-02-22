@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - PostgreSQL Data Service
+a6on-i - PostgreSQL Data Service
 ==========================================
 Hardened, production-grade data service using PostgreSQL.
 Handles all dashboard requirements with extreme resilience and strict frontend key mapping.
@@ -81,6 +81,72 @@ class PostgreSQLDataService:
             return {"status": "healthy", "database": "postgresql", "connected": True, "timestamp": datetime.utcnow().isoformat()}
         except Exception as e:
             return {"status": "unhealthy", "connected": False, "error": str(e)}
+
+    def get_site_metrics(self, site_id: str) -> Dict[str, Any]:
+        """Get aggregated metrics for a site using the most accurate data source."""
+        try:
+            if not PostgreSQLDataService._db_manager: self._initialize()
+            if not PostgreSQLDataService._db_manager or not PostgreSQLDataService._db_manager.engine:
+                return {}
+            
+            # Map site_id if it's a demo ID
+            mapped_site_id = self._map_site_id(site_id)
+            
+            with PostgreSQLDataService._db_manager.engine.connect() as conn:
+                upr_exists = conn.execute(text("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'unified_patient_record' AND EXISTS (SELECT 1 FROM unified_patient_record LIMIT 1))")).scalar()
+                
+                if upr_exists:
+                    # UPR uses underscores for site_id typically
+                    upr_site_id = self._map_upr_site_id(site_id)
+                    q = """
+                        SELECT 
+                            COUNT(*) as patient_count,
+                            AVG(COALESCE(data_quality_index_8comp, 0)) as avg_dqi,
+                            SUM(CASE WHEN patient_clean_status IN ('Clean', 'Minor Issues') THEN 1 ELSE 0 END) as tier1_clean_count,
+                            SUM(CASE WHEN patient_clean_status = 'Clean' THEN 1 ELSE 0 END) as tier2_clean_count,
+                            SUM(is_db_lock_ready::integer) as db_lock_ready_count,
+                            SUM(COALESCE(total_queries, 0)) as total_queries,
+                            AVG(COALESCE(total_open_issues, 0)) as avg_issues
+                        FROM unified_patient_record
+                        WHERE site_id = :site_id
+                    """
+                    res = conn.execute(text(q), {"site_id": upr_site_id}).fetchone()
+                else:
+                    # Fallback to patients table
+                    q = """
+                        SELECT 
+                            COUNT(*) as patient_count,
+                            AVG(COALESCE(dqi_score, 0)) as avg_dqi,
+                            SUM(COALESCE(tier1_clean, 0)) as tier1_clean_count,
+                            SUM(COALESCE(tier2_clean, 0)) as tier2_clean_count,
+                            SUM(is_db_lock_ready::integer) as db_lock_ready_count,
+                            SUM(COALESCE(open_queries_count, 0)) as total_queries,
+                            AVG(COALESCE(open_issues_count, 0)) as avg_issues
+                        FROM patients
+                        WHERE site_id = :site_id
+                    """
+                    res = conn.execute(text(q), {"site_id": mapped_site_id}).fetchone()
+                
+                if not res or res[0] == 0:
+                    # If site has no patients, return empty stats
+                    return {
+                        'patient_count': 0, 'avg_dqi': 0, 'tier1_clean_count': 0,
+                        'tier2_clean_count': 0, 'db_lock_ready_count': 0,
+                        'total_queries': 0, 'avg_issues': 0
+                    }
+                
+                return {
+                    'patient_count': int(res[0] or 0),
+                    'avg_dqi': round(float(res[1] or 0), 1),
+                    'tier1_clean_count': int(res[2] or 0),
+                    'tier2_clean_count': int(res[3] or 0),
+                    'db_lock_ready_count': int(res[4] or 0),
+                    'total_queries': int(res[5] or 0),
+                    'avg_issues': round(float(res[6] or 0), 1)
+                }
+        except Exception as e:
+            logger.error(f"get_site_metrics error for {site_id}: {e}")
+            return {}
 
     # =========================================================================
     # CORE FETCHERS

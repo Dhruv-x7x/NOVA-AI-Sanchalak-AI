@@ -31,7 +31,7 @@ async def get_coding_queue(
 ):
     """Get coding queue items from real UPR data.
 
-    The raw Sanchalak AI files used to build the UPR contain *coded* MedDRA/WHODrug
+    The raw a6on-i files used to build the UPR contain *coded* MedDRA/WHODrug
     dictionaries and do not contain uncoded term-level work items. As a result,
     this queue is expected to be empty (pending counts should be 0).
     """

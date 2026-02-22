@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { safetyApi } from '@/services/api';
-import SanchalakLoader from '@/components/SanchalakLoader';
+import A6onLoader from '@/components/a6on_iLoader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -262,7 +262,7 @@ export default function SafetyView() {
   const lowAlerts = alerts.filter((a: any) => a.severity === 'Low').length;
 
   if (isPageLoading) {
-    return <SanchalakLoader size="lg" label="Loading safety surveillance..." fullPage />;
+    return <A6onLoader size="lg" label="Loading safety data..." fullPage />;
   }
 
   return (

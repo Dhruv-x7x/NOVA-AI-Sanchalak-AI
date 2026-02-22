@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Temporal Snapshot Worker
+a6on-i - Temporal Snapshot Worker
 ==========================================
 Background worker to capture hourly snapshots and detect deltas.
 """

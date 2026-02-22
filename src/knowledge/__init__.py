@@ -1,6 +1,6 @@
 # File: src/knowledge/__init__.py
 """
-SANCHALAK AI - Knowledge Module
+a6on-i - Knowledge Module
 
 Components:
 - Embedding Pipeline (4.1) - Requires sentence_transformers

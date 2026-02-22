@@ -1,6 +1,6 @@
 # src/orchestration/pipeline_orchestrator.py
 """
-SANCHALAK AI - Pipeline Orchestrator v1.1
+a6on-i - Pipeline Orchestrator v1.1
 Phase 11.1: Pipeline Orchestration
 # NOTE: This module previously used SQLite but has been migrated to PostgreSQL-only.
 # If you need to use this module, update it to use:
@@ -14,7 +14,7 @@ FIXES in v1.1:
 - WAL mode for better concurrent access
 - Retry logic for database operations
 
-Author: Sanchalak AI Team
+Author: a6on-i Team
 Date: 2026-01-02
 """
 
@@ -650,7 +650,7 @@ class TaskRegistry:
 
 class PipelineOrchestrator:
     """
-    Main Pipeline Orchestrator for SANCHALAK AI
+    Main Pipeline Orchestrator for a6on-i
     v1.1 - Thread-safe database operations
     """
     

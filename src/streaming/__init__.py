@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Streaming Package
+a6on-i - Streaming Package
 =====================================
 Real-time event streaming with Apache Kafka.
 """

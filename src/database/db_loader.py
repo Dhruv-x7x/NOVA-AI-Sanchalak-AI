@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Database Data Loader
+a6on-i - Database Data Loader
 =======================================
 Data loader that reads from PostgreSQL instead of parquet files.
 Can be used as a drop-in replacement for the file-based loader.

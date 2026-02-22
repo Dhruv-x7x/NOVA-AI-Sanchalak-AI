@@ -6,7 +6,7 @@
 
 
 """
-SANCHALAK AI - ML Retraining Trigger v1.0
+a6on-i - ML Retraining Trigger v1.0
 Automated Model Retraining Pipeline Management
 
 Features:

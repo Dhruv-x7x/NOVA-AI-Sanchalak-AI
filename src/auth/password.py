@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Password Handler
+a6on-i - Password Handler
 ====================================
 Secure password hashing and policy validation for 21 CFR Part 11 compliance.
 """
@@ -75,7 +75,7 @@ class PasswordPolicy:
             violations.append(f"Password must contain at least one special character ({cls.SPECIAL_CHARS[:10]}...)")
         
         # Check for common patterns
-        if password.lower() in ['password', 'password123', 'sanchalak', 'nexus123']:
+        if password.lower() in ['password', 'password123', 'a6on-i', 'nexus123']:
             violations.append("Password is too common")
         
         return len(violations) == 0, violations

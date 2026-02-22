@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - DQI Improvement Simulator
+a6on-i - DQI Improvement Simulator
 Interactive "Fix X → DQI improves by Y" simulation engine.
 
 Allows sites and users to understand the impact of fixing specific issues

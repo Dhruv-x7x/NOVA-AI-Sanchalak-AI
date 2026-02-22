@@ -1,6 +1,6 @@
 # src/collaboration/investigation_rooms.py
 """
-SANCHALAK AI - Investigation Rooms v1.0
+a6on-i - Investigation Rooms v1.0
 Phase 8.2: Collaborative Investigation System
 # NOTE: This module previously used SQLite but has been migrated to PostgreSQL-only.
 # If you need to use this module, update it to use:
@@ -2386,7 +2386,7 @@ def get_investigation_rooms_manager(db_path: Optional[str] = None) -> Investigat
 def test_investigation_rooms():
     """Test the Investigation Rooms system"""
     print("=" * 70)
-    print("SANCHALAK AI - INVESTIGATION ROOMS TEST")
+    print("a6on-i - INVESTIGATION ROOMS TEST")
     print("=" * 70)
     
     # Use test database

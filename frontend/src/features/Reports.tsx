@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useAuthStore } from '@/stores/authStore';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { reportsApi, sitesApi, studiesApi } from '@/services/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -43,6 +44,7 @@ interface ReportType {
 }
 
 export default function Reports() {
+  const { accessToken } = useAuthStore();
   const [selectedReport, setSelectedReport] = useState<string | null>(null);
   const [generatedReport, setGeneratedReport] = useState<string | null>(null);
   const [selectedSiteId, setSelectedSiteId] = useState<string>('all');
@@ -104,7 +106,7 @@ export default function Reports() {
       const studyParam = selectedStudyId !== 'all' ? `&study_id=${selectedStudyId}` : '';
       const format = reportConfig.outputFormat;
 
-      const token = localStorage.getItem('auth_token') || ''; // Assuming token is here, or use store
+      const token = accessToken || localStorage.getItem('auth_token') || ''; 
       const url = `${baseUrl}/reports/download/${selectedReport}?format=${format}${siteParam}${studyParam}`;
 
       const response = await fetch(url, {

@@ -6,7 +6,7 @@
 
 
 """
-SANCHALAK AI - Confidence Calibration System v1.0
+a6on-i - Confidence Calibration System v1.0
 Tracks AI prediction accuracy and detects model drift
 
 Features:
@@ -1419,7 +1419,7 @@ def get_calibration_system() -> ConfidenceCalibrationSystem:
 def test_confidence_calibration():
     """Test the confidence calibration system"""
     print("=" * 70)
-    print("SANCHALAK AI - CONFIDENCE CALIBRATION TEST")
+    print("a6on-i - CONFIDENCE CALIBRATION TEST")
     print("=" * 70)
     
     # Use test database

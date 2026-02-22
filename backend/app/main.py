@@ -1,5 +1,5 @@
 """
-Sanchalak AI API - FastAPI Application
+a6on-i API - FastAPI Application
 ==========================================
 Production-ready API for clinical trial intelligence platform.
 """
@@ -9,7 +9,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import sys
 import os
+import warnings
 from pathlib import Path
+
+# Suppress onnxruntime Windows 11 warning
+warnings.filterwarnings("ignore", category=UserWarning, message="Unsupported Windows version \(11\)")
 
 # Add parent directory to path to import src modules
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -36,7 +40,7 @@ async def lifespan(app: FastAPI):
     print(f"Database: {settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}")
     yield
     # Shutdown
-    print("Shutting down Sanchalak AI API")
+    print("Shutting down a6on-i API")
 
 app = FastAPI(
     title=settings.APP_NAME,

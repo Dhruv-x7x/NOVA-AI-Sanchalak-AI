@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Phase 4.5: Cross-Study Pattern Matcher v1.0
+a6on-i - Phase 4.5: Cross-Study Pattern Matcher v1.0
 
 Purpose:
 - Pattern embedding index across studies
@@ -8,7 +8,7 @@ Purpose:
 - Pattern transfer recommendations
 - Study-specific adaptations
 
-Author: Sanchalak AI Team
+Author: a6on-i Team
 Version: 1.0
 """
 
@@ -88,7 +88,7 @@ class PatternValidation:
 
 class CrossStudyPatternMatcher:
     """
-    Cross-Study Pattern Matcher for SANCHALAK AI.
+    Cross-Study Pattern Matcher for a6on-i.
     
     Capabilities:
     1. Pattern embedding index across all studies
@@ -1135,7 +1135,7 @@ class CrossStudyPatternMatcher:
 def main():
     """Main execution function."""
     print("=" * 70)
-    print("SANCHALAK AI - Phase 4.5: Cross-Study Pattern Matcher")
+    print("a6on-i - Phase 4.5: Cross-Study Pattern Matcher")
     print("=" * 70)
     
     start_time = datetime.now()

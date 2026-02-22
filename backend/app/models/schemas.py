@@ -1,7 +1,7 @@
 """
 Pydantic Models/Schemas for API
 ================================
-Request and response models for the Sanchalak AI API.
+Request and response models for the a6on-i API.
 """
 
 from pydantic import BaseModel, Field

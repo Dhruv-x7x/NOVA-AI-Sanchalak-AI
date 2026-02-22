@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Agent Autonomy Gate
+a6on-i - Agent Autonomy Gate
 Enforces the Layer 5 Autonomy Matrix (Confidence vs Risk).
 """
 

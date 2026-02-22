@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Database Package
+a6on-i - Database Package
 ====================================
 PostgreSQL database integration for enterprise-grade data management.
 """

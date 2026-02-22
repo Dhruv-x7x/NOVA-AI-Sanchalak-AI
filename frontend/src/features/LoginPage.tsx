@@ -56,9 +56,9 @@ export default function LoginPage() {
         loop
         muted
         playsInline
-        className="absolute inset-0 w-full h-full object-cover opacity-30 z-0"
+        className="absolute inset-0 w-full h-full object-cover opacity-8 z-0"
       >
-        <source src="/dna_helix_video_animation_landing_page.mp4" type="video/mp4" />
+        <source src="/clinical_trail.mp4" type="video/mp4" />
       </video>
       {/* Dark overlay for readability */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0c]/60 via-[#0a0a0c]/40 to-[#0a0a0c]/80 z-0" />
@@ -67,9 +67,9 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="text-center mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
           <img
-            src="/logo_with_text.png"
-            alt="Sanchalak AI"
-            className="h-24 mx-auto mb-6 drop-shadow-2xl hover:scale-105 transition-transform duration-500"
+            src="/logo.jpeg"
+            alt="a6on-i"
+            className="h-24 mx-auto mb-6 drop-shadow-2xl hover:scale-105 transition-transform duration-500 rounded-xl"
           />
           <p className="text-gray-400 font-medium text-sm tracking-wide">Orchestrating the Future of Clinical Trials</p>
         </div>

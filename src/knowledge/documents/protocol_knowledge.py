@@ -223,7 +223,7 @@ SDV BEST PRACTICES:
             "content": """
 TWO-TIER CLEAN PATIENT DEFINITION
 
-Clean Patient status indicates a subject's data is ready for database lock. SANCHALAK AI uses a two-tier system.
+Clean Patient status indicates a subject's data is ready for database lock. a6on-i uses a two-tier system.
 
 TIER 1: CLINICAL CLEAN (Hard Blocks)
 These criteria MUST be met for clinical data integrity:
@@ -719,7 +719,7 @@ SIGNAL RESPONSE:
 6. Communication: Notify stakeholders
 7. Monitoring: Continue surveillance
 
-SANCHALAK AI PATTERN DETECTION:
+a6on-i PATTERN DETECTION:
 The system monitors for:
 - Cluster patterns (same AE at multiple sites)
 - Temporal patterns (AE onset timing)
@@ -1606,7 +1606,7 @@ KEY REQUIREMENTS:
 - Cannot be copied/transferred
 - Invalidation detectable
 
-SANCHALAK AI COMPLIANCE:
+a6on-i COMPLIANCE:
 
 Audit Trail:
 - All data changes logged
@@ -1710,7 +1710,7 @@ DATA TRANSFERS:
 - Binding corporate rules
 - Explicit consent
 
-SANCHALAK AI APPROACH:
+a6on-i APPROACH:
 - Subject codes only (no direct identifiers)
 - Role-based access
 - Audit trails
@@ -1787,7 +1787,7 @@ AUDIT TRAIL BEST PRACTICES:
 - Documented review process
 - Anomaly investigation
 
-SANCHALAK AI AUDIT TRAIL:
+a6on-i AUDIT TRAIL:
 
 Captures:
 - All data changes

@@ -1,9 +1,9 @@
 """
-SANCHALAK AI - Unified Patient Record (UPR) Builder (v1.2)
+a6on-i - Unified Patient Record (UPR) Builder (v1.2)
 ===================================================================
 Fixed: Smart join strategy - uses study_id + subject_id when patient_key match is low.
 
-Author: Sanchalak AI Team
+Author: a6on-i Team
 Version: 1.2.0
 """
 
@@ -713,7 +713,7 @@ class UPRBuilder:
     
     def build(self) -> pd.DataFrame:
         logger.info("=" * 70)
-        logger.info("SANCHALAK AI - UPR BUILDER (v1.2)")
+        logger.info("a6on-i - UPR BUILDER (v1.2)")
         logger.info("=" * 70)
         logger.info(f"Input: {self.input_dir}")
         logger.info(f"Output: {self.output_dir}")

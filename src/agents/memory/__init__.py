@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Agent Memory Package
+a6on-i - Agent Memory Package
 ========================================
 Memory, learning, and decision tracking for agents.
 """

@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Simulation Module
+a6on-i - Simulation Module
 
 Phase 9: Digital Twin & Simulation
 - 9.1 Trial State Model

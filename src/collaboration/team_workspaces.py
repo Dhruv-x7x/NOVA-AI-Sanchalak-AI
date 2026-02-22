@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Phase 8.5: Team Workspaces v1.0
+a6on-i - Phase 8.5: Team Workspaces v1.0
 # NOTE: This module previously used SQLite but has been migrated to PostgreSQL-only.
 # If you need to use this module, update it to use:
 #   from src.database.pg_data_service import get_pg_data_service
@@ -13,7 +13,7 @@ Team collaboration workspaces with:
 - Activity feed with real-time updates
 - Shared resources and announcements
 
-Author: Sanchalak AI Team
+Author: a6on-i Team
 Date: 2026-01-02
 """
 

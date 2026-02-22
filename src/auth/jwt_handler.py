@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - JWT Token Handler
+a6on-i - JWT Token Handler
 =====================================
 Secure JWT token creation and validation for authentication.
 """
@@ -53,7 +53,7 @@ class JWTHandler:
     def _generate_default_key(self) -> str:
         """Generate a default secret key (not for production!)."""
         import uuid
-        key = f"sanchalak-ai-{uuid.uuid4().hex}"
+        key = f"a6on-i-ai-{uuid.uuid4().hex}"
         logger.warning("Using auto-generated JWT secret. Set JWT_SECRET_KEY for production!")
         return key
     

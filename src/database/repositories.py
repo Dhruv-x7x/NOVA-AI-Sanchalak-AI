@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Data Repositories
+a6on-i - Data Repositories
 =====================================
 Data access layer with CRUD operations for all entities.
 """

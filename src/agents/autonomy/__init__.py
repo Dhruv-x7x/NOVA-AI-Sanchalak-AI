@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Agent Autonomy Package
+a6on-i - Agent Autonomy Package
 ==========================================
 Risk-based autonomy and auto-execution for agents.
 """

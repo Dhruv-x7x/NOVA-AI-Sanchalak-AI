@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Risk Classifier v1.2 (FIXED)
+a6on-i - Risk Classifier v1.2 (FIXED)
 Phase 3.2: XGBoost + LightGBM Ensemble with SHAP Explainability
 
 FIXES v1.2:
@@ -791,7 +791,7 @@ class RiskClassifierRunner:
     def run(self, run_cv: bool = True) -> Dict:
         """Run full training pipeline"""
         logger.info("\n" + "=" * 70)
-        logger.info("SANCHALAK AI - RISK CLASSIFIER v1.2")
+        logger.info("a6on-i - RISK CLASSIFIER v1.2")
         logger.info("=" * 70)
         
         start_time = datetime.now()

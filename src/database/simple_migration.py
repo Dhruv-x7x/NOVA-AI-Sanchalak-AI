@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Simplified Parquet to PostgreSQL Migration
+a6on-i - Simplified Parquet to PostgreSQL Migration
 ==============================================================
 Migrate existing parquet data to PostgreSQL database.
 Simplified version without foreign key constraints.
@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 def run_simple_migration():
     """Run simplified migration from parquet to PostgreSQL."""
     print("=" * 70)
-    print("SANCHALAK AI - SIMPLIFIED MIGRATION")
+    print("a6on-i - SIMPLIFIED MIGRATION")
     print("=" * 70)
     print(f"Started: {datetime.now()}")
     

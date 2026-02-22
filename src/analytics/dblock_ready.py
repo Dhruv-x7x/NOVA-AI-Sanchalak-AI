@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - DB Lock Ready Engine v2.1 (FIXED)
+a6on-i - DB Lock Ready Engine v2.1 (FIXED)
 Phase 2.3: Database Lock Readiness Assessment
 
 FIXES:
@@ -702,7 +702,7 @@ class DBLockReadyCalculator:
     def calculate_full_db_lock_ready(self, df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         """Run complete DB Lock Ready calculation"""
         logger.info("\n" + "=" * 70)
-        logger.info("SANCHALAK AI - DB LOCK READY ENGINE v2.1")
+        logger.info("a6on-i - DB LOCK READY ENGINE v2.1")
         logger.info("=" * 70)
         logger.info(f"Patients: {len(df):,}")
         

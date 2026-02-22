@@ -8,7 +8,7 @@ from .models import Base
 # No SQLite fallback - fail fast if PostgreSQL is not configured
 
 # Get PostgreSQL URL from environment or use default local connection
-DB_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/sanchalak_ai")
+DB_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/a6on-i_ai")
 
 if not DB_URL.startswith("postgresql"):
     raise ValueError(

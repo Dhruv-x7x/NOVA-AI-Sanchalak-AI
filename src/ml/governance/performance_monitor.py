@@ -6,7 +6,7 @@
 
 
 """
-SANCHALAK AI - ML Performance Monitor v1.0
+a6on-i - ML Performance Monitor v1.0
 Real-time Performance Tracking for ML Models
 
 Features:

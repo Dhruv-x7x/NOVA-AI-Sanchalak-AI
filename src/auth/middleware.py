@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Streamlit Auth Middleware
+a6on-i - Streamlit Auth Middleware
 =============================================
 Middleware for protecting Streamlit pages with authentication.
 """
@@ -187,7 +187,7 @@ def show_login_page():
     col1, col2, col3 = st.columns([1, 2, 1])
     
     with col2:
-        st.markdown("## 🔐 Sanchalak AI Login")
+        st.markdown("## 🔐 a6on-i Login")
         st.markdown("---")
         
         with st.form("login_form"):
@@ -211,7 +211,7 @@ def show_login_page():
         st.markdown("---")
         st.markdown("""
         **Demo Accounts:**
-        - `admin` / `Admin@Sanchalak AI2024!`
+        - `admin` / `Admin@a6on-i2024!`
         - `study_lead` / `StudyLead@2024!`
         - `cra` / `CRA@Monitor2024!`
         """)

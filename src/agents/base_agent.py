@@ -1,5 +1,5 @@
 """
-Base Agent Class for SANCHALAK AI
+Base Agent Class for a6on-i
 Phase 5.2: LangGraph Agent Framework
 
 Provides the foundation for all specialized agents.
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 class BaseAgent(ABC):
     """
-    Base class for all agents in the SANCHALAK AI system.
+    Base class for all agents in the a6on-i system.
     
     Each agent:
     1. Has a specific role and system prompt

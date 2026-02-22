@@ -1,9 +1,9 @@
 """
-SANCHALAK AI - Advanced Feature Engineering (v1.0)
+a6on-i - Advanced Feature Engineering (v1.0)
 ===========================================================
 Expands UPR from 93 to 264 features for ML models.
 
-Author: Sanchalak AI Team
+Author: a6on-i Team
 Version: 1.0.0
 """
 

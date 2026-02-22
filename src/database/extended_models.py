@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Extended Database Models
+a6on-i - Extended Database Models
 ============================================
 Additional models for migrated functionality from Parquet/SQLite.
 

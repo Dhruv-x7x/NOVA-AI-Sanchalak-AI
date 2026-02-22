@@ -1,6 +1,6 @@
 # src/agents/diagnostic_enhanced.py
 """
-SANCHALAK AI - Enhanced DIAGNOSTIC Agent v1.1
+a6on-i - Enhanced DIAGNOSTIC Agent v1.1
 
 Purpose: Investigate data quality issues, generate hypotheses with evidence chains,
          and provide root cause analysis with confidence scoring.

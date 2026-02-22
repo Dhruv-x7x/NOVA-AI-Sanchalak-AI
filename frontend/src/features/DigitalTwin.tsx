@@ -1,6 +1,6 @@
 import { FC, useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import SanchalakLoader from '@/components/SanchalakLoader';
+import A6onLoader from '@/components/a6on_iLoader';
 import {
   Activity,
   Target,
@@ -119,7 +119,7 @@ const DigitalTwin: FC = () => {
   const currentResult = predictMutation.data;
 
   if (scenariosLoading) {
-    return <SanchalakLoader size="lg" label="Loading digital twin scenarios..." fullPage />;
+    return <A6onLoader size="lg" label="Loading digital twin simulation..." fullPage />;
   }
 
   return (

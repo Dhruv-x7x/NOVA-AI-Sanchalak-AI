@@ -1,5 +1,5 @@
 """
-Causal Hypothesis Engine Service for SANCHALAK AI
+Causal Hypothesis Engine Service for a6on-i
 Provides a singleton interface to the Causal Hypothesis Engine for dashboard and agents.
 
 Version: 1.0 - Initial Integration

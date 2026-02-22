@@ -85,13 +85,15 @@ class AgenticService:
 
         return AgenticResponse(
             summary=f"I've initiated a background analysis of the {topic} metrics. My diagnostic agents have identified key performance indicators that require attention.",
-            agent_chain=["SUPERVISOR", "DIAGNOSTIC", "FORECASTER", "RESOLVER", "COMMUNICATOR"],
+            agent_chain=["SUPERVISOR", "DIAGNOSTIC", "FORECASTER", "RESOLVER", "EXECUTOR", "COMMUNICATOR"],
             steps=[
                 AgentStep(agent="SUPERVISOR", thought=f"Decomposing {topic} query.", action="route_to_specialists"),
                 AgentStep(agent="DIAGNOSTIC", thought="Analyzing telemetry.", action="get_metrics", observation="Trends identified"),
-                AgentStep(agent="RESOLVER", thought="Generating plan.", action="optimize", observation="Ready")
+                AgentStep(agent="FORECASTER", thought="Generating predictions.", action="predictive_enrichment", observation="Predictive enrichment complete"),
+                AgentStep(agent="RESOLVER", thought="Generating plan.", action="optimize", observation="Ready"),
+                AgentStep(agent="EXECUTOR", thought="Validating actions.", action="validate_actions", observation="Action validation complete"),
             ],
-            tools_used=["query_site_metrics", "search_patterns"],
+            tools_used=["query_site_metrics", "predictive_engine", "search_patterns", "action_validator"],
             confidence=0.85,
             recommendations=[{"action": f"Review {topic} trends", "impact": "High"}]
         )

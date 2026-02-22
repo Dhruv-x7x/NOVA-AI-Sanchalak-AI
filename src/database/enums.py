@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Database Enums
+a6on-i - Database Enums
 ==================================
 SQLAlchemy enum types for consistent database values.
 """

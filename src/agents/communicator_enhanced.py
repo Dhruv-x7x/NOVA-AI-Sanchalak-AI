@@ -1,6 +1,6 @@
 # src/agents/communicator_enhanced.py
 """
-SANCHALAK AI - Enhanced COMMUNICATOR Agent v1.0
+a6on-i - Enhanced COMMUNICATOR Agent v1.0
 
 Purpose: Draft communications, manage notifications, select appropriate channels,
          and handle message delivery with batching and approval workflows.
@@ -396,7 +396,7 @@ Please log into the EDC system to review and respond to these queries.
 If you have any questions, please contact your CRA.
 
 Best regards,
-Sanchalak AI System
+a6on-i System
             """.strip(),
             priority=MessagePriority.NORMAL,
             target_roles=[RecipientRole.SITE_COORDINATOR, RecipientRole.PI],
@@ -420,7 +420,7 @@ Please log into the EDC system at your earliest convenience to complete the sign
 Overdue signatures may impact study timelines and data lock readiness.
 
 Best regards,
-Sanchalak AI System
+a6on-i System
             """.strip(),
             priority=MessagePriority.HIGH,
             target_roles=[RecipientRole.PI],
@@ -485,10 +485,10 @@ TREND:
 RECOMMENDATIONS:
 {{recommendations}}
 
-For detailed analysis, please visit the Sanchalak AI dashboard.
+For detailed analysis, please visit the a6on-i dashboard.
 
 Best regards,
-Sanchalak AI System
+a6on-i System
             """.strip(),
             priority=MessagePriority.LOW,
             target_roles=[RecipientRole.CRA, RecipientRole.CTM],
@@ -524,7 +524,7 @@ Required Action:
 Please respond within 24 hours.
 
 Best regards,
-Sanchalak AI System
+a6on-i System
             """.strip(),
             priority=MessagePriority.HIGH,
             target_roles=[RecipientRole.STUDY_LEAD, RecipientRole.CTM],
@@ -539,7 +539,7 @@ Sanchalak AI System
             template_id="TPL-DIG-001",
             name="Daily Digest",
             message_type=MessageType.SUMMARY,
-            subject_template="Your Daily Sanchalak AI Digest - {{date}}",
+            subject_template="Your Daily a6on-i Digest - {{date}}",
             body_template="""
 Good morning, {{recipient_name}}!
 
@@ -558,7 +558,7 @@ UPCOMING:
 {{upcoming_items}}
 
 Have a productive day!
-Sanchalak AI System
+a6on-i System
             """.strip(),
             priority=MessagePriority.LOW,
             target_roles=[RecipientRole.CRA, RecipientRole.DATA_MANAGER],
@@ -598,7 +598,7 @@ RECOMMENDED ACTIONS:
 For detailed analysis, visit the DB Lock Dashboard.
 
 Best regards,
-Sanchalak AI System
+a6on-i System
             """.strip(),
             priority=MessagePriority.NORMAL,
             target_roles=[RecipientRole.STUDY_LEAD, RecipientRole.DATA_MANAGER],
@@ -634,7 +634,7 @@ Steps:
 Please complete this action by the due date.
 
 Best regards,
-Sanchalak AI System
+a6on-i System
             """.strip(),
             priority=MessagePriority.NORMAL,
             target_roles=[RecipientRole.CRA, RecipientRole.DATA_MANAGER, RecipientRole.SITE_COORDINATOR],

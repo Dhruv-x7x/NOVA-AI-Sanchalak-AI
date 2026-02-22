@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Pattern Watcher v1.0
+a6on-i - Pattern Watcher v1.0
 ========================================
 Monitor for emerging issues and patterns before they escalate.
 """

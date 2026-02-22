@@ -1,7 +1,7 @@
 # src/ml/governance/__init__.py
 
 """
-SANCHALAK AI - ML Governance Module
+a6on-i - ML Governance Module
 Model Drift Detection & Compliance System
 
 Layer 8: ML Model Governance

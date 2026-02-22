@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Model Retraining Worker
+a6on-i - Model Retraining Worker
 =========================================
 Background worker to monitor model drift and trigger automated retraining.
 """

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SANCHALAK AI - Enhanced SUPERVISOR Agent v2.1
+a6on-i - Enhanced SUPERVISOR Agent v2.1
 
 Features:
 1. Advanced task decomposition (complex → subtasks)

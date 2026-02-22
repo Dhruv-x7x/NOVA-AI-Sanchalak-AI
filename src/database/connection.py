@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Database Connection Manager
+a6on-i - Database Connection Manager
 ===============================================
 Connection pool and session management for PostgreSQL.
 """

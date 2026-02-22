@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Hybrid RAG Search Engine
+a6on-i - Hybrid RAG Search Engine
 ================================================
 Implements Reciprocal Rank Fusion (RRF) of:
 - Qdrant/ChromaDB vector search (semantic similarity)

@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Persistent Agent Memory
+a6on-i - Persistent Agent Memory
 ===============================================
 Store and retrieve agent learnings in PostgreSQL for cross-session memory.
 

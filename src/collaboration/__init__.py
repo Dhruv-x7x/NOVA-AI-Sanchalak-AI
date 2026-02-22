@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Collaboration Module
+a6on-i - Collaboration Module
 Phase 8: Collaboration Hub
 
 Includes:

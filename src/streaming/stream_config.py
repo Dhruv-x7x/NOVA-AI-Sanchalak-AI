@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Stream Configuration
+a6on-i - Stream Configuration
 ========================================
 Kafka broker, topic, and consumer group configuration.
 """
@@ -29,7 +29,7 @@ class StreamConfig:
     sasl_password: str = os.getenv("KAFKA_SASL_PASSWORD", "")
     
     # Consumer Settings
-    consumer_group: str = os.getenv("KAFKA_CONSUMER_GROUP", "sanchalak-ai")
+    consumer_group: str = os.getenv("KAFKA_CONSUMER_GROUP", "a6on-i-ai")
     auto_offset_reset: str = "earliest"
     enable_auto_commit: bool = True
     session_timeout_ms: int = 30000
@@ -44,31 +44,31 @@ class StreamConfig:
     # Topics
     topics: Dict[str, str] = field(default_factory=lambda: {
         # Query Events
-        "query_created": "sanchalak.query.created",
-        "query_resolved": "sanchalak.query.resolved",
-        "query_escalated": "sanchalak.query.escalated",
+        "query_created": "a6on-i.query.created",
+        "query_resolved": "a6on-i.query.resolved",
+        "query_escalated": "a6on-i.query.escalated",
         
         # Patient Events
-        "patient_updated": "sanchalak.patient.updated",
-        "patient_status_changed": "sanchalak.patient.status_changed",
-        "patient_dqi_changed": "sanchalak.patient.dqi_changed",
+        "patient_updated": "a6on-i.patient.updated",
+        "patient_status_changed": "a6on-i.patient.status_changed",
+        "patient_dqi_changed": "a6on-i.patient.dqi_changed",
         
         # Site Events
-        "site_metrics_updated": "sanchalak.site.metrics_updated",
-        "site_status_changed": "sanchalak.site.status_changed",
+        "site_metrics_updated": "a6on-i.site.metrics_updated",
+        "site_status_changed": "a6on-i.site.status_changed",
         
         # Issue Events
-        "issue_detected": "sanchalak.issue.detected",
-        "issue_resolved": "sanchalak.issue.resolved",
-        "issue_escalated": "sanchalak.issue.escalated",
+        "issue_detected": "a6on-i.issue.detected",
+        "issue_resolved": "a6on-i.issue.resolved",
+        "issue_escalated": "a6on-i.issue.escalated",
         
         # Real-Data Streams (riyaz2.md)
-        "patient_vitals": "sanchalak.patient.vitals",
-        "safety_sae": "sanchalak.safety.sae",
+        "patient_vitals": "a6on-i.patient.vitals",
+        "safety_sae": "a6on-i.safety.sae",
         
         # System Events
-        "data_refresh": "sanchalak.system.data_refresh",
-        "model_updated": "sanchalak.system.model_updated",
+        "data_refresh": "a6on-i.system.data_refresh",
+        "model_updated": "a6on-i.system.model_updated",
     })
     
     # Partitions per topic
@@ -77,7 +77,7 @@ class StreamConfig:
     
     def get_topic(self, event_type: str) -> str:
         """Get topic name for an event type."""
-        return self.topics.get(event_type, f"sanchalak.unknown.{event_type}")
+        return self.topics.get(event_type, f"a6on-i.unknown.{event_type}")
     
     def get_all_topics(self) -> List[str]:
         """Get all topic names."""

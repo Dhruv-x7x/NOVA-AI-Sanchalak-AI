@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Proactive Pattern Watcher Scheduler
+a6on-i - Proactive Pattern Watcher Scheduler
 =======================================================
 Background job to run pattern watcher every 15 minutes:
 - Check for emerging anomalies

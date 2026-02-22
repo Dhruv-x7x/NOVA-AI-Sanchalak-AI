@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Fine-Tuning Package
+a6on-i - Fine-Tuning Package
 =======================================
 Train custom models on clinical trial data.
 """

@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Parquet to PostgreSQL Migration Utility
+a6on-i - Parquet to PostgreSQL Migration Utility
 ===========================================================
 One-time migration script to load existing parquet files into PostgreSQL.
 

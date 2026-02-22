@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Anomaly Detection Engine v1.1
+a6on-i - Anomaly Detection Engine v1.1
 =====================================================
 Detects unusual patterns in patient and site data using:
 - Isolation Forest
@@ -7,7 +7,7 @@ Detects unusual patterns in patient and site data using:
 - Ensemble scoring
 - Severity classification
 
-Author: Sanchalak AI Team
+Author: a6on-i Team
 Version: 1.1 - Fixed feature alignment issue
 """
 
@@ -705,7 +705,7 @@ def run_anomaly_detection(
         Summary dictionary
     """
     logger.info("=" * 70)
-    logger.info("SANCHALAK AI - ANOMALY DETECTION ENGINE v1.1")
+    logger.info("a6on-i - ANOMALY DETECTION ENGINE v1.1")
     logger.info("=" * 70)
     
     start_time = datetime.now()

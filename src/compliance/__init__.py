@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Compliance Module Initialization
+a6on-i - Compliance Module Initialization
 """
 
 from .electronic_signature import (

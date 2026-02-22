@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { mlApi } from '@/services/api';
-import SanchalakLoader from '@/components/SanchalakLoader';
+import A6onLoader from '@/components/a6on_iLoader';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -164,7 +164,7 @@ export default function MLGovernance() {
   ];
 
   if (modelsLoading) {
-    return <SanchalakLoader size="lg" label="Loading AI governance models..." fullPage />;
+    return <A6onLoader size="lg" label="Loading ML Governance..." fullPage />;
   }
 
   return (

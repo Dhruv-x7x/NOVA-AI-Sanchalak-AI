@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Knowledge Graph Seeding Script
+a6on-i - Knowledge Graph Seeding Script
 =================================================
 Seeds the Neo4j graph with data from PostgreSQL and analytics.
 """

@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Phase 8.6: Alert System v1.1
+a6on-i - Phase 8.6: Alert System v1.1
 # NOTE: This module previously used SQLite but has been migrated to PostgreSQL-only.
 # If you need to use this module, update it to use:
 #   from src.database.pg_data_service import get_pg_data_service
@@ -1392,7 +1392,7 @@ def get_alert_stats(user_id: Optional[str] = None) -> AlertStats:
 def test_alert_system():
     """Test the Alert System"""
     print("=" * 60)
-    print("SANCHALAK AI - ALERT SYSTEM TEST")
+    print("a6on-i - ALERT SYSTEM TEST")
     print("=" * 60)
     
     # Reset for clean test

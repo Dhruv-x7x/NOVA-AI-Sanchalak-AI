@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Resolution Time Predictor v1.0
+a6on-i - Resolution Time Predictor v1.0
 =====================================================
 Predicts estimated days to resolution for issues using:
 - Quantile Regression (XGBoost)
@@ -387,7 +387,7 @@ def run_resolution_prediction(
 ) -> Dict[str, Any]:
     """Run full resolution time prediction pipeline."""
     logger.info("=" * 70)
-    logger.info("SANCHALAK AI - RESOLUTION TIME PREDICTION ENGINE v1.0")
+    logger.info("a6on-i - RESOLUTION TIME PREDICTION ENGINE v1.0")
     logger.info("=" * 70)
     
     # Create directories

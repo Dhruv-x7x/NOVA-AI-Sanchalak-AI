@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Agent Tracer v1.0
+a6on-i - Agent Tracer v1.0
 Comprehensive observability for agent decision chains.
 
 Logs every Thought → Action → Observation in the ReAct loop.

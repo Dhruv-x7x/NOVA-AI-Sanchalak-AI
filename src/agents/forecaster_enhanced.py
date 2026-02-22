@@ -1,6 +1,6 @@
 # src/agents/forecaster_enhanced.py
 """
-SANCHALAK AI - Enhanced FORECASTER Agent v1.0
+a6on-i - Enhanced FORECASTER Agent v1.0
 
 Purpose: Generate timeline predictions, uncertainty quantification,
          what-if simulations, and risk-adjusted forecasting.

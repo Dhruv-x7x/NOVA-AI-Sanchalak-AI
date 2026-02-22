@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Notifications Module
+a6on-i - Notifications Module
 ========================================
 Centralized notification queue system for all platform notifications.
 """

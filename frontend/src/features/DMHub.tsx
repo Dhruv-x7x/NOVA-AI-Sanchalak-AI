@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAppStore } from '@/stores/appStore';
 import { patientsApi, analyticsApi, issuesApi, studiesApi, sitesApi } from '@/services/api';
-import SanchalakLoader from '@/components/SanchalakLoader';
+import A6onLoader from '@/components/a6on_iLoader';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -51,12 +51,12 @@ import {
 } from 'recharts';
 import { formatPercent } from '@/lib/utils';
 
-  const TIER_COLORS = {
-    'tier_0': '#64748b',
-    'tier_1': '#3b82f6',
-    'tier_2': '#10b981',
-    'db_lock_ready': '#059669',
-  };
+const TIER_COLORS = {
+  'tier_0': '#64748b',
+  'tier_1': '#3b82f6',
+  'tier_2': '#10b981',
+  'db_lock_ready': '#059669',
+};
 
 export default function DMHub() {
   const queryClient = useQueryClient();
@@ -191,7 +191,7 @@ export default function DMHub() {
   const [dqiWeights] = useState({ safety: 0.4, query: 0.2, visit: 0.2, lab: 0.1, integrity: 0.1 });
 
   if (isPageLoading) {
-    return <SanchalakLoader size="lg" label="Loading data management hub..." fullPage />;
+    return <A6onLoader size="lg" label="Loading DM Hub..." fullPage />;
   }
 
   return (
@@ -374,21 +374,21 @@ export default function DMHub() {
         <CardContent className="p-0">
           <div className="h-24 w-full flex overflow-x-auto no-scrollbar">
             {qualityMatrixResponse?.data?.slice(0, 40).map((site: any) => (
-              <div 
-                key={site.site_id} 
+              <div
+                key={site.site_id}
                 className="flex-shrink-0 w-8 border-r border-nexus-border/20 flex flex-col group cursor-pointer"
                 title={`${site.site_id}: DQI ${site.dqi_score.toFixed(1)}%`}
               >
-                <div 
-                  className="h-1/3 w-full" 
+                <div
+                  className="h-1/3 w-full"
                   style={{ backgroundColor: site.tier2_clean_rate > 80 ? '#10b981' : site.tier2_clean_rate > 50 ? '#f59e0b' : '#ef4444', opacity: 0.8 }}
                 />
-                <div 
-                  className="h-1/3 w-full" 
+                <div
+                  className="h-1/3 w-full"
                   style={{ backgroundColor: site.tier1_clean_rate > 90 ? '#10b981' : site.tier1_clean_rate > 70 ? '#f59e0b' : '#ef4444', opacity: 0.6 }}
                 />
-                <div 
-                  className="h-1/3 w-full" 
+                <div
+                  className="h-1/3 w-full"
                   style={{ backgroundColor: site.dqi_score > 90 ? '#10b981' : site.dqi_score > 75 ? '#f59e0b' : '#ef4444', opacity: 1 }}
                 />
               </div>
@@ -454,9 +454,9 @@ export default function DMHub() {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#1a1f2e', 
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#1a1f2e',
                       border: '1px solid #2d3548',
                       borderRadius: '8px',
                       color: '#fff'
@@ -492,9 +492,9 @@ export default function DMHub() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#2d3548" horizontal={false} />
                   <XAxis type="number" domain={[0, 100]} stroke="#64748b" hide />
                   <YAxis type="category" dataKey="name" width={140} stroke="#64748b" tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#1a1f2e', 
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#1a1f2e',
                       border: '1px solid #2d3548',
                       borderRadius: '8px',
                       color: '#fff'
@@ -502,16 +502,16 @@ export default function DMHub() {
                   />
                   <Bar dataKey="score" name="Blocking Impact" radius={[0, 4, 4, 0]} barSize={20}>
                     {bottleneckData.map((entry: any, index: number) => (
-                      <Cell 
-                        key={`cell-${index}`} 
-                        fill={entry.score > 70 ? '#ef4444' : entry.score > 50 ? '#f59e0b' : '#3b82f6'} 
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={entry.score > 70 ? '#ef4444' : entry.score > 50 ? '#f59e0b' : '#3b82f6'}
                       />
                     ))}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            
+
             {topBottleneck && (
               <div className="p-4 bg-error-500/10 rounded-xl border border-error-500/20">
                 <div className="flex items-start gap-3">
@@ -519,7 +519,7 @@ export default function DMHub() {
                   <div>
                     <h4 className="text-sm font-bold text-white uppercase tracking-wider">Top Bottleneck: {topBottleneck.name.replace('_', ' ')}</h4>
                     <p className="text-xs text-nexus-text-secondary mt-1">
-                      {topBottleneck.patients_affected} patients impacted across {selectedStudy === 'all' ? 'portfolio' : 'study'}. 
+                      {topBottleneck.patients_affected} patients impacted across {selectedStudy === 'all' ? 'portfolio' : 'study'}.
                       Resolving this would improve lock readiness by {topBottleneck.score.toFixed(1)} impact points.
                     </p>
                   </div>
@@ -545,8 +545,8 @@ export default function DMHub() {
                     {dblockSummary?.summary?.ready_count || 0} patients
                   </span>
                 </div>
-                <Progress 
-                  value={dblockSummary?.summary?.ready_rate || 0} 
+                <Progress
+                  value={dblockSummary?.summary?.ready_rate || 0}
                   className="h-3"
                 />
               </div>
@@ -557,8 +557,8 @@ export default function DMHub() {
                     {formatPercent(cleanSummary?.summary?.tier1_rate || 0)}
                   </span>
                 </div>
-                <Progress 
-                  value={cleanSummary?.summary?.tier1_rate || 0} 
+                <Progress
+                  value={cleanSummary?.summary?.tier1_rate || 0}
                   className="h-2"
                 />
               </div>
@@ -569,8 +569,8 @@ export default function DMHub() {
                     {formatPercent(cleanSummary?.summary?.tier2_rate || 0)}
                   </span>
                 </div>
-                <Progress 
-                  value={cleanSummary?.summary?.tier2_rate || 0} 
+                <Progress
+                  value={cleanSummary?.summary?.tier2_rate || 0}
                   className="h-2"
                 />
               </div>
@@ -627,40 +627,40 @@ export default function DMHub() {
             </CardHeader>
             <CardContent>
               <Table>
-                    <TableHeader>
-                      <TableRow className="border-nexus-border hover:bg-transparent">
-                        <TableHead className="text-nexus-text-secondary">Patient ID</TableHead>
-                        <TableHead className="text-nexus-text-secondary">Site</TableHead>
-                        <TableHead className="text-nexus-text-secondary">DQI Score</TableHead>
-                        <TableHead className="text-nexus-text-secondary">Status</TableHead>
-                        <TableHead className="text-nexus-text-secondary">Open Queries</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {dqiData?.data?.slice(0, 15).map((patient: any) => (
-                        <TableRow key={patient.patient_key} className="border-nexus-border hover:bg-nexus-card/50">
-                          <TableCell className="font-medium text-white">{patient.patient_key}</TableCell>
-                          <TableCell className="text-nexus-text-secondary">{patient.site_id}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Progress 
-                                value={patient.dqi_score || 0} 
-                                className="w-16 h-2"
-                              />
-                              <span className={(patient.dqi_score || 0) >= 85 ? 'text-success-400' : (patient.dqi_score || 0) >= 70 ? 'text-warning-400' : 'text-error-400'}>
-                                {patient.dqi_score?.toFixed(1) || 'N/A'}%
-                              </span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={(patient.dqi_score || 0) >= 85 ? 'success' : (patient.dqi_score || 0) >= 70 ? 'warning' : 'error'}>
-                              {(patient.dqi_score || 0) >= 85 ? 'Good' : (patient.dqi_score || 0) >= 70 ? 'Fair' : 'Poor'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-white">{patient.open_queries_count || 0}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
+                <TableHeader>
+                  <TableRow className="border-nexus-border hover:bg-transparent">
+                    <TableHead className="text-nexus-text-secondary">Patient ID</TableHead>
+                    <TableHead className="text-nexus-text-secondary">Site</TableHead>
+                    <TableHead className="text-nexus-text-secondary">DQI Score</TableHead>
+                    <TableHead className="text-nexus-text-secondary">Status</TableHead>
+                    <TableHead className="text-nexus-text-secondary">Open Queries</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {dqiData?.data?.slice(0, 15).map((patient: any) => (
+                    <TableRow key={patient.patient_key} className="border-nexus-border hover:bg-nexus-card/50">
+                      <TableCell className="font-medium text-white">{patient.patient_key}</TableCell>
+                      <TableCell className="text-nexus-text-secondary">{patient.site_id}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Progress
+                            value={patient.dqi_score || 0}
+                            className="w-16 h-2"
+                          />
+                          <span className={(patient.dqi_score || 0) >= 85 ? 'text-success-400' : (patient.dqi_score || 0) >= 70 ? 'text-warning-400' : 'text-error-400'}>
+                            {patient.dqi_score?.toFixed(1) || 'N/A'}%
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={(patient.dqi_score || 0) >= 85 ? 'success' : (patient.dqi_score || 0) >= 70 ? 'warning' : 'error'}>
+                          {(patient.dqi_score || 0) >= 85 ? 'Good' : (patient.dqi_score || 0) >= 70 ? 'Fair' : 'Poor'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-white">{patient.open_queries_count || 0}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
 
               </Table>
             </CardContent>
@@ -675,45 +675,45 @@ export default function DMHub() {
             </CardHeader>
             <CardContent>
               <Table>
-                    <TableHeader>
-                      <TableRow className="border-nexus-border hover:bg-transparent">
-                        <TableHead className="text-nexus-text-secondary">Patient ID</TableHead>
-                        <TableHead className="text-nexus-text-secondary">Site</TableHead>
-                        <TableHead className="text-nexus-text-secondary">Clean Tier</TableHead>
-                        <TableHead className="text-nexus-text-secondary">Tier 1 Clean</TableHead>
-                        <TableHead className="text-nexus-text-secondary">Tier 2 Clean</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {cleanStatus?.data?.slice(0, 15).map((patient: any) => (
-                        <TableRow key={patient.patient_key} className="border-nexus-border hover:bg-nexus-card/50">
-                          <TableCell className="font-medium text-white">{patient.patient_key}</TableCell>
-                          <TableCell className="text-nexus-text-secondary">{patient.site_id}</TableCell>
-                          <TableCell>
-                            <Badge 
-                              style={{ backgroundColor: (TIER_COLORS as any)[patient.clean_status_tier || ''] || '#6b7280' }}
-                              className="text-white capitalize"
-                            >
-                              {(patient.clean_status_tier || 'Unknown').replace('_', ' ')}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {patient.tier1_clean ? (
-                              <CheckCircle2 className="w-5 h-5 text-success-400" />
-                            ) : (
-                              <XCircle className="w-5 h-5 text-nexus-text-secondary" />
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {patient.tier2_clean ? (
-                              <CheckCircle2 className="w-5 h-5 text-success-400" />
-                            ) : (
-                              <XCircle className="w-5 h-5 text-nexus-text-secondary" />
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
+                <TableHeader>
+                  <TableRow className="border-nexus-border hover:bg-transparent">
+                    <TableHead className="text-nexus-text-secondary">Patient ID</TableHead>
+                    <TableHead className="text-nexus-text-secondary">Site</TableHead>
+                    <TableHead className="text-nexus-text-secondary">Clean Tier</TableHead>
+                    <TableHead className="text-nexus-text-secondary">Tier 1 Clean</TableHead>
+                    <TableHead className="text-nexus-text-secondary">Tier 2 Clean</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {cleanStatus?.data?.slice(0, 15).map((patient: any) => (
+                    <TableRow key={patient.patient_key} className="border-nexus-border hover:bg-nexus-card/50">
+                      <TableCell className="font-medium text-white">{patient.patient_key}</TableCell>
+                      <TableCell className="text-nexus-text-secondary">{patient.site_id}</TableCell>
+                      <TableCell>
+                        <Badge
+                          style={{ backgroundColor: (TIER_COLORS as any)[patient.clean_status_tier || ''] || '#6b7280' }}
+                          className="text-white capitalize"
+                        >
+                          {(patient.clean_status_tier || 'Unknown').replace('_', ' ')}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {patient.tier1_clean ? (
+                          <CheckCircle2 className="w-5 h-5 text-success-400" />
+                        ) : (
+                          <XCircle className="w-5 h-5 text-nexus-text-secondary" />
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {patient.tier2_clean ? (
+                          <CheckCircle2 className="w-5 h-5 text-success-400" />
+                        ) : (
+                          <XCircle className="w-5 h-5 text-nexus-text-secondary" />
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
 
               </Table>
             </CardContent>
@@ -816,48 +816,48 @@ export default function DMHub() {
             </CardHeader>
             <CardContent>
               <Table>
-                    <TableHeader>
-                      <TableRow className="border-nexus-border hover:bg-transparent">
-                        <TableHead className="text-nexus-text-secondary">Patient ID</TableHead>
-                        <TableHead className="text-nexus-text-secondary">Site</TableHead>
-                        <TableHead className="text-nexus-text-secondary">DB Lock Ready</TableHead>
-                        <TableHead className="text-nexus-text-secondary">DQI Score</TableHead>
-                        <TableHead className="text-nexus-text-secondary">Blocking Issues</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {dblockStatus?.data?.slice(0, 15).map((patient: any) => (
-                        <TableRow key={patient.patient_key} className="border-nexus-border hover:bg-nexus-card/50">
-                          <TableCell className="font-medium text-white">{patient.patient_key}</TableCell>
-                          <TableCell className="text-nexus-text-secondary">{patient.site_id}</TableCell>
-                          <TableCell>
-                            {patient.dblock_ready ? (
-                              <div className="flex items-center gap-2">
-                                <Lock className="w-5 h-5 text-success-400" />
-                                <span className="text-success-400 text-sm">Ready</span>
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-2">
-                                <Unlock className="w-5 h-5 text-warning-400" />
-                                <span className="text-warning-400 text-sm">Not Ready</span>
-                              </div>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <span className={(patient.dqi_score || 0) >= 85 ? 'text-success-400' : (patient.dqi_score || 0) >= 70 ? 'text-warning-400' : 'text-error-400'}>
-                              {patient.dqi_score?.toFixed(1) || 'N/A'}%
-                            </span>
-                          </TableCell>
-                          <TableCell>
-                            {patient.blocking_issues && patient.blocking_issues > 0 ? (
-                              <Badge variant="error">{patient.blocking_issues}</Badge>
-                            ) : (
-                              <Badge variant="success">0</Badge>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
+                <TableHeader>
+                  <TableRow className="border-nexus-border hover:bg-transparent">
+                    <TableHead className="text-nexus-text-secondary">Patient ID</TableHead>
+                    <TableHead className="text-nexus-text-secondary">Site</TableHead>
+                    <TableHead className="text-nexus-text-secondary">DB Lock Ready</TableHead>
+                    <TableHead className="text-nexus-text-secondary">DQI Score</TableHead>
+                    <TableHead className="text-nexus-text-secondary">Blocking Issues</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {dblockStatus?.data?.slice(0, 15).map((patient: any) => (
+                    <TableRow key={patient.patient_key} className="border-nexus-border hover:bg-nexus-card/50">
+                      <TableCell className="font-medium text-white">{patient.patient_key}</TableCell>
+                      <TableCell className="text-nexus-text-secondary">{patient.site_id}</TableCell>
+                      <TableCell>
+                        {patient.dblock_ready ? (
+                          <div className="flex items-center gap-2">
+                            <Lock className="w-5 h-5 text-success-400" />
+                            <span className="text-success-400 text-sm">Ready</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <Unlock className="w-5 h-5 text-warning-400" />
+                            <span className="text-warning-400 text-sm">Not Ready</span>
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <span className={(patient.dqi_score || 0) >= 85 ? 'text-success-400' : (patient.dqi_score || 0) >= 70 ? 'text-warning-400' : 'text-error-400'}>
+                          {patient.dqi_score?.toFixed(1) || 'N/A'}%
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        {patient.blocking_issues && patient.blocking_issues > 0 ? (
+                          <Badge variant="error">{patient.blocking_issues}</Badge>
+                        ) : (
+                          <Badge variant="success">0</Badge>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
 
               </Table>
             </CardContent>
@@ -888,9 +888,9 @@ export default function DMHub() {
                 <BarChart data={resolutionResponse?.by_type || []}>
                   <XAxis dataKey="name" stroke="#64748b" tick={{ fill: '#94a3b8', fontSize: 10 }} interval={0} angle={-25} textAnchor="end" height={60} />
                   <YAxis stroke="#64748b" />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#1a1f2e', 
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#1a1f2e',
                       border: '1px solid #2d3548',
                       borderRadius: '8px',
                       color: '#fff'
@@ -900,7 +900,7 @@ export default function DMHub() {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            
+
             <div className="space-y-3">
               <h4 className="text-xs font-bold text-white uppercase tracking-wider">Top Resolution Templates</h4>
               {resolutionResponse?.by_type?.slice(0, 3).map((template: any) => (
@@ -951,33 +951,33 @@ export default function DMHub() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[10px] text-nexus-text-secondary uppercase font-bold">Template ID</label>
-                  <input 
-                    type="text" 
-                    className="w-full bg-nexus-card border border-nexus-border rounded px-2 py-1 text-xs text-white" 
-                    placeholder="e.g., SDV-001" 
+                  <input
+                    type="text"
+                    className="w-full bg-nexus-card border border-nexus-border rounded px-2 py-1 text-xs text-white"
+                    placeholder="e.g., SDV-001"
                     value={templateId}
                     onChange={(e) => setTemplateId(e.target.value)}
                   />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] text-nexus-text-secondary uppercase font-bold">Duration (hrs)</label>
-                  <input 
-                    type="number" 
-                    className="w-full bg-nexus-card border border-nexus-border rounded px-2 py-1 text-xs text-white" 
+                  <input
+                    type="number"
+                    className="w-full bg-nexus-card border border-nexus-border rounded px-2 py-1 text-xs text-white"
                     value={duration}
                     onChange={(e) => setDuration(parseFloat(e.target.value))}
                   />
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button 
+                <Button
                   className="flex-1 bg-emerald-600 hover:bg-emerald-700 h-8 text-xs font-bold text-white"
                   onClick={() => handleFeedback(true)}
                   disabled={resolutionMutation.isPending}
                 >
                   SUCCESS
                 </Button>
-                <Button 
+                <Button
                   className="flex-1 bg-red-600 hover:bg-red-700 h-8 text-xs font-bold text-white"
                   onClick={() => handleFeedback(false)}
                   disabled={resolutionMutation.isPending}
@@ -986,7 +986,7 @@ export default function DMHub() {
                 </Button>
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
                 <TrendingUp className="w-3 h-3 text-emerald-400" />

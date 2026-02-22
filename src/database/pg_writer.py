@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - PostgreSQL Data Writer
+a6on-i - PostgreSQL Data Writer
 ==========================================
 Helper utilities to write data to PostgreSQL instead of Parquet files.
 Provides drop-in replacements for parquet operations.

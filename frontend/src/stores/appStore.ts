@@ -42,7 +42,7 @@ export const useAppStore = create<AppState>()(
       })),
     }),
     {
-      name: 'sanchalak-app-store',
+      name: 'a6on-i-app-store',
       partialize: (state) => ({
         sidebarCollapsed: state.sidebarCollapsed,
         selectedStudy: state.selectedStudy,

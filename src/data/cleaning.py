@@ -1,9 +1,9 @@
 """
-SANCHALAK AI - Data Cleaning & Standardization Engine (v2.0 FIXED)
+a6on-i - Data Cleaning & Standardization Engine (v2.0 FIXED)
 ==========================================================================
 Properly handles CPID EDC Metrics with unnamed columns.
 
-Author: Sanchalak AI Team
+Author: a6on-i Team
 Version: 2.0.0
 """
 
@@ -728,7 +728,7 @@ class DataCleaningEngine:
     
     def run(self) -> CleaningManifest:
         logger.info("=" * 70)
-        logger.info("SANCHALAK AI - DATA CLEANING (v3.0 SQL)")
+        logger.info("a6on-i - DATA CLEANING (v3.0 SQL)")
         logger.info("=" * 70)
         
         try:

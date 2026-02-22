@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Parquet to PostgreSQL Migration
+a6on-i - Parquet to PostgreSQL Migration
 ===================================================
 Migrate existing parquet data to PostgreSQL database.
 """
@@ -199,7 +199,7 @@ def migrate_patients(df: pd.DataFrame, session, batch_size: int = 1000) -> int:
 def run_migration():
     """Run full migration from parquet to PostgreSQL."""
     print("=" * 70)
-    print("SANCHALAK AI - PARQUET TO POSTGRESQL MIGRATION")
+    print("a6on-i - PARQUET TO POSTGRESQL MIGRATION")
     print("=" * 70)
     print(f"Started: {datetime.now()}")
     

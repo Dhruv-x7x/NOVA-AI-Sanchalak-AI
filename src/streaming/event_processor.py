@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Event Processor
+a6on-i - Event Processor
 ===================================
 Transform streaming events into actionable UPR updates.
 """

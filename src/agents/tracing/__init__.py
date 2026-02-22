@@ -1,4 +1,4 @@
-"""Agent Tracing Module for SANCHALAK AI."""
+"""Agent Tracing Module for a6on-i."""
 
 from .agent_tracer import (
     AgentTracer,

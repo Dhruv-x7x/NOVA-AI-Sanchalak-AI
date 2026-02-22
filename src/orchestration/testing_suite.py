@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - Phase 11.4: Testing Suite v1.0
+a6on-i - Phase 11.4: Testing Suite v1.0
 # NOTE: This module previously used SQLite but has been migrated to PostgreSQL-only.
 # If you need to use this module, update it to use:
 #   from src.database.pg_data_service import get_pg_data_service

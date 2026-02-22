@@ -1,5 +1,5 @@
 """
-SANCHALAK AI - ML Model A/B Testing Framework
+a6on-i - ML Model A/B Testing Framework
 ======================================================
 Implements A/B testing for ML models with traffic splitting,
 performance tracking, and experiment evaluation.

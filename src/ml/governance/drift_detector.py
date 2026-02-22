@@ -6,7 +6,7 @@
 
 
 """
-SANCHALAK AI - ML Drift Detector v1.0
+a6on-i - ML Drift Detector v1.0
 Statistical Drift Detection for ML Models
 
 Features:
