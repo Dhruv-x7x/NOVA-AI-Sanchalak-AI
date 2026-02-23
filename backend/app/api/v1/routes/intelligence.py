@@ -40,9 +40,14 @@ class SwarmRequest(BaseModel):
     query: str
     context: Dict[str, Any]
 
+class ConversationTurn(BaseModel):
+    role: str  # "user" or "assistant"
+    content: str
+
 class AssistantQueryRequest(BaseModel):
     query: str
     thread_id: Optional[str] = None
+    conversation_history: Optional[List[ConversationTurn]] = None
 
 # Cache the orchestrator instance for better performance (similar to Streamlit's session state)
 _cached_orchestrator = None
@@ -140,8 +145,11 @@ async def assistant_query(
 ):
     """Run a query through the 6-agent orchestrator."""
     try:
-        # Process using the new Agentic Service
-        result = await agentic_service.process_query(request.query)
+        # Process using the new Agentic Service (with conversation memory)
+        history = None
+        if request.conversation_history:
+            history = [{"role": t.role, "content": t.content} for t in request.conversation_history]
+        result = await agentic_service.process_query(request.query, conversation_history=history)
         
         return {
             "summary": result.summary,

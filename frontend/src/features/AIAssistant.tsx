@@ -55,7 +55,14 @@ export default function AIAssistant() {
   }, [messages]);
 
   const assistantMutation = useMutation({
-    mutationFn: (query: string) => intelligenceApi.runAssistant(query),
+    mutationFn: (query: string) => {
+      // Send last 6 turns of conversation history for multi-turn context
+      const history = messages
+        .filter((m): m is Message & { role: 'user' | 'assistant' } => m.role === 'user' || m.role === 'assistant')
+        .slice(-6)
+        .map(m => ({ role: m.role, content: m.content }));
+      return intelligenceApi.runAssistant(query, history);
+    },
     onSuccess: (data) => {
       const assistantMessage: Message = {
         role: 'assistant',
@@ -82,7 +89,7 @@ export default function AIAssistant() {
     setMessages((prev) => [...prev, userMessage]);
     const query = input;
     setInput('');
-    assistantMutation.mutate(query);
+    assistantMutation.mutate(query);  // history is included via mutationFn closure
   };
 
   const handleClear = () => {

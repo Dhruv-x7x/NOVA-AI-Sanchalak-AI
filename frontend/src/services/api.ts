@@ -385,8 +385,11 @@ export const intelligenceApi = {
     return response.data;
   },
 
-  runAssistant: async (query: string) => {
-    const response = await api.post('/intelligence/assistant/query', { query });
+  runAssistant: async (query: string, conversationHistory?: Array<{role: string; content: string}>) => {
+    const response = await api.post('/intelligence/assistant/query', {
+      query,
+      conversation_history: conversationHistory ?? [],
+    });
     return response.data;
   },
   resetAssistant: async () => {

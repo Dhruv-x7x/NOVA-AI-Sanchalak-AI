@@ -39,27 +39,41 @@ class AgenticService:
     def _init_orchestrator(self):
         try:
             # Fix path for standalone service
-            # backend/app/services/agents.py -> parents[3]
             PROJECT_ROOT = Path(__file__).resolve().parents[3]
             if str(PROJECT_ROOT) not in sys.path:
                 sys.path.insert(0, str(PROJECT_ROOT))
-                
-            from src.agents.orchestrator import get_orchestrator
-            self.orchestrator = get_orchestrator()
-            logger.info("Real AgentOrchestrator initialized in AgenticService")
-        except Exception as e:
-            logger.error(f"Failed to initialize real orchestrator: {e}")
-            self.orchestrator = None
 
-    async def process_query(self, query: str) -> AgenticResponse:
-        """Processes the query using the real multi-agent orchestrator."""
+            # Use V4 agentic orchestrator with Gemini function calling
+            from src.agents.orchestrator_v4 import get_orchestrator_v4
+            self.orchestrator = get_orchestrator_v4()
+            logger.info("AgentOrchestratorV4 (agentic, function-calling) initialized in AgenticService")
+        except Exception as e:
+            logger.error(f"Failed to initialize V4 orchestrator: {e}")
+            # Fallback to V3
+            try:
+                from src.agents.orchestrator import get_orchestrator
+                self.orchestrator = get_orchestrator()
+                logger.info("Fell back to V3 orchestrator")
+            except Exception as e2:
+                logger.error(f"V3 orchestrator fallback also failed: {e2}")
+                self.orchestrator = None
+
+    async def process_query(
+        self,
+        query: str,
+        conversation_history: Optional[List[Dict[str, str]]] = None,
+    ) -> AgenticResponse:
+        """Processes the query using the V4 agentic orchestrator."""
         if not self.orchestrator:
             self._init_orchestrator()
             
         if self.orchestrator:
             try:
-                # Run the real orchestrator directly since we are in an async context
-                res = await self.orchestrator.run(query)
+                # Run the orchestrator (V4.run is async)
+                res = await self.orchestrator.run(
+                    query,
+                    conversation_history=conversation_history,
+                )
                 
                 # Convert results to AgenticResponse
                 steps = [AgentStep(**s) for s in res.get('steps', [])]
@@ -73,7 +87,9 @@ class AgenticService:
                     recommendations=res.get('recommendations', [])
                 )
             except Exception as e:
-                logger.error(f"Real orchestrator execution failed: {e}")
+                logger.error(f"Orchestrator execution failed: {e}")
+                import traceback
+                logger.error(traceback.format_exc())
 
 
         # Fallback simulation logic (improved)
