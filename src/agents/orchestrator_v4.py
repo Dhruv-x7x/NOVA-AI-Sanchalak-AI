@@ -6,16 +6,22 @@ clinical-trial tools together.  The LLM decides which tools to call,
 in what order, and synthesises a single actionable answer.
 
 Tools available:
-  1. run_sql_query         — execute any read-only SQL against PostgreSQL
-  2. get_portfolio_summary — quick portfolio KPIs
-  3. get_site_details      — detailed metrics for a specific site
-  4. get_patient_details   — detailed metrics for a specific patient
-  5. run_monte_carlo       — 10 000-run timeline simulation (DB-lock)
-  6. get_cascade_analysis  — issue dependency graph from project_issues
-  7. get_dqi_breakdown     — 8-component DQI for site or study
-  8. get_risk_distribution — risk-level distribution across portfolio
-  9. get_drift_status      — ML model drift summary
- 10. get_issue_summary     — open issues grouped by category
+  1.  run_sql_query           — execute any read-only SQL against PostgreSQL
+  2.  get_portfolio_summary   — quick portfolio KPIs
+  3.  get_site_details        — detailed metrics for a specific site
+  4.  get_patient_details     — detailed metrics for a specific patient
+  5.  run_monte_carlo         — 10 000-run timeline simulation (DB-lock)
+  6.  get_cascade_analysis    — issue dependency graph from project_issues
+  7.  get_dqi_breakdown       — 8-component DQI for site or study
+  8.  get_risk_distribution   — risk-level distribution across portfolio
+  9.  run_drift_check         — ML model drift summary
+ 10.  get_issue_summary       — open issues grouped by category
+ --- Digital Twin & What-If Simulation ---
+ 11.  simulate_site_closure   — Monte Carlo impact of closing a site
+ 12.  simulate_add_resource   — 10k-run impact of adding CRAs/DMs/staff
+ 13.  simulate_deadline       — probability of meeting a target date
+ 14.  simulate_process_change — impact of implementing a process improvement
+ 15.  simulate_dqi_fix        — DQI improvement from fixing specific issue types
 
 No frontend changes required — the assistant endpoint still returns
 { summary, agent_chain, steps, tools_used, confidence, recommendations }.
@@ -236,6 +242,119 @@ TOOL_DECLARATIONS = [
             },
         ),
     ),
+    # ── Digital Twin & What-If Simulation Tools ──────────────
+    types.FunctionDeclaration(
+        name="simulate_site_closure",
+        description=(
+            "Run a 10,000-iteration Monte Carlo simulation to predict the impact of closing a clinical site. "
+            "Models patient transfer success rates (Beta distribution), timeline delays (Gamma), "
+            "and cost impacts. Returns success probability, delay percentiles, risk score, and recommendations. "
+            "Use when users ask 'what if we close Site X', 'should we shut down this site', or site closure impact."
+        ),
+        parameters=types.Schema(
+            type=types.Type.OBJECT,
+            properties={
+                "site_id": types.Schema(
+                    type=types.Type.STRING,
+                    description="Site to simulate closing, e.g. 'Site 468'. Format: 'Site NNN'.",
+                ),
+            },
+            required=["site_id"],
+        ),
+    ),
+    types.FunctionDeclaration(
+        name="simulate_add_resource",
+        description=(
+            "Run a 10,000-iteration Monte Carlo simulation to predict the impact of adding staff resources. "
+            "Models productivity with ramp-up uncertainty, calculates issues resolved in 90 days, timeline improvement, "
+            "6-month cost, and ROI. Resource types: CRA, data_manager, site_coordinator, safety_physician, medical_coder, study_lead. "
+            "Use when users ask 'what if we add more CRAs', 'should we hire staff', 'resource planning'."
+        ),
+        parameters=types.Schema(
+            type=types.Type.OBJECT,
+            properties={
+                "resource_type": types.Schema(
+                    type=types.Type.STRING,
+                    description="Type: 'CRA', 'data_manager', 'site_coordinator', 'safety_physician', 'medical_coder', or 'study_lead'.",
+                ),
+                "count": types.Schema(
+                    type=types.Type.INTEGER,
+                    description="Number of resources to add. Default: 1.",
+                ),
+            },
+            required=["resource_type"],
+        ),
+    ),
+    types.FunctionDeclaration(
+        name="simulate_deadline",
+        description=(
+            "Run a 10,000-iteration Monte Carlo simulation to estimate the probability of meeting a target "
+            "completion date. Uses real pending SDV, open queries, and signature counts from the database "
+            "with DB-derived resolution rates. Returns probability of on-time completion, assessment, "
+            "timeline percentiles, and recommended actions. "
+            "Use when users ask 'can we meet [date]', 'will we finish by [date]', 'deadline feasibility'."
+        ),
+        parameters=types.Schema(
+            type=types.Type.OBJECT,
+            properties={
+                "target_date": types.Schema(
+                    type=types.Type.STRING,
+                    description="Target deadline in YYYY-MM-DD format, e.g. '2025-12-31'.",
+                ),
+            },
+            required=["target_date"],
+        ),
+    ),
+    types.FunctionDeclaration(
+        name="simulate_process_change",
+        description=(
+            "Run a 10,000-iteration Monte Carlo simulation to predict impact of a process improvement. "
+            "Models improvement factor with adoption-rate and implementation-delay uncertainty. "
+            "Returns issues reduced, net days saved, and probability of positive net impact. "
+            "Use when users ask 'what if we implement [process]', 'how much would centralized monitoring help', "
+            "'impact of automated query generation'."
+        ),
+        parameters=types.Schema(
+            type=types.Type.OBJECT,
+            properties={
+                "process_name": types.Schema(
+                    type=types.Type.STRING,
+                    description="Name of the process change, e.g. 'automated query generation', 'risk-based SDV', 'centralized monitoring'.",
+                ),
+                "expected_improvement": types.Schema(
+                    type=types.Type.NUMBER,
+                    description="Expected improvement factor 0.0-1.0 (e.g. 0.15 = 15%). Default: 0.15.",
+                ),
+            },
+            required=["process_name"],
+        ),
+    ),
+    types.FunctionDeclaration(
+        name="simulate_dqi_fix",
+        description=(
+            "Simulate DQI (Data Quality Index) improvement from fixing specific issue types. "
+            "Uses the 8-component DQI model (Safety 25%, Query 20%, Completeness 15%, Coding 12%, "
+            "Lab 10%, SDV 8%, Signature 5%, EDRR 5%) to calculate projected score improvement. "
+            "Issue types: 'open_query', 'missing_visit', 'pending_sae', 'unsigned_form', "
+            "'incomplete_sdv', 'coding_issue', 'lab_issue', 'missing_page', 'protocol_deviation', 'edrr_issue'. "
+            "Use when users ask 'how will DQI improve if we fix queries', 'DQI impact of resolving SAEs', "
+            "'what should we fix to raise DQI'."
+        ),
+        parameters=types.Schema(
+            type=types.Type.OBJECT,
+            properties={
+                "site_id": types.Schema(
+                    type=types.Type.STRING,
+                    description="Optional site ID to scope, e.g. 'Site 468'. Omit for portfolio-wide.",
+                ),
+                "issue_types": types.Schema(
+                    type=types.Type.ARRAY,
+                    items=types.Schema(type=types.Type.STRING),
+                    description="Issue types to fix. Omit to simulate fixing all types.",
+                ),
+            },
+        ),
+    ),
 ]
 
 
@@ -275,15 +394,28 @@ Region mapping: 'EMEA' = Europe + Middle East + Africa; 'ASIA' = Asia-Pacific; '
 SYSTEM_PROMPT = f"""You are the Sanchalak AI Assistant (Zenith V4), an autonomous clinical trial analyst.
 
 You have access to tools that let you query the clinical trial database, run Monte Carlo simulations,
-analyze issue cascades, check model drift, and more. You should use MULTIPLE tools when needed
-to give thorough, data-driven answers.
+analyze issue cascades, check model drift, and run Digital Twin what-if scenarios.
+
+EFFICIENCY RULES — CRITICAL:
+- For simple lookups ("where is Site X", "show me patient Y", "how many patients"),
+  call ONE tool (get_site_details, get_patient_details, or a single run_sql_query)
+  and IMMEDIATELY produce your final answer. Do NOT enrich with follow-up queries
+  unless the user explicitly asks for more detail.
+- Only chain multiple tools for genuinely complex analytical questions that require
+  cross-referencing multiple data sources.
+- After each tool result, ask yourself: "Do I already have enough data to answer?"
+  If yes, STOP calling tools and synthesise your answer.
 
 STRATEGY:
-- For simple data questions: use run_sql_query or get_portfolio_summary
+- Simple data lookups → 1 tool call, then answer
 - For complex analytical questions: chain multiple tools (e.g. SQL → Monte Carlo → cascade analysis)
 - For "why" questions: use cascade analysis + DQI breakdown to find root causes
-- For "when/timeline" questions: use Monte Carlo simulation
+- For "when/timeline" questions: use Monte Carlo simulation or simulate_deadline
 - For "what should we prioritize" questions: combine risk distribution + issue summary + cascade
+- For "what if" questions (Digital Twin): use simulate_site_closure, simulate_add_resource,
+  simulate_process_change, or simulate_deadline
+- For DQI improvement planning: use simulate_dqi_fix to model fix impact, then recommend actions
+- For resource planning: use simulate_add_resource to compare adding different staff types
 
 DATABASE SCHEMA:
 {SCHEMA_CONTEXT}
@@ -297,6 +429,8 @@ RULES:
 6. Always end with actionable recommendations.
 7. If a tool call fails, explain what happened and try an alternative approach.
 8. For multi-part questions, address each part systematically.
+9. MINIMIZE tool calls. Prefer dedicated tools (get_site_details, get_patient_details)
+   over raw SQL when they fit. Answer as soon as you have sufficient data.
 """
 
 
@@ -430,18 +564,19 @@ class ToolExecutor:
     def run_monte_carlo_simulation(self, study_id: str = None) -> Dict[str, Any]:
         logger.info(f"[TOOL] run_monte_carlo_simulation: study_id={study_id}")
         try:
-            # Get current trial state from DB
-            where_clause = f"WHERE p.study_id = '{study_id}'" if study_id else ""
+            # Get current trial state from DB — use REAL counts, not fabricated multipliers
+            where_patient = f"WHERE p.study_id = '{study_id}'" if study_id else ""
+
             sql = f"""
                 SELECT
                     COUNT(*) AS total_patients,
                     SUM(CASE WHEN p.is_clean_patient THEN 1 ELSE 0 END) AS clean_patients,
                     SUM(CASE WHEN p.is_db_lock_ready THEN 1 ELSE 0 END) AS db_lock_ready,
                     SUM(p.open_queries_count) AS total_open_queries,
-                    SUM(CASE WHEN p.pct_missing_visits > 0 THEN 1 ELSE 0 END) AS patients_missing_visits,
-                    ROUND(AVG(p.dqi_score)::numeric, 1) AS avg_dqi
+                    ROUND(AVG(p.dqi_score)::numeric, 1) AS avg_dqi,
+                    COUNT(DISTINCT p.site_id) AS active_sites
                 FROM patients p
-                {where_clause}
+                {where_patient}
             """
             data, err = self._execute_sql_raw(sql)
             if err:
@@ -451,10 +586,26 @@ class ToolExecutor:
             total_patients = int(state_data.get("total_patients", 0))
             open_queries = int(state_data.get("total_open_queries", 0))
             db_lock_ready = int(state_data.get("db_lock_ready", 0))
+            active_sites = int(state_data.get("active_sites", 0))
 
-            # Estimate pending work
-            pending_sdv = max(0, total_patients - db_lock_ready) * 3   # ~3 CRFs per patient needing SDV
-            pending_sigs = max(0, total_patients - db_lock_ready) * 2  # ~2 signatures per patient
+            # Get REAL pending SDV and data-entry counts from visits table
+            # NOTE: visits.patient_key uses different format than patients.patient_key
+            # (PAT-NNNNN vs Study_N|Site NNN|Subject NNNNN) so we can't JOIN.
+            # Query visits directly for portfolio-wide counts.
+            sdv_sql = """
+                SELECT
+                    COALESCE(SUM(CASE WHEN NOT v.sdv_complete THEN 1 ELSE 0 END), 0) AS pending_sdv,
+                    COALESCE(SUM(CASE WHEN NOT v.data_entry_complete THEN 1 ELSE 0 END), 0) AS pending_de
+                FROM visits v
+            """
+            sdv_data, sdv_err = self._execute_sql_raw(sdv_sql)
+            if sdv_err:
+                pending_sdv = 0
+                pending_sigs = 0
+            else:
+                sdv_row = sdv_data[0] if sdv_data else {}
+                pending_sdv = int(sdv_row.get("pending_sdv", 0) or 0)
+                pending_sigs = int(sdv_row.get("pending_de", 0) or 0)
 
             from src.ml.simulation.monte_carlo_engine import MonteCarloEngine, TrialState
             engine = MonteCarloEngine(n_simulations=10000)
@@ -465,6 +616,7 @@ class ToolExecutor:
                 open_queries=open_queries,
                 pending_signatures=pending_sigs,
                 pending_sdv=pending_sdv,
+                active_sites=active_sites,
                 avg_dqi=float(state_data.get("avg_dqi", 75)),
             )
             # Load rates from DB
@@ -478,8 +630,9 @@ class ToolExecutor:
                     "total_patients": total_patients,
                     "db_lock_ready": db_lock_ready,
                     "open_queries": open_queries,
-                    "pending_signatures": pending_sigs,
                     "pending_sdv": pending_sdv,
+                    "pending_signatures": pending_sigs,
+                    "active_sites": active_sites,
                     "avg_dqi": float(state_data.get("avg_dqi", 75)),
                 },
                 "timeline_days": result.to_dict(),
@@ -739,6 +892,416 @@ class ToolExecutor:
             "scope": {"study_id": study_id, "site_id": site_id},
         }
 
+    # ── Digital Twin & What-If Simulation handlers ─────────
+
+    def simulate_site_closure(self, site_id: str) -> Dict[str, Any]:
+        """Simulate closing a clinical site using 10k Monte Carlo iterations."""
+        logger.info(f"[TOOL] simulate_site_closure: {site_id}")
+        try:
+            # Pull real site data from PostgreSQL
+            sql = f"""
+                SELECT cs.site_id, cs.patient_count, cs.performance_score,
+                       cs.dqi_score, cs.risk_level, cs.name, cs.country, cs.region
+                FROM clinical_sites cs
+                WHERE cs.site_id = '{site_id}'
+            """
+            data, err = self._execute_sql_raw(sql)
+            if err:
+                return {"error": err}
+            if not data:
+                return {"error": f"Site {site_id} not found"}
+
+            site = data[0]
+            patient_count = int(site.get("patient_count", 0))
+            perf_score = float(site.get("performance_score") or 50)
+
+            from src.ml.simulation.monte_carlo_engine import MonteCarloEngine
+            engine = MonteCarloEngine(n_simulations=10000)
+
+            result = engine.simulate_site_closure_impact(
+                site_id=site_id,
+                site_patient_count=patient_count,
+                avg_transfer_success_rate=0.85,
+                site_performance_score=perf_score,
+            )
+
+            return {
+                "simulation": f"Site Closure Impact: {site_id}",
+                "site_info": {
+                    "site_id": site.get("site_id"),
+                    "name": site.get("name"),
+                    "country": site.get("country"),
+                    "region": site.get("region"),
+                    "patient_count": patient_count,
+                    "performance_score": perf_score,
+                    "dqi_score": site.get("dqi_score"),
+                    "risk_level": site.get("risk_level"),
+                },
+                "n_simulations": 10000,
+                "results": result.to_dict(),
+            }
+        except Exception as e:
+            logger.error(f"simulate_site_closure failed: {e}\n{traceback.format_exc()}")
+            return {"error": str(e)}
+
+    def simulate_add_resource(self, resource_type: str, count: int = 1) -> Dict[str, Any]:
+        """Simulate impact of adding staff resources using 10k Monte Carlo iterations."""
+        logger.info(f"[TOOL] simulate_add_resource: {resource_type} x{count}")
+        try:
+            import numpy as np
+
+            # Pull real open-issue count from DB
+            sql = """
+                SELECT COUNT(*) AS total_issues,
+                       SUM(CASE WHEN pi.priority = 'critical' THEN 1 ELSE 0 END) AS critical_issues,
+                       SUM(CASE WHEN pi.priority = 'high' THEN 1 ELSE 0 END) AS high_issues
+                FROM project_issues pi
+                WHERE pi.status != 'resolved'
+            """
+            data, err = self._execute_sql_raw(sql)
+            if err:
+                return {"error": err}
+
+            row = data[0] if data else {}
+            total_issues = int(row.get("total_issues", 50000) or 50000)
+
+            # Productivity (issues/day) and cost ($/month) by role
+            RESOURCE_MAP = {
+                "cra":                {"productivity": 8,  "cost": 12000},
+                "data_manager":       {"productivity": 15, "cost": 10000},
+                "site_coordinator":   {"productivity": 5,  "cost": 6000},
+                "safety_physician":   {"productivity": 3,  "cost": 25000},
+                "medical_coder":      {"productivity": 50, "cost": 8000},
+                "study_lead":         {"productivity": 2,  "cost": 18000},
+            }
+
+            key = resource_type.lower().replace(" ", "_")
+            resource = RESOURCE_MAP.get(key, RESOURCE_MAP["cra"])
+            base_prod = resource["productivity"]
+            monthly_cost = resource["cost"] * count
+
+            rng = np.random.default_rng(42)
+            n_sims = 10000
+
+            # Monte Carlo parameters
+            prod_mult = rng.normal(1.0, 0.15, n_sims).clip(0.5, 1.5)
+            ramp_up = rng.triangular(14, 30, 60, n_sims)
+
+            effective_days = 90 - ramp_up * 0.5
+            daily_prod = prod_mult * base_prod * count
+            issues_resolved_90d = daily_prod * effective_days
+
+            # Timeline improvement
+            baseline_daily = 100  # current staff baseline
+            new_daily = baseline_daily + daily_prod
+            current_days_left = total_issues / baseline_daily
+            new_days_left = total_issues / new_daily
+            timeline_improvement = current_days_left - new_days_left
+
+            # ROI
+            cost_6m = monthly_cost * 6
+            value_saved = timeline_improvement * 10000  # $10k/day value
+            roi = value_saved / cost_6m
+
+            avg_roi = float(np.mean(roi))
+            recs = []
+            if avg_roi > 1.5:
+                recs.append(f"Strong ROI of {avg_roi:.1f}x — recommend proceeding with {count} {resource_type}")
+            elif avg_roi > 1.0:
+                recs.append(f"Moderate ROI of {avg_roi:.1f}x — proceed with monitoring")
+            else:
+                recs.append(f"Low ROI of {avg_roi:.1f}x — consider alternatives")
+            recs.append(f"Focus new {resource_type} on highest-cascade-impact sites first")
+
+            return {
+                "simulation": f"Add {count} {resource_type}",
+                "n_simulations": n_sims,
+                "current_open_issues": total_issues,
+                "results": {
+                    "issues_resolved_90d": {
+                        "P10": round(float(np.percentile(issues_resolved_90d, 10))),
+                        "P50": round(float(np.percentile(issues_resolved_90d, 50))),
+                        "P90": round(float(np.percentile(issues_resolved_90d, 90))),
+                        "mean": round(float(np.mean(issues_resolved_90d))),
+                    },
+                    "timeline_improvement_days": {
+                        "P10": round(float(np.percentile(timeline_improvement, 10)), 1),
+                        "P50": round(float(np.percentile(timeline_improvement, 50)), 1),
+                        "P90": round(float(np.percentile(timeline_improvement, 90)), 1),
+                        "mean": round(float(np.mean(timeline_improvement)), 1),
+                    },
+                    "cost_6_months": cost_6m,
+                    "roi": {
+                        "P50": round(float(np.percentile(roi, 50)), 2),
+                        "mean": round(avg_roi, 2),
+                    },
+                    "probability_positive_roi": round(float(np.mean(roi > 1.0)) * 100, 1),
+                },
+                "recommendations": recs,
+            }
+        except Exception as e:
+            logger.error(f"simulate_add_resource failed: {e}\n{traceback.format_exc()}")
+            return {"error": str(e)}
+
+    def simulate_deadline(self, target_date: str) -> Dict[str, Any]:
+        """Simulate probability of meeting a target completion date."""
+        logger.info(f"[TOOL] simulate_deadline: target={target_date}")
+        try:
+            target = datetime.strptime(target_date, "%Y-%m-%d")
+
+            # Get current trial state from DB
+            sql = """
+                SELECT
+                    COUNT(*) AS total_patients,
+                    SUM(CASE WHEN p.is_clean_patient THEN 1 ELSE 0 END) AS clean_patients,
+                    SUM(CASE WHEN p.is_db_lock_ready THEN 1 ELSE 0 END) AS db_lock_ready,
+                    SUM(p.open_queries_count) AS total_open_queries,
+                    ROUND(AVG(p.dqi_score)::numeric, 1) AS avg_dqi,
+                    COUNT(DISTINCT p.site_id) AS active_sites
+                FROM patients p
+            """
+            data, err = self._execute_sql_raw(sql)
+            if err:
+                return {"error": err}
+
+            state = data[0] if data else {}
+
+            # Real pending SDV/signatures from visits table
+            sdv_sql = """
+                SELECT
+                    COALESCE(SUM(CASE WHEN NOT v.sdv_complete THEN 1 ELSE 0 END), 0) AS pending_sdv,
+                    COALESCE(SUM(CASE WHEN NOT v.data_entry_complete THEN 1 ELSE 0 END), 0) AS pending_de
+                FROM visits v
+            """
+            sdv_data, _ = self._execute_sql_raw(sdv_sql)
+            sdv_row = sdv_data[0] if sdv_data else {}
+
+            from src.ml.simulation.monte_carlo_engine import MonteCarloEngine, TrialState
+            engine = MonteCarloEngine(n_simulations=10000)
+
+            trial_state = TrialState(
+                study_id="portfolio",
+                total_patients=int(state.get("total_patients", 0)),
+                db_lock_ready=int(state.get("db_lock_ready", 0)),
+                open_queries=int(state.get("total_open_queries", 0)),
+                pending_signatures=int(sdv_row.get("pending_de", 0) or 0),
+                pending_sdv=int(sdv_row.get("pending_sdv", 0) or 0),
+                active_sites=int(state.get("active_sites", 0)),
+                avg_dqi=float(state.get("avg_dqi", 75)),
+            )
+            trial_state._load_real_rates()
+
+            result = engine.simulate_deadline_probability(trial_state, target)
+
+            return {
+                "simulation": f"Deadline Feasibility: {target_date}",
+                "n_simulations": 10000,
+                "current_state": {
+                    "total_patients": int(state.get("total_patients", 0)),
+                    "db_lock_ready": int(state.get("db_lock_ready", 0)),
+                    "open_queries": int(state.get("total_open_queries", 0)),
+                    "pending_sdv": int(sdv_row.get("pending_sdv", 0) or 0),
+                    "pending_signatures": int(sdv_row.get("pending_de", 0) or 0),
+                },
+                "results": result,
+            }
+        except Exception as e:
+            logger.error(f"simulate_deadline failed: {e}\n{traceback.format_exc()}")
+            return {"error": str(e)}
+
+    def simulate_process_change(self, process_name: str, expected_improvement: float = 0.15) -> Dict[str, Any]:
+        """Simulate impact of a process improvement using 10k Monte Carlo iterations."""
+        logger.info(f"[TOOL] simulate_process_change: {process_name} (improvement={expected_improvement})")
+        try:
+            import numpy as np
+
+            # Pull current open-issue count
+            sql = """
+                SELECT COUNT(*) AS total_issues
+                FROM project_issues pi WHERE pi.status != 'resolved'
+            """
+            data, err = self._execute_sql_raw(sql)
+            if err:
+                return {"error": err}
+            total_issues = int(data[0].get("total_issues", 50000)) if data else 50000
+
+            rng = np.random.default_rng(42)
+            n_sims = 10000
+
+            # Monte Carlo: triangular distributions for uncertain parameters
+            improvement = rng.triangular(
+                expected_improvement * 0.5, expected_improvement, expected_improvement * 1.5, n_sims
+            )
+            adoption_rate = rng.triangular(0.50, 0.80, 1.0, n_sims)
+            impl_delay = rng.triangular(7, 14, 30, n_sims)
+
+            effective_improvement = improvement * adoption_rate
+            issues_reduced = total_issues * effective_improvement
+            days_saved = issues_reduced / 100  # 100 issues/day baseline resolution
+            net_days_saved = days_saved - impl_delay * (1 - adoption_rate)
+
+            avg_eff = float(np.mean(effective_improvement))
+            recs = [
+                f"{'Strong' if avg_eff > 0.10 else 'Modest'} expected improvement of {avg_eff*100:.0f}%",
+                f"Implementation delay: ~{np.mean(impl_delay):.0f} days — plan change management",
+                f"Net days saved (P50): {np.percentile(net_days_saved, 50):.0f} days",
+            ]
+
+            return {
+                "simulation": f"Process Change: {process_name}",
+                "n_simulations": n_sims,
+                "current_open_issues": total_issues,
+                "results": {
+                    "effective_improvement_pct": {
+                        "P10": round(float(np.percentile(effective_improvement * 100, 10)), 1),
+                        "P50": round(float(np.percentile(effective_improvement * 100, 50)), 1),
+                        "P90": round(float(np.percentile(effective_improvement * 100, 90)), 1),
+                        "mean": round(float(np.mean(effective_improvement) * 100), 1),
+                    },
+                    "issues_reduced": {
+                        "P10": round(float(np.percentile(issues_reduced, 10))),
+                        "P50": round(float(np.percentile(issues_reduced, 50))),
+                        "P90": round(float(np.percentile(issues_reduced, 90))),
+                        "mean": round(float(np.mean(issues_reduced))),
+                    },
+                    "net_days_saved": {
+                        "P10": round(float(np.percentile(net_days_saved, 10)), 1),
+                        "P50": round(float(np.percentile(net_days_saved, 50)), 1),
+                        "P90": round(float(np.percentile(net_days_saved, 90)), 1),
+                        "mean": round(float(np.mean(net_days_saved)), 1),
+                    },
+                    "probability_net_positive": round(float(np.mean(net_days_saved > 0)) * 100, 1),
+                },
+                "recommendations": recs,
+            }
+        except Exception as e:
+            logger.error(f"simulate_process_change failed: {e}\n{traceback.format_exc()}")
+            return {"error": str(e)}
+
+    def simulate_dqi_fix(self, site_id: str = None, issue_types: list = None) -> Dict[str, Any]:
+        """Simulate DQI improvement from fixing specific issue types."""
+        logger.info(f"[TOOL] simulate_dqi_fix: site_id={site_id}, issues={issue_types}")
+        try:
+            # 8-component DQI model weights
+            DQI_WEIGHTS = {
+                "safety": 0.25, "query": 0.20, "completeness": 0.15,
+                "coding": 0.12, "lab": 0.10, "sdv": 0.08,
+                "signature": 0.05, "edrr": 0.05,
+            }
+
+            # Issue type → (DQI component, penalty per issue)
+            ISSUE_MAP = {
+                "open_query":        ("query",        3.0),
+                "missing_visit":     ("completeness", 8.0),
+                "pending_sae":       ("safety",      15.0),
+                "unsigned_form":     ("signature",    5.0),
+                "incomplete_sdv":    ("sdv",          4.0),
+                "coding_issue":      ("coding",       5.0),
+                "lab_issue":         ("lab",         10.0),
+                "missing_page":      ("completeness", 6.0),
+                "protocol_deviation":("safety",       8.0),
+                "edrr_issue":        ("edrr",         7.0),
+            }
+
+            fix_types = issue_types if issue_types else list(ISSUE_MAP.keys())
+
+            # Pull current DQI and issue metrics from DB
+            where = f"WHERE p.site_id = '{site_id}'" if site_id else ""
+            sql = f"""
+                SELECT
+                    ROUND(AVG(p.dqi_score)::numeric, 2) AS current_dqi,
+                    COUNT(*) AS patient_count,
+                    ROUND(AVG(p.open_queries_count)::numeric, 2) AS avg_open_queries,
+                    ROUND(AVG(p.open_issues_count)::numeric, 2) AS avg_open_issues,
+                    ROUND(AVG(p.pct_missing_visits)::numeric, 2) AS avg_missing_visits,
+                    ROUND(AVG(p.pct_missing_pages)::numeric, 2) AS avg_missing_pages,
+                    SUM(CASE WHEN p.has_sae THEN 1 ELSE 0 END) AS patients_with_sae,
+                    SUM(p.sae_count) AS total_saes
+                FROM patients p {where}
+            """
+            data, err = self._execute_sql_raw(sql)
+            if err:
+                return {"error": err}
+
+            row = data[0] if data else {}
+            current_dqi = float(row.get("current_dqi") or 75)
+            patient_count = int(row.get("patient_count") or 0)
+            avg_queries = float(row.get("avg_open_queries") or 0)
+            avg_issues = float(row.get("avg_open_issues") or 0)
+            avg_missing_visits = float(row.get("avg_missing_visits") or 0)
+            total_saes = float(row.get("total_saes") or 0)
+
+            # Estimate per-issue count and calculate penalty relief per component
+            component_improvement = {}
+            fix_details = []
+            for issue_type in fix_types:
+                if issue_type not in ISSUE_MAP:
+                    continue
+                component, penalty_per = ISSUE_MAP[issue_type]
+                weight = DQI_WEIGHTS.get(component, 0.10)
+
+                # Estimate avg count per patient for this issue type
+                if issue_type == "open_query":
+                    est_count = avg_queries
+                elif issue_type == "missing_visit":
+                    est_count = avg_missing_visits * 5
+                elif issue_type == "missing_page":
+                    est_count = float(row.get("avg_missing_pages") or 0) * 3
+                elif issue_type == "pending_sae":
+                    est_count = total_saes / max(patient_count, 1) * 0.3
+                elif issue_type == "protocol_deviation":
+                    est_count = avg_issues * 0.15
+                else:
+                    est_count = avg_issues * 0.12
+
+                improvement = min(weight * 100, est_count * penalty_per * weight)
+                component_improvement.setdefault(component, 0.0)
+                component_improvement[component] += improvement
+                fix_details.append({
+                    "issue_type": issue_type,
+                    "component": component,
+                    "estimated_improvement": round(improvement, 2),
+                })
+
+            total_improvement = sum(component_improvement.values())
+            projected_dqi = min(100, current_dqi + total_improvement)
+
+            # Build component breakdown
+            breakdown = {}
+            for comp, imp in component_improvement.items():
+                breakdown[comp] = {
+                    "weight": f"{DQI_WEIGHTS.get(comp, 0) * 100:.0f}%",
+                    "improvement": round(imp, 2),
+                }
+
+            # Recommendations
+            recs = []
+            if component_improvement:
+                best = max(component_improvement, key=component_improvement.get)
+                recs.append(f"Biggest DQI gain: fixing {best} issues (+{component_improvement[best]:.1f} pts)")
+            if total_improvement > 5:
+                recs.append(f"Significant DQI uplift possible (+{total_improvement:.1f} pts)")
+            elif total_improvement > 1:
+                recs.append(f"Moderate DQI uplift (+{total_improvement:.1f} pts) — target remaining bottlenecks")
+            else:
+                recs.append(f"Minimal DQI uplift (+{total_improvement:.1f} pts) — broader intervention needed")
+
+            return {
+                "simulation": "DQI Improvement Simulation",
+                "scope": {"site_id": site_id or "all_sites", "patient_count": patient_count},
+                "current_dqi": current_dqi,
+                "projected_dqi": round(projected_dqi, 2),
+                "total_improvement": round(total_improvement, 2),
+                "issues_fixed": fix_types,
+                "fix_details": fix_details,
+                "component_breakdown": breakdown,
+                "dqi_weights": DQI_WEIGHTS,
+                "recommendations": recs,
+            }
+        except Exception as e:
+            logger.error(f"simulate_dqi_fix failed: {e}\n{traceback.format_exc()}")
+            return {"error": str(e)}
+
     # ── Dispatch ─────────────────────────────────────────────
 
     def execute(self, function_name: str, args: Dict[str, Any]) -> Dict[str, Any]:
@@ -763,7 +1326,7 @@ class AgentOrchestratorV4:
     The LLM autonomously decides which tools to call and chains them.
     """
 
-    MAX_TOOL_ROUNDS = 6  # Safety limit on tool-call rounds
+    MAX_TOOL_ROUNDS = 4  # Safety limit — simple queries should finish in 1-2 rounds
 
     def __init__(self):
         config = get_config()
@@ -1033,6 +1596,16 @@ class AgentOrchestratorV4:
             recs.append({"action": "Review the P50/P90 timeline estimates and plan resource allocation accordingly", "impact": "High"})
         if "get_cascade_analysis" in tools_used:
             recs.append({"action": "Address highest-cascade-impact issues first for maximum downstream benefit", "impact": "High"})
+        if "simulate_site_closure" in tools_used:
+            recs.append({"action": "Evaluate patient transfer logistics before finalizing site closure decision", "impact": "High"})
+        if "simulate_add_resource" in tools_used:
+            recs.append({"action": "Compare ROI across resource types before committing to hiring", "impact": "High"})
+        if "simulate_deadline" in tools_used:
+            recs.append({"action": "If probability < 70%, escalate and consider resource augmentation or scope reduction", "impact": "High"})
+        if "simulate_process_change" in tools_used:
+            recs.append({"action": "Build a change management plan to maximize adoption rate", "impact": "Medium"})
+        if "simulate_dqi_fix" in tools_used:
+            recs.append({"action": "Prioritize the component with largest projected DQI improvement", "impact": "High"})
         if confidence < 0.70:
             recs.append({"action": "Cross-check findings manually — confidence is below threshold", "impact": "High"})
         if not recs:

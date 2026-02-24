@@ -97,52 +97,102 @@ class TrialState:
     _rates_loaded: bool = False
     
     def _load_real_rates(self):
-        """Load real daily completion rates from cpid_edc_metrics data via PostgreSQL."""
+        """Load real daily completion rates derived from queries, visits, and patients tables.
+        
+        Rates represent portfolio-wide daily throughput (all sites combined).
+        Derivation:
+          - Query rate: from queries table (resolved / avg_age) scaled by active sites
+          - SDV rate: from visits table (completed SDVs / date span) scaled by active sites
+          - Signature rate: from visits data_entry_complete over same span
+        """
         if self._rates_loaded:
             return
-            
+
         try:
             from src.database.connection import get_db_manager
             db = get_db_manager()
-            
+
             with db.engine.connect() as conn:
-                # Get real daily rates from EDC metrics
-                query = """
-                    SELECT 
-                        COALESCE(AVG(query_resolutions_per_day), 12.0) as query_rate,
-                        COALESCE(STDDEV(query_resolutions_per_day), 3.0) as query_std,
-                        COALESCE(AVG(signature_completions_per_day), 8.0) as sig_rate,
-                        COALESCE(STDDEV(signature_completions_per_day), 2.5) as sig_std,
-                        COALESCE(AVG(sdv_completions_per_day), 15.0) as sdv_rate,
-                        COALESCE(STDDEV(sdv_completions_per_day), 4.0) as sdv_std
-                    FROM cpid_edc_metrics
-                    WHERE study_id = :study_id OR :study_id IS NULL
-                """
-                import pandas as pd
-                result = pd.read_sql(text(query), conn, params={'study_id': self.study_id if self.study_id != 'unknown' else None})
-                
-                if not result.empty:
-                    row = result.iloc[0]
-                    self.query_resolution_rate = float(row['query_rate'])
-                    self.query_rate_std = float(row['query_std'])
-                    self.signature_completion_rate = float(row['sig_rate'])
-                    self.signature_rate_std = float(row['sig_std'])
-                    self.sdv_completion_rate = float(row['sdv_rate'])
-                    self.sdv_rate_std = float(row['sdv_std'])
-                    
-                    logger.info(f"Loaded real rates from DB: query={self.query_resolution_rate:.1f}/day, "
-                               f"sig={self.signature_completion_rate:.1f}/day, sdv={self.sdv_completion_rate:.1f}/day")
-                    
+                # ── Count active sites for parallelism scaling ─────────
+                site_r = conn.execute(text("""
+                    SELECT COUNT(DISTINCT site_id) FROM clinical_sites
+                """))
+                active_sites = max(1, int(site_r.scalar() or 1))
+
+                # ── Query resolution rate ──────────────────────────────
+                # Queries answered per day: (answered count / avg_age_days) × site_parallelism
+                qr = conn.execute(text("""
+                    SELECT
+                        COUNT(*) AS resolved,
+                        COALESCE(AVG(q.age_days), 1) AS avg_age,
+                        COALESCE(STDDEV(q.age_days), 3) AS std_age
+                    FROM queries q
+                    WHERE q.status IN ('answered', 'closed')
+                """))
+                qrow = qr.fetchone()
+                resolved_count = float(qrow[0]) if qrow and qrow[0] else 0
+                avg_age = max(1.0, float(qrow[1]) if qrow and qrow[1] else 1.0)
+                std_age = float(qrow[2]) if qrow and qrow[2] else 3.0
+
+                if resolved_count > 0:
+                    # Per-site daily resolution rate, then scale by sites
+                    per_site_qrate = resolved_count / avg_age
+                    # Scale up: each site resolves queries independently
+                    self.query_resolution_rate = round(per_site_qrate * (active_sites / max(1, resolved_count / max(1, per_site_qrate))), 1)
+                    self.query_resolution_rate = max(5.0, self.query_resolution_rate)
+                    self.query_rate_std = round(std_age / avg_age * self.query_resolution_rate, 1)
+                else:
+                    self.query_resolution_rate = 12.0
+                    self.query_rate_std = 3.0
+
+                # ── SDV completion rate ────────────────────────────────
+                # SDVs completed over date span, scaled proportionally
+                vr = conn.execute(text("""
+                    SELECT
+                        COUNT(*) AS total_visits,
+                        SUM(CASE WHEN v.sdv_complete THEN 1 ELSE 0 END) AS sdv_done,
+                        SUM(CASE WHEN v.data_entry_complete THEN 1 ELSE 0 END) AS de_done,
+                        EXTRACT(DAY FROM MAX(v.actual_date) - MIN(v.actual_date)) AS date_span
+                    FROM visits v
+                    WHERE v.actual_date IS NOT NULL
+                """))
+                vrow = vr.fetchone()
+                total_visits = float(vrow[0]) if vrow and vrow[0] else 0
+                sdv_done = float(vrow[1]) if vrow and vrow[1] else 0
+                de_done = float(vrow[2]) if vrow and vrow[2] else 0
+                date_span = max(1.0, float(vrow[3]) if vrow and vrow[3] else 1.0)
+
+                if sdv_done > 0:
+                    self.sdv_completion_rate = max(3.0, round(sdv_done / date_span * active_sites, 1))
+                    self.sdv_rate_std = round(self.sdv_completion_rate * 0.25, 1)
+                else:
+                    self.sdv_completion_rate = 15.0
+                    self.sdv_rate_std = 4.0
+
+                # ── Signature / data-entry completion rate ─────────────
+                if de_done > 0:
+                    self.signature_completion_rate = max(2.0, round(de_done / date_span * active_sites, 1))
+                    self.signature_rate_std = round(self.signature_completion_rate * 0.3, 1)
+                else:
+                    self.signature_completion_rate = 8.0
+                    self.signature_rate_std = 2.5
+
+                logger.info(
+                    f"Loaded real rates from DB ({active_sites} sites): "
+                    f"query={self.query_resolution_rate}/day, "
+                    f"sig={self.signature_completion_rate}/day, "
+                    f"sdv={self.sdv_completion_rate}/day"
+                )
+
         except Exception as e:
-            logger.warning(f"Could not load real rates from DB: {e}. Using industry defaults.")
-            # Industry benchmark defaults - documented source
+            logger.warning(f"Could not derive rates from DB: {e}. Using industry defaults.")
             self.query_resolution_rate = 12.0
             self.query_rate_std = 3.0
             self.signature_completion_rate = 8.0
             self.signature_rate_std = 2.5
             self.sdv_completion_rate = 15.0
             self.sdv_rate_std = 4.0
-            
+
         self._rates_loaded = True
     
     @classmethod
@@ -191,12 +241,12 @@ class MonteCarloEngine:
         Run Monte Carlo simulation for DB Lock timeline.
         
         Simulates:
-        - Query resolution rate: Normal(mean=12/day, std=3)
-        - Signature completion: Beta(alpha=85, beta=15) scaled to rate
-        - Issue resolution: Exponential(lambda=0.1)
+        - Query/SDV/Signature rates: Log-normal distribution (CV capped at 40%)
+        - Issue resolution delays: Exponential(mean=2 days)
+        - Weekend/holiday adjustment: ×1.4
         
         Returns:
-            Distribution with P10, P25, P50, P75, P90 timeline estimates
+            Distribution with P10, P25, P50, P75, P90 timeline estimates (days)
         """
         logger.info(f"Running {self.n_simulations} Monte Carlo simulations for DB Lock timeline")
         
@@ -222,22 +272,34 @@ class MonteCarloEngine:
         
         for _ in range(self.n_simulations):
             # Sample daily rates from distributions
-            # Query resolution: Normal distribution, clipped to positive
-            query_rate = max(1, self._rng.normal(
+            # Use log-normal for rates to avoid nonsensical near-zero draws
+            # Convert (mean, std) → log-normal params: mu = ln(mean), sigma capped at CV ≤ 40%
+            def _sample_rate(mean_rate, std_rate):
+                """Sample a positive daily rate from log-normal distribution."""
+                if mean_rate <= 0:
+                    return 1.0
+                cv = min(0.4, std_rate / mean_rate)  # cap coefficient of variation at 40%
+                sigma = np.sqrt(np.log(1 + cv ** 2))
+                mu = np.log(mean_rate) - 0.5 * sigma ** 2
+                return max(1.0, float(self._rng.lognormal(mu, sigma)))
+
+            # Query resolution rate
+            query_rate = _sample_rate(
                 current_state.query_resolution_rate,
                 current_state.query_rate_std
-            ))
+            )
             
-            # Signature completion: Beta distribution (skewed towards completion)
-            # Beta(85, 15) gives mean ~0.85, multiply by base rate
-            sig_factor = self._rng.beta(85, 15)
-            sig_rate = max(1, sig_factor * current_state.signature_completion_rate * 1.5)
+            # Signature completion rate
+            sig_rate = _sample_rate(
+                current_state.signature_completion_rate,
+                current_state.signature_rate_std
+            )
             
-            # SDV completion: Slight gamma for occasional delays
-            sdv_rate = max(1, self._rng.gamma(
-                shape=current_state.sdv_completion_rate,
-                scale=1.0
-            ))
+            # SDV completion rate
+            sdv_rate = _sample_rate(
+                current_state.sdv_completion_rate,
+                current_state.sdv_rate_std
+            )
             
             # Calculate days for each work stream
             days_queries = remaining_queries / query_rate if remaining_queries > 0 else 0
